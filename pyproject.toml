@@ -1,0 +1,108 @@
+[tool.poetry]
+name = "melody.kit"
+version = "0.1.0"
+description = "An API for MelodyKit."
+authors = ["MelodyKit"]
+license = "MIT"
+
+readme = "README.md"
+
+homepage = "https://melodykit.app/"
+repository = "https://github.com/MelodyKit/melody.kit"
+
+keywords = ["python", "api", "kit"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[tool.poetry.urls]
+Discord = "https://melodykit.app/discord"
+Issues = "https://github.com/MelodyKit/melody.kit/issues"
+
+[[tool.poetry.packages]]
+include = "melody"
+
+[tool.poetry.scripts]
+"melody.kit" = "melody.kit.main:kit"
+
+[tool.poetry.dependencies]
+python = ">= 3.7"
+aiohttp = ">= 3.8.1"
+click = ">= 8.1.3"
+edgedb = ">= 0.24.0"
+entrypoint = ">= 1.3.0"
+
+[tool.poetry.group.format]
+optional = true
+
+[tool.poetry.group.format.dependencies]
+black = "22.6.0"
+
+[tool.poetry.group.format.dependencies.isort]
+version = "5.10.1"
+python = "^3.7"
+
+[tool.poetry.group.check]
+optional = true
+
+[tool.poetry.group.check.dependencies]
+mypy = "0.971"
+
+[tool.black]
+line_length = 100
+
+[tool.isort]
+line_length = 100
+profile = "black"
+
+[tool.mypy]
+show_column_numbers = true
+
+disallow_any_decorated = true
+disallow_any_generics = true
+warn_return_any = true
+
+no_implicit_optional = true
+strict_optional = true
+
+strict_equality = true
+
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_untyped_decorators = true
+disallow_untyped_globals = true
+
+disallow_incomplete_defs = true
+
+warn_no_return = true
+warn_unreachable = true
+
+warn_redundant_casts = true
+warn_unused_ignores = false  # compatibility
+
+[tool.changelog]
+name = "melody.kit"
+version = "0.1.0"
+url = "https://github.com/MelodyKit/melody.kit"
+directory = "changes"
+output = "CHANGELOG.md"
+
+start_string = "<!-- changelog: start -->"
+
+title_format = "{version} ({date})"
+issue_format = "[#{issue}]({url}/pull/{issue})"
+
+bullet = "-"
+wrap = true
+wrap_size = 100
+
+display = ["feature", "change", "fix", "security", "deprecation", "removal", "internal"]
+
+[build-system]
+requires = ["poetry-core >= 1.1.0rc3"]
+build-backend = "poetry.core.masonry.api"
