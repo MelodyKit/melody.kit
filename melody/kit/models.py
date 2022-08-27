@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from typing import List, Optional
 from uuid import UUID
 
@@ -15,8 +15,6 @@ class Base:
 
     name: str
 
-    created_at: datetime
-
     spotify_id: Optional[str]
     apple_music_id: Optional[int]
     yandex_music_id: Optional[int]
@@ -26,6 +24,8 @@ class Base:
 class Track(Base):
     artists: List[Artist] = field()
     albums: List[Album] = field(factory=list)
+
+    genres: List[str] = field(factory=list)
 
 
 @define()

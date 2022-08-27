@@ -1,12 +1,8 @@
-CREATE MIGRATION m1rx4mpybvny5qn53japajozyymwux3xqp5o45srjpdvszd4az64iq
+CREATE MIGRATION m1qcjxgeurqtvlyr25m7sgzmpfm2rlysb5quannimqqu4xhvockdlq
     ONTO initial
 {
   CREATE TYPE default::Base {
       CREATE PROPERTY apple_music_id -> std::bigint;
-      CREATE REQUIRED PROPERTY created_at -> std::datetime {
-          SET default := (std::datetime_current());
-          SET readonly := true;
-      };
       CREATE REQUIRED PROPERTY name -> std::str;
       CREATE PROPERTY spotify_id -> std::str;
       CREATE PROPERTY yandex_music_id -> std::bigint;
