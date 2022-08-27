@@ -2,17 +2,18 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from typing import List, Optional
+from uuid import UUID
 
 from attrs import define, field
-from yarl import URL
 
 __all__ = ("Base", "Track", "Artist", "Album", "Playlist", "User")
 
 
 @define()
 class Base:
+    id: UUID
+
     name: str
-    image: URL
 
     created_at: datetime
 

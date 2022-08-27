@@ -1,7 +1,6 @@
 module default {
     type Base {
         required property name -> str;
-        required property image -> str;
 
         required property created_at -> datetime {
             default := datetime_current();
@@ -16,11 +15,17 @@ module default {
     type Track extending Base {
         required multi link artists -> Artist;
 
+        required property genres -> array<str> {
+            default := <array<str>>[];
+        };
+
         multi link albums := .<tracks[is Album];
     }
 
     type Artist extending Base {
-        required property genres -> array<str>;
+        required property genres -> array<str> {
+            default := <array<str>>[];
+        };
 
         multi link tracks := .<artists[is Track];
         multi link albums := .<artists[is Album];
@@ -32,7 +37,10 @@ module default {
 
         required property album_type -> str;
         required property release_date -> cal::local_date;
-        required property genres -> array<str>;
+
+        required property genres -> array<str> {
+            default := <array<str>>[];
+        };
 
         required property label -> str;
 
