@@ -171,13 +171,32 @@ class Album(PartialAlbum):
         )
 
 
+PP = TypeVar("PP", bound="PartialPlaylist")
+
+
+@define()
+class PartialPlaylist(Base):
+    tracks: List[Track] = field(factory=list)
+
+    @classmethod
+    def from_object(cls: Type[PP], object: Object) -> PP:
+        return cls(
+            id=object.id,
+            name=object.name,
+            spotify_id=object.spotify_id,
+            apple_music_id=object.apple_music_id,
+            yandex_music_id=object.yandex_music_id,
+            tracks=list(map(Track.from_object, object.tracks)),
+        )
+
+
 P = TypeVar("P", bound="Playlist")
 
 
 @define()
 class Playlist(Base):
     user: PartialUser = field()
-    tracks: List[PartialTrack] = field(factory=list)
+    tracks: List[Track] = field(factory=list)
 
     @classmethod
     def from_object(cls: Type[P], object: Object) -> P:
@@ -188,7 +207,7 @@ class Playlist(Base):
             apple_music_id=object.apple_music_id,
             yandex_music_id=object.yandex_music_id,
             user=PartialUser.from_object(object.user),
-            tracks=list(map(PartialTrack.from_object, object.tracks)),
+            tracks=list(map(Track.from_object, object.tracks)),
         )
 
 
@@ -204,7 +223,7 @@ U = TypeVar("U", bound="User")
 class User(PartialUser):
     tracks: List[Track] = field(factory=list)
     albums: List[Album] = field(factory=list)
-    playlists: List[Playlist] = field(factory=list)
+    playlists: List[PartialPlaylist] = field(factory=list)
 
     @classmethod
     def from_object(cls: Type[U], object: Object) -> U:
@@ -216,5 +235,5 @@ class User(PartialUser):
             yandex_music_id=object.yandex_music_id,
             tracks=list(map(Track.from_object, object.tracks)),
             albums=list(map(Album.from_object, object.albums)),
-            playlists=list(map(Playlist.from_object, object.playlists)),
+            playlists=list(map(PartialPlaylist.from_object, object.playlists)),
         )
