@@ -1,5 +1,5 @@
 module default {
-    type Base {
+    abstract type Base {
         required property name -> str;
 
         property spotify_id -> str;
@@ -48,6 +48,10 @@ module default {
     }
 
     type User extending Base {
+        multi link tracks -> Track;
+        multi link albums -> Album;
+        multi link playlists -> Playlist;
+
         required property email -> str {
             constraint exclusive;
         };

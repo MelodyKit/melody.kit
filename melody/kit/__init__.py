@@ -9,14 +9,29 @@ __license__ = "MIT"
 __version__ = "0.1.0"
 
 from melody.kit.client import Client
-from melody.kit.models import Album, Artist, Base, Playlist, Track, User
+from melody.kit.models import (
+    Album,
+    Artist,
+    Base,
+    PartialAlbum,
+    PartialArtist,
+    PartialTrack,
+    PartialUser,
+    Playlist,
+    Track,
+    User,
+)
 
 __all__ = (
     "Client",
     "Base",
+    "PartialTrack",
     "Track",
+    "PartialArtist",
     "Artist",
+    "PartialAlbum",
     "Album",
     "Playlist",
+    "PartialUser",
     "User",
 )
