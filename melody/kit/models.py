@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from typing import List, Optional, Type, TypeVar
+from typing_extensions import TypedDict
 from uuid import UUID
 
 from edgedb import Object
@@ -26,6 +27,16 @@ __all__ = (
 B = TypeVar("B", bound="Base")
 
 
+class BaseData(TypedDict):
+    id: str
+
+    name: str
+
+    spotify_id: Optional[str]
+    apple_music_id: Optional[int]
+    yandex_music_id: Optional[int]
+
+
 @define()
 class Base:
     id: UUID
@@ -46,6 +57,19 @@ class Base:
             yandex_music_id=object.yandex_music_id,
         )
 
+    def to_json(self) -> BaseData:
+        return BaseData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+        )
+
+
+class PartialTrackData(BaseData):
+    artists: List[PartialArtistData]
+
 
 PT = TypeVar("PT", bound="PartialTrack")
 
@@ -64,6 +88,22 @@ class PartialTrack(Base):
             yandex_music_id=object.yandex_music_id,
             artists=[PartialArtist.from_object(artist) for artist in object.artists],
         )
+
+    def to_json(self) -> PartialTrackData:
+        return PartialTrackData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            artists=[artist.to_json() for artist in self.artists],
+        )
+
+
+class TrackData(PartialTrackData):
+    albums: List[PartialAlbumData]
+
+    genres: List[str]
 
 
 T = TypeVar("T", bound="Track")
@@ -88,10 +128,33 @@ class Track(PartialTrack):
             genres=object.genres,
         )
 
+    def to_json(self) -> TrackData:
+        return TrackData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            artists=[artist.to_json() for artist in self.artists],
+            albums=[album.to_json() for album in self.albums],
+            genres=self.genres,
+        )
+
+
+class PartialArtistData(BaseData):
+    pass
+
 
 @define()
 class PartialArtist(Base):
     pass
+
+
+class ArtistData(PartialArtistData):
+    genres: List[str]
+
+    tracks: List[PartialTrackData]
+    albums: List[PartialAlbumData]
 
 
 AT = TypeVar("AT", bound="Artist")
@@ -117,6 +180,25 @@ class Artist(PartialArtist):
             albums=list(map(PartialAlbum.from_object, object.albums)),
         )
 
+    def to_json(self) -> ArtistData:
+        return ArtistData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            genres=self.genres,
+            tracks=[track.to_json() for track in self.tracks],
+            albums=[album.to_json() for album in self.albums],
+        )
+
+
+class PartialAlbumData(BaseData):
+    album_type: str
+    release_date: str
+
+    track_count: int
+
 
 PA = TypeVar("PA", bound="PartialAlbum")
 
@@ -140,6 +222,27 @@ class PartialAlbum(Base):
             release_date=object.release_date,
             track_count=object.track_count,
         )
+
+    def to_json(self) -> PartialAlbumData:
+        return PartialAlbumData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            album_type=self.album_type,
+            release_date=self.release_date.isoformat(),
+            track_count=self.track_count,
+        )
+
+
+class AlbumData(PartialAlbumData):
+    label: str
+
+    genres: List[str]
+
+    artists: List[PartialArtistData]
+    tracks: List[PartialTrackData]
 
 
 A = TypeVar("A", bound="Album")
@@ -171,6 +274,26 @@ class Album(PartialAlbum):
             tracks=list(map(PartialTrack.from_object, object.tracks)),
         )
 
+    def to_json(self) -> AlbumData:
+        return AlbumData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            album_type=self.album_type,
+            release_date=self.release_date.isoformat(),
+            track_count=self.track_count,
+            label=self.label,
+            genres=self.genres,
+            artists=[artist.to_json() for artist in self.artists],
+            tracks=[track.to_json() for track in self.tracks],
+        )
+
+
+class PartialPlaylistData(BaseData):
+    tracks: List[TrackData]
+
 
 PP = TypeVar("PP", bound="PartialPlaylist")
 
@@ -190,12 +313,26 @@ class PartialPlaylist(Base):
             tracks=list(map(Track.from_object, object.tracks)),
         )
 
+    def to_json(self) -> PartialPlaylistData:
+        return PartialPlaylistData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            tracks=[track.to_json() for track in self.tracks],
+        )
+
+
+class PlaylistData(PartialPlaylistData):
+    user: PartialUserData
+
 
 P = TypeVar("P", bound="Playlist")
 
 
 @define()
-class Playlist(Base):
+class Playlist(PartialPlaylist):
     user: PartialUser = field()
     tracks: List[Track] = field(factory=list)
 
@@ -211,10 +348,32 @@ class Playlist(Base):
             tracks=list(map(Track.from_object, object.tracks)),
         )
 
+    def to_json(self) -> PlaylistData:
+        return PlaylistData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            tracks=[track.to_json() for track in self.tracks],
+            user=self.user.to_json(),
+        )
+
+
+class PartialUserData(BaseData):
+    pass
+
 
 @define()
 class PartialUser(Base):
     pass
+
+
+class UserData(PartialUserData):
+    tracks: List[TrackData]
+    albums: List[AlbumData]
+    artists: List[PartialArtistData]
+    playlists: List[PartialPlaylistData]
 
 
 U = TypeVar("U", bound="User")
@@ -224,6 +383,7 @@ U = TypeVar("U", bound="User")
 class User(PartialUser):
     tracks: List[Track] = field(factory=list)
     albums: List[Album] = field(factory=list)
+    artists: List[PartialArtist] = field(factory=list)
     playlists: List[PartialPlaylist] = field(factory=list)
 
     @classmethod
@@ -236,5 +396,20 @@ class User(PartialUser):
             yandex_music_id=object.yandex_music_id,
             tracks=list(map(Track.from_object, object.tracks)),
             albums=list(map(Album.from_object, object.albums)),
+            artists=list(map(PartialArtist.from_object, object.artists)),
             playlists=list(map(PartialPlaylist.from_object, object.playlists)),
         )
+
+    def to_json(self) -> UserData:
+        return UserData(
+            id=str(self.id),
+            name=self.name,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            tracks=[track.to_json() for track in self.tracks],
+            albums=[album.to_json() for album in self.albums],
+            artists=[artist.to_json() for artist in self.artists],
+            playlists=[playlist.to_json() for playlist in self.playlists],
+        )
+

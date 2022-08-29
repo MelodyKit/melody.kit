@@ -50,6 +50,7 @@ module default {
     type User extending Base {
         multi link tracks -> Track;
         multi link albums -> Album;
+        multi link artists -> Artist;
         multi link playlists -> Playlist;
 
         required property email -> str {
