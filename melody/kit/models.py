@@ -16,6 +16,7 @@ __all__ = (
     "Artist",
     "PartialAlbum",
     "Album",
+    "PartialPlaylist",
     "Playlist",
     "PartialUser",
     "User",
