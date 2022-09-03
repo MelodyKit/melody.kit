@@ -5,7 +5,7 @@ from typing import List, Optional, Type, TypeVar
 from typing_extensions import TypedDict
 from uuid import UUID
 
-from edgedb import Object
+from edgedb import Object  # type: ignore
 
 from attrs import define, field
 
@@ -412,4 +412,3 @@ class User(PartialUser):
             artists=[artist.to_json() for artist in self.artists],
             playlists=[playlist.to_json() for playlist in self.playlists],
         )
-
