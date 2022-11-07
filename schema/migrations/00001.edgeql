@@ -1,7 +1,8 @@
-CREATE MIGRATION m1qcjxgeurqtvlyr25m7sgzmpfm2rlysb5quannimqqu4xhvockdlq
+CREATE MIGRATION m135a6vwvz7w7brscexjwri3u4wklmta2miq2lpu2mpy5iroypbcrq
     ONTO initial
 {
-  CREATE TYPE default::Base {
+  CREATE FUTURE nonrecursive_access_policies;
+  CREATE ABSTRACT TYPE default::Base {
       CREATE PROPERTY apple_music_id -> std::bigint;
       CREATE REQUIRED PROPERTY name -> std::str;
       CREATE PROPERTY spotify_id -> std::str;
@@ -41,17 +42,23 @@ CREATE MIGRATION m1qcjxgeurqtvlyr25m7sgzmpfm2rlysb5quannimqqu4xhvockdlq
   ALTER TYPE default::Track {
       CREATE MULTI LINK albums := (.<tracks[IS default::Album]);
   };
-  ALTER TYPE default::Artist {
-      CREATE MULTI LINK tracks := (.<artists[IS default::Track]);
-  };
   CREATE TYPE default::User EXTENDING default::Base {
+      CREATE MULTI LINK albums -> default::Album;
+      CREATE MULTI LINK artists -> default::Artist;
+      CREATE MULTI LINK tracks -> default::Track;
       CREATE REQUIRED PROPERTY email -> std::str {
           CREATE CONSTRAINT std::exclusive;
       };
       CREATE REQUIRED PROPERTY password -> std::str;
   };
+  ALTER TYPE default::Artist {
+      CREATE MULTI LINK tracks := (.<artists[IS default::Track]);
+  };
   CREATE TYPE default::Playlist EXTENDING default::Base {
       CREATE MULTI LINK tracks -> default::Track;
       CREATE REQUIRED LINK user -> default::User;
+  };
+  ALTER TYPE default::User {
+      CREATE MULTI LINK playlists -> default::Playlist;
   };
 };

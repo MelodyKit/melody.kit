@@ -5,7 +5,6 @@ module default {
         property spotify_id -> str;
         property apple_music_id -> bigint;
         property yandex_music_id -> bigint;
-        property youtube_music_id -> str;
     }
 
     type Track extending Base {
