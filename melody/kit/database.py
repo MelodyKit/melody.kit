@@ -5,42 +5,46 @@ from edgedb import AsyncIOClient, create_async_client  # type: ignore
 
 from melody.kit.models import Track
 
-__all__ = ("Client",)
+__all__ = ("Database",)
 
 TRACK = """
 select Track {
     id,
     name,
-    spotify_id,
-    apple_music_id,
-    yandex_music_id,
-    genres,
     artists: {
         id,
         name,
+        created_at,
         spotify_id,
         apple_music_id,
         yandex_music_id
     },
-    albums: {
+    album: {
         id,
         name,
-        spotify_id,
-        apple_music_id,
-        yandex_music_id,
         album_type,
         release_date,
-        track_count
-    }
+        track_count,
+        created_at,
+        spotify_id,
+        apple_music_id,
+        yandex_music_id
+    },
+    explicit,
+    genres,
+    created_at,
+    spotify_id,
+    apple_music_id,
+    yandex_music_id
 } filter .id = <uuid>$id;
 """
 
 
 @define()
-class Client:
-    database: AsyncIOClient = field(factory=create_async_client)
+class Database:
+    client: AsyncIOClient = field(factory=create_async_client)
 
     async def query_track(self, id: UUID) -> Track:
-        return Track.from_object(
-            await self.database.query_required_single(TRACK, id=id)
-        )
+        object = await self.client.query_required_single(TRACK, id=id)  # type: ignore
+
+        return Track.from_object(object)

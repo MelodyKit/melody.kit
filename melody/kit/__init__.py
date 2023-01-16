@@ -8,7 +8,7 @@ __author__ = "MelodyKit"
 __license__ = "MIT"
 __version__ = "0.1.0"
 
-from melody.kit.client import Client
+from melody.kit.database import Database
 from melody.kit.models import (
     Album,
     Artist,
@@ -24,7 +24,7 @@ from melody.kit.models import (
 )
 
 __all__ = (
-    "Client",
+    "Database",
     "Base",
     "PartialTrack",
     "Track",

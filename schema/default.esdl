@@ -1,41 +1,47 @@
+using future nonrecursive_access_policies;
+
 module default {
+    scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
+
     abstract type Base {
         required property name -> str;
+
+        required property created_at -> datetime {
+            default := (select datetime_current());
+        }
 
         property spotify_id -> str;
         property apple_music_id -> bigint;
         property yandex_music_id -> bigint;
     }
 
-    type Track extending Base {
-        required multi link artists -> Artist;
-
+    abstract type Genres {
         required property genres -> array<str> {
             default := <array<str>>[];
         };
-
-        multi link albums := .<tracks[is Album];
     }
 
-    type Artist extending Base {
-        required property genres -> array<str> {
-            default := <array<str>>[];
-        };
+    type Track extending Base, Genres {
+        required multi link artists -> Artist;
 
+        required property explicit -> bool {
+            default := false;
+        }
+
+        link album := assert_single(.<tracks[is Album]);
+    }
+
+    type Artist extending Base, Genres {
         multi link tracks := .<artists[is Track];
         multi link albums := .<artists[is Album];
     }
 
-    type Album extending Base {
+    type Album extending Base, Genres {
         required multi link artists -> Artist;
         required multi link tracks -> Track;
 
-        required property album_type -> str;
+        required property album_type -> AlbumType;
         required property release_date -> cal::local_date;
-
-        required property genres -> array<str> {
-            default := <array<str>>[];
-        };
 
         required property label -> str;
 
@@ -56,6 +62,6 @@ module default {
         required property email -> str {
             constraint exclusive;
         };
-        required property password -> str;
+        required property password_hash -> str;
     }
 }
