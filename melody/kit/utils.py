@@ -17,17 +17,17 @@ def utc_today() -> Date:
 
 
 def convert_standard_date(standard_date: StandardDate) -> Date:
-    return date(standard_date.year, standard_date.month, standard_date.day)
+    return date(year=standard_date.year, month=standard_date.month, day=standard_date.day)
 
 
 def convert_standard_date_time(standard_date_time: StandardDateTime) -> DateTime:
     return date_time(
-        standard_date_time.year,
-        standard_date_time.month,
-        standard_date_time.day,
-        standard_date_time.hour,
-        standard_date_time.minute,
-        standard_date_time.second,
-        standard_date_time.microsecond,
-        standard_date_time.tzinfo,  # type: ignore
+        year=standard_date_time.year,
+        month=standard_date_time.month,
+        day=standard_date_time.day,
+        hour=standard_date_time.hour,
+        minute=standard_date_time.minute,
+        second=standard_date_time.second,
+        microsecond=standard_date_time.microsecond,
+        tz=standard_date_time.tzinfo,  # type: ignore
     )

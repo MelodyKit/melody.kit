@@ -9,3 +9,11 @@ class AlbumType(Enum):
     COMPILATION = "compilation"
 
     DEFAULT = ALBUM
+
+
+class PrivacyType(Enum):
+    PUBLIC = "public"
+    FRIENDS = "friends"
+    PRIVATE = "private"
+
+    DEFAULT = PUBLIC

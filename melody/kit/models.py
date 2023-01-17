@@ -14,6 +14,7 @@ from melody.kit.enums import AlbumType
 from melody.kit.utils import convert_standard_date, convert_standard_date_time, utc_now, utc_today
 
 __all__ = (
+    # models
     "Base",
     "PartialTrack",
     "Track",
@@ -25,6 +26,18 @@ __all__ = (
     "Playlist",
     "PartialUser",
     "User",
+    # data
+    "BaseData",
+    "PartialTrackData",
+    "TrackData",
+    "PartialArtistData",
+    "ArtistData",
+    "PartialAlbumData",
+    "AlbumData",
+    "PartialPlaylistData",
+    "PlaylistData",
+    "PartialUserData",
+    "UserData",
 )
 
 

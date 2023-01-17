@@ -2,6 +2,7 @@ using future nonrecursive_access_policies;
 
 module default {
     scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
+    scalar type PrivacyType extending enum<`public`, `friends`, `private`>;
 
     abstract type Base {
         required property name -> str;
@@ -51,6 +52,7 @@ module default {
     type Playlist extending Base {
         required link user -> User;
         multi link tracks -> Track;
+        required property privacy_type -> PrivacyType;
     }
 
     type User extending Base {

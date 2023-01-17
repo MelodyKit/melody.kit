@@ -8,6 +8,7 @@ __author__ = "MelodyKit"
 __license__ = "MIT"
 __version__ = "0.1.0"
 
+from melody.kit.albums import get_album
 from melody.kit.database import Database
 from melody.kit.models import (
     Album,
@@ -40,5 +41,8 @@ __all__ = (
     "PartialUser",
     "User",
     # endpoints
+    # albums
+    "get_album",
+    # tracks
     "get_track",
 )

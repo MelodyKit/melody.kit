@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from attrs import frozen
 from typing_extensions import TypedDict
 
-__all__ = ("Error", "ErrorCode", "ErrorData")
+__all__ = ("AnyError", "Error", "ErrorCode", "ErrorData")
 
 
 class ErrorCode(Enum):
@@ -46,8 +46,12 @@ class ErrorData(TypedDict, Generic[T]):
 
 @frozen()
 class Error(Exception, Generic[T]):
+    status_code: int
     code: ErrorCode
     detail: T
 
     def into_data(self) -> ErrorData[T]:
         return ErrorData(code=self.code.value, detail=self.detail)
+
+
+AnyError = Error[Any]
