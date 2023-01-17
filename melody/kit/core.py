@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi.applications import FastAPI
 
 from melody.kit.constants import NAME, V1, VERSION_1
 from melody.kit.database import Database
+
+__all__ = ("database", "app", "v1")
 
 database = Database()
 

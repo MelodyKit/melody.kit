@@ -1,8 +1,8 @@
 import click
 import uvicorn
 
-from melody.kit.constants import DEFAULT_HOST, DEFAULT_PORT
 from melody.kit.core import app
+from melody.kit.defaults import DEFAULT_HOST, DEFAULT_PORT
 
 __all__ = ("kit",)
 

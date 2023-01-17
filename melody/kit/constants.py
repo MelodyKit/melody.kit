@@ -1,5 +1,4 @@
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 8000
+__all__ = ("ME", "NAME", "V1", "VERSION_1")
 
 NAME = "melody.kit"
 VERSION_1 = "1.0.0"

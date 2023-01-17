@@ -22,9 +22,12 @@ from melody.kit.models import (
     Track,
     User,
 )
+from melody.kit.tracks import get_track
 
 __all__ = (
+    # database
     "Database",
+    # models
     "Base",
     "PartialTrack",
     "Track",
@@ -36,4 +39,6 @@ __all__ = (
     "Playlist",
     "PartialUser",
     "User",
+    # endpoints
+    "get_track",
 )
