@@ -1,14 +1,24 @@
+from argon2 import PasswordHasher
 from fastapi.applications import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from melody.kit.config import get_config
 from melody.kit.constants import NAME, V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors import AnyError, Error
 
-__all__ = ("database", "app", "v1")
+__all__ = ("config", "database", "hasher", "app", "v1")
 
 database = Database()
+
+config = get_config()
+
+hasher = PasswordHasher(
+    time_cost=config.hash.time_cost,
+    memory_cost=config.hash.memory_cost,
+    parallelism=config.hash.parallelism,
+)
 
 app = FastAPI(openapi_url=None, redoc_url=None)
 

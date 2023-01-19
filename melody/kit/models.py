@@ -15,6 +15,7 @@ from melody.kit.utils import convert_standard_date, convert_standard_date_time, 
 
 __all__ = (
     # models
+    "Abstract",
     "Base",
     "PartialTrack",
     "Track",
@@ -26,7 +27,9 @@ __all__ = (
     "Playlist",
     "PartialUser",
     "User",
+    "UserInfo",
     # data
+    "AbstractData",
     "BaseData",
     "PartialTrackData",
     "TrackData",
@@ -38,15 +41,33 @@ __all__ = (
     "PlaylistData",
     "PartialUserData",
     "UserData",
+    "UserInfoData",
 )
+
+
+class AbstractData(TypedDict):
+    id: str
+
+
+AB = TypeVar("AB", bound="Abstract")
+
+
+@define()
+class Abstract:
+    id: UUID
+
+    @classmethod
+    def from_object(cls: Type[AB], object: Object) -> AB:  # type: ignore
+        return cls(id=object.id)
+
+    def into_data(self) -> AbstractData:
+        return AbstractData(id=str(self.id))
 
 
 B = TypeVar("B", bound="Base")
 
 
-class BaseData(TypedDict):
-    id: str
-
+class BaseData(AbstractData):
     name: str
 
     created_at: str
@@ -57,9 +78,7 @@ class BaseData(TypedDict):
 
 
 @define()
-class Base:
-    id: UUID
-
+class Base(Abstract):
     name: str
 
     created_at: DateTime = field(factory=utc_now)
@@ -598,3 +617,32 @@ def user_from_object(object: Object) -> User:
 
 def user_into_data(user: User) -> UserData:
     return user.into_data()
+
+
+class UserInfoData(AbstractData):
+    email: str
+    password_hash: str
+
+
+UI = TypeVar("UI", bound="UserInfo")
+
+
+@define()
+class UserInfo(Abstract):
+    email: str
+    password_hash: str
+
+    @classmethod
+    def from_object(cls: Type[UI], object: Object) -> UI:  # type: ignore
+        return cls(
+            id=object.id,
+            email=object.email,
+            password_hash=object.password_hash,
+        )
+
+    def into_data(self) -> UserInfoData:
+        return UserInfoData(
+            id=str(self.id),
+            email=self.email,
+            password_hash=self.password_hash,
+        )

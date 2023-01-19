@@ -9,6 +9,7 @@ __license__ = "MIT"
 __version__ = "0.1.0"
 
 from melody.kit.albums import get_album
+from melody.kit.authentication import login, logout, register
 from melody.kit.database import Database
 from melody.kit.models import (
     Album,
@@ -43,6 +44,10 @@ __all__ = (
     # endpoints
     # albums
     "get_album",
+    # authentication
+    "login",
+    "logout",
+    "register",
     # tracks
     "get_track",
 )

@@ -3,7 +3,7 @@ from uuid import UUID
 from attrs import define, field
 from edgedb import AsyncIOClient, create_async_client  # type: ignore
 
-from melody.kit.models import Album, Track
+from melody.kit.models import Abstract, Album, Track, User, UserInfo
 
 __all__ = ("Database",)
 
@@ -79,6 +79,22 @@ select Album {
 } filter .id = <uuid>$id;
 """
 
+USER_INFO = """
+select User {
+    id,
+    email,
+    password_hash
+} filter .email = <str>$email;
+"""
+
+INSERT_USER = """
+insert User {
+    name := <str>$name,
+    email := <str>$email,
+    password_hash := <str>$password_hash,
+};
+"""
+
 
 @define()
 class Database:
@@ -93,3 +109,18 @@ class Database:
         object = await self.client.query_required_single(ALBUM, id=album_id)  # type: ignore
 
         return Album.from_object(object)
+
+    async def query_user(self, user_id: UUID) -> User:
+        ...
+
+    async def query_user_info_by(self, email: str) -> UserInfo:
+        object = await self.client.query_required_single(USER_INFO, email=email)  # type: ignore
+
+        return UserInfo.from_object(object)
+
+    async def insert_user(self, name: str, email: str, password_hash: str) -> Abstract:
+        object = await self.client.query_required_single(  # type: ignore
+            INSERT_USER, name=name, email=email, password_hash=password_hash
+        )
+
+        return Abstract.from_object(object)
