@@ -25,6 +25,7 @@ from melody.kit.models import (
     User,
 )
 from melody.kit.tracks import get_track
+from melody.kit.users import get_self, get_user
 
 __all__ = (
     # database
@@ -50,4 +51,7 @@ __all__ = (
     "register",
     # tracks
     "get_track",
+    # users
+    "get_self",
+    "get_user",
 )

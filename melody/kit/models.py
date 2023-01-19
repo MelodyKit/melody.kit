@@ -10,7 +10,7 @@ from pendulum import Date, DateTime
 from typing_extensions import TypedDict
 
 from melody.kit.defaults import DEFAULT_COUNT, DEFAULT_EXPLICIT, DEFAULT_ID, DEFAULT_NAME
-from melody.kit.enums import AlbumType
+from melody.kit.enums import AlbumType, PrivacyType
 from melody.kit.utils import convert_standard_date, convert_standard_date_time, utc_now, utc_today
 
 __all__ = (
@@ -443,6 +443,8 @@ def album_into_data(album: Album) -> AlbumData:
 class PartialPlaylistData(BaseData):
     tracks: List[TrackData]
 
+    privacy_type: str
+
 
 PP = TypeVar("PP", bound="PartialPlaylist")
 
@@ -450,6 +452,8 @@ PP = TypeVar("PP", bound="PartialPlaylist")
 @define()
 class PartialPlaylist(Base):
     tracks: List[Track] = field(factory=list)
+
+    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
 
     created_at: DateTime = field(factory=utc_now)
 
@@ -463,6 +467,7 @@ class PartialPlaylist(Base):
             id=object.id,
             name=object.name,
             tracks=iter(object.tracks).map(track_from_object).list(),
+            privacy_type=PrivacyType(object.privacy_type.value),
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -478,6 +483,7 @@ class PartialPlaylist(Base):
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
             tracks=iter(self.tracks).map(track_into_data).list(),
+            privacy_type=self.privacy_type.value,
         )
 
 
@@ -501,6 +507,8 @@ class Playlist(PartialPlaylist):
     user: PartialUser = field()
     tracks: List[Track] = field(factory=list)
 
+    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+
     created_at: DateTime = field(factory=utc_now)
 
     spotify_id: Optional[str] = field(default=None)
@@ -512,12 +520,12 @@ class Playlist(PartialPlaylist):
         return cls(
             id=object.id,
             name=object.name,
+            user=partial_user_from_object(object.user),
+            tracks=iter(object.tracks).map(track_from_object).list(),
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
             yandex_music_id=object.yandex_music_id,
-            user=partial_user_from_object(object.user),
-            tracks=iter(object.tracks).map(track_from_object).list(),
         )
 
     def into_data(self) -> PlaylistData:
@@ -529,6 +537,7 @@ class Playlist(PartialPlaylist):
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
             tracks=iter(self.tracks).map(track_into_data).list(),
+            privacy_type=self.privacy_type.value,
             user=partial_user_into_data(self.user),
         )
 
@@ -542,12 +551,44 @@ def playlist_into_data(playlist: Playlist) -> PlaylistData:
 
 
 class PartialUserData(BaseData):
-    pass
+    privacy_type: str
+
+
+PU = TypeVar("PU", bound="PartialUser")
 
 
 @define()
 class PartialUser(Base):
-    pass
+    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+
+    created_at: DateTime = field(factory=utc_now)
+
+    spotify_id: Optional[str] = field(default=None)
+    apple_music_id: Optional[int] = field(default=None)
+    yandex_music_id: Optional[int] = field(default=None)
+
+    @classmethod
+    def from_object(cls: Type[PU], object: Object) -> PU:  # type: ignore
+        return cls(
+            id=object.id,
+            name=object.name,
+            privacy_type=PrivacyType(object.privacy_type.value),
+            created_at=convert_standard_date_time(object.created_at),
+            spotify_id=object.spotify_id,
+            apple_music_id=object.apple_music_id,
+            yandex_music_id=object.yandex_music_id,
+        )
+
+    def into_data(self) -> PartialUserData:
+        return PartialUserData(
+            id=str(self.id),
+            name=self.name,
+            created_at=str(self.created_at),
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+            privacy_type=self.privacy_type.value,
+        )
 
 
 def partial_user_from_object(object: Object) -> PartialUser:
@@ -570,6 +611,8 @@ U = TypeVar("U", bound="User")
 
 @define()
 class User(PartialUser):
+    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+
     tracks: List[Track] = field(factory=list)
     albums: List[Album] = field(factory=list)
     artists: List[PartialArtist] = field(factory=list)
@@ -586,6 +629,7 @@ class User(PartialUser):
         return cls(
             id=object.id,
             name=object.name,
+            privacy_type=PrivacyType(object.privacy_type.value),
             tracks=iter(object.tracks).map(track_from_object).list(),
             albums=iter(object.albums).map(album_from_object).list(),
             artists=iter(object.artists).map(partial_artist_from_object).list(),
@@ -604,6 +648,7 @@ class User(PartialUser):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
+            privacy_type=self.privacy_type.value,
             tracks=iter(self.tracks).map(track_into_data).list(),
             albums=iter(self.albums).map(album_into_data).list(),
             artists=iter(self.artists).map(partial_artist_into_data).list(),

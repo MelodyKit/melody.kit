@@ -52,7 +52,9 @@ module default {
     type Playlist extending Base {
         required link user -> User;
         multi link tracks -> Track;
-        required property privacy_type -> PrivacyType;
+        required property privacy_type -> PrivacyType {
+            default := PrivacyType.public;
+        };
     }
 
     type User extending Base {
@@ -60,6 +62,10 @@ module default {
         multi link albums -> Album;
         multi link artists -> Artist;
         multi link playlists -> Playlist;
+
+        required property privacy_type -> PrivacyType {
+            default := PrivacyType.public;
+        };
 
         required property email -> str {
             constraint exclusive;

@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any, Generic, TypeVar
 
 from attrs import frozen
+from fastapi import status
 from typing_extensions import TypedDict
 
 __all__ = ("AnyError", "Error", "ErrorCode", "ErrorData")
@@ -25,6 +26,11 @@ class ErrorCode(Enum):
 
     INTERNAL_SERVER_ERROR = 13500
 
+    AUTHENTICATION_ERROR = 13600
+    AUTHENTICATION_INVALID = 13601
+    AUTHENTICATION_MISSING = 13602
+    AUTHENTICATION_EXPIRED = 13603
+
     @classmethod
     def from_status_code(cls, status_code: int) -> ErrorCode:
         default = cls.DEFAULT
@@ -40,18 +46,31 @@ T = TypeVar("T")
 
 
 class ErrorData(TypedDict, Generic[T]):
-    code: int
     detail: T
+    code: int
 
 
 @frozen()
 class Error(Exception, Generic[T]):
-    status_code: int
-    code: ErrorCode
     detail: T
+    code: ErrorCode = ErrorCode.DEFAULT
+    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    def __init__(self, detail: T, code: ErrorCode, status_code: int) -> None:
+        super().__init__(detail)
+
+        self.__attrs_init__(detail=detail, code=code, status_code=status_code)  # type: ignore
 
     def into_data(self) -> ErrorData[T]:
         return ErrorData(code=self.code.value, detail=self.detail)
 
 
 AnyError = Error[Any]
+
+
+@frozen()
+class AuthenticationError(Error[T]):
+    """Authentication has failed."""
+
+    code: ErrorCode = ErrorCode.AUTHENTICATION_ERROR
+    status_code: int = status.HTTP_401_UNAUTHORIZED

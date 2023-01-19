@@ -1,11 +1,14 @@
+from uuid import UUID
+
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError, NoDataError
-from fastapi import status
+from fastapi import Depends, status
 
 from melody.kit.core import database, hasher, v1
+from melody.kit.dependencies import token_dependency
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData
-from melody.kit.tokens import TokenData, decode_token, encode_token
+from melody.kit.tokens import TokenData, encode_token
 
 __all__ = ("login", "logout", "register")
 
@@ -20,26 +23,35 @@ async def login(email: str, password: str) -> TokenData:
 
     except NoDataError:
         raise Error(
-            status.HTTP_404_NOT_FOUND, ErrorCode.NOT_FOUND, CAN_NOT_FIND_USER.format(email)
+            CAN_NOT_FIND_USER.format(email), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
         ) from None
 
     else:
+        password_hash = user_info.password_hash
+
         try:
-            hasher.verify(user_info.password_hash, password)
+            hasher.verify(password_hash, password)
 
         except VerifyMismatchError:
             raise Error(
-                status.HTTP_401_UNAUTHORIZED, ErrorCode.UNAUTHORIZED, PASSWORD_MISMATCH
+                PASSWORD_MISMATCH, ErrorCode.UNAUTHORIZED, status.HTTP_401_UNAUTHORIZED
             ) from None
 
         else:
-            token = encode_token(user_info.id)
+            user_id = user_info.id
+
+            token = encode_token(user_id)
+
+            if hasher.check_needs_rehash(password_hash):
+                password_hash = hasher.hash(password)
+
+                await database.update_password_hash(user_id=user_id, password_hash=password_hash)
 
             return TokenData(token=token)
 
 
 @v1.get("/logout")
-async def logout(token: str) -> None:
+async def logout(user_id: UUID = Depends(token_dependency)) -> None:
     ...
 
 
@@ -55,7 +67,7 @@ async def register(name: str, email: str, password: str) -> AbstractData:
 
     except ConstraintViolationError:
         raise Error(
-            status.HTTP_409_CONFLICT, ErrorCode.CONFLICT, EMAIL_TAKEN.format(email)
+            EMAIL_TAKEN.format(email), ErrorCode.CONFLICT, status.HTTP_409_CONFLICT
         ) from None
 
     else:

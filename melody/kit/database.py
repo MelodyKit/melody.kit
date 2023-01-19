@@ -91,8 +91,14 @@ INSERT_USER = """
 insert User {
     name := <str>$name,
     email := <str>$email,
-    password_hash := <str>$password_hash,
+    password_hash := <str>$password_hash
 };
+"""
+
+UPDATE_PASSWORD_HASH = """
+update User set {
+    password_hash := <str>$password_hash
+} filter .id = <uuid>$user_id;
 """
 
 
@@ -117,6 +123,11 @@ class Database:
         object = await self.client.query_required_single(USER_INFO, email=email)  # type: ignore
 
         return UserInfo.from_object(object)
+
+    async def update_password_hash(self, user_id: UUID, password_hash: str) -> None:
+        await self.client.query_required_single(  # type: ignore
+            user_id=user_id, password_hash=password_hash
+        )
 
     async def insert_user(self, name: str, email: str, password_hash: str) -> Abstract:
         object = await self.client.query_required_single(  # type: ignore

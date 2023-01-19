@@ -91,7 +91,7 @@ warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = false  # compatibility
 
-[tool.changelog]
+[tool.changelogging]
 name = "melody.kit"
 version = "0.1.0"
 url = "https://github.com/MelodyKit/melody.kit"

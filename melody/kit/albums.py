@@ -19,7 +19,7 @@ async def get_album(album_id: UUID) -> AlbumData:
 
     except NoDataError:
         raise Error(
-            status.HTTP_404_NOT_FOUND, ErrorCode.NOT_FOUND, CAN_NOT_FIND_ALBUM.format(album_id)
+            CAN_NOT_FIND_ALBUM.format(album_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
         ) from None
 
     else:

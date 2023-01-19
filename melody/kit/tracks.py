@@ -19,7 +19,7 @@ async def get_track(track_id: UUID) -> TrackData:
 
     except NoDataError:
         raise Error(
-            status.HTTP_404_NOT_FOUND, ErrorCode.NOT_FOUND, CAN_NOT_FIND_TRACK.format(track_id)
+            CAN_NOT_FIND_TRACK.format(track_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
         ) from None
 
     else:
