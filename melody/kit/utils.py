@@ -3,9 +3,15 @@ from datetime import datetime as StandardDateTime
 
 from pendulum import UTC, Date, DateTime, date
 from pendulum import datetime as date_time
-from pendulum import now
+from pendulum import from_timestamp, now
 
-__all__ = ("convert_standard_date", "convert_standard_date_time", "utc_now", "utc_today")
+__all__ = (
+    "convert_standard_date",
+    "convert_standard_date_time",
+    "utc_from_timestamp",
+    "utc_now",
+    "utc_today",
+)
 
 
 def utc_now() -> DateTime:
@@ -14,6 +20,10 @@ def utc_now() -> DateTime:
 
 def utc_today() -> Date:
     return utc_now().date()  # type: ignore
+
+
+def utc_from_timestamp(timestamp: float) -> DateTime:
+    return from_timestamp(timestamp, UTC)
 
 
 def convert_standard_date(standard_date: StandardDate) -> Date:

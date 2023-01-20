@@ -4,11 +4,12 @@ from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError, NoDataError
 from fastapi import Depends, status
 
-from melody.kit.core import database, hasher, v1
+from melody.kit.core import database, hasher, tokens, v1
 from melody.kit.dependencies import token_dependency
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData
 from melody.kit.tokens import TokenData, encode_token
+from melody.kit.utils import utc_now
 
 __all__ = ("login", "logout", "register")
 
@@ -52,7 +53,7 @@ async def login(email: str, password: str) -> TokenData:
 
 @v1.get("/logout")
 async def logout(user_id: UUID = Depends(token_dependency)) -> None:
-    ...
+    tokens[user_id] = utc_now()
 
 
 EMAIL_TAKEN = "the email `{}` is taken"
