@@ -46,6 +46,18 @@ class KitConfig:
     key: str
 
 
+@define()
+class TokenConfig:
+    years: float
+    months: int
+    weeks: int
+    days: int
+    hours: int
+    minutes: int
+    seconds: int
+    microseconds: int
+
+
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
 

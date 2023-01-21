@@ -9,6 +9,7 @@ from iters import iter
 from pendulum import Date, DateTime
 from typing_extensions import TypedDict
 
+from melody.kit.constants import EMPTY
 from melody.kit.defaults import DEFAULT_COUNT, DEFAULT_EXPLICIT, DEFAULT_ID, DEFAULT_NAME
 from melody.kit.enums import AlbumType, PrivacyType
 from melody.kit.utils import convert_standard_date, convert_standard_date_time, utc_now, utc_today
@@ -17,32 +18,46 @@ __all__ = (
     # models
     "Abstract",
     "Base",
-    "PartialTrack",
     "Track",
-    "PartialArtist",
     "Artist",
-    "PartialAlbum",
     "Album",
-    "PartialPlaylist",
     "Playlist",
-    "PartialUser",
     "User",
     "UserInfo",
     # data
     "AbstractData",
     "BaseData",
-    "PartialTrackData",
     "TrackData",
-    "PartialArtistData",
     "ArtistData",
-    "PartialAlbumData",
     "AlbumData",
-    "PartialPlaylistData",
     "PlaylistData",
-    "PartialUserData",
     "UserData",
     "UserInfoData",
+    # from object
+    "abstract_from_object",
+    "base_from_object",
+    "track_from_object",
+    "artist_from_object",
+    "album_from_object",
+    "playlist_from_object",
+    "user_from_object",
+    # into data
+    "abstract_into_data",
+    "base_into_data",
+    "track_into_data",
+    "artist_into_data",
+    "album_into_data",
+    "playlist_into_data",
+    "user_into_data",
 )
+
+URI = "{type}:{id}"
+
+TRACK = "track"
+ARTIST = "artist"
+ALBUM = "album"
+PLAYLIST = "playlist"
+USER = "user"
 
 
 class AbstractData(TypedDict):
@@ -62,6 +77,14 @@ class Abstract:
 
     def into_data(self) -> AbstractData:
         return AbstractData(id=str(self.id))
+
+
+def abstract_from_object(object: Object) -> Abstract:
+    return Abstract.from_object(object)
+
+
+def abstract_into_data(abstract: Abstract) -> AbstractData:
+    return abstract.into_data()
 
 
 B = TypeVar("B", bound="Base")
@@ -113,63 +136,23 @@ class Base(Abstract):
         )
 
 
-class PartialTrackData(BaseData):
-    artists: List[PartialArtistData]
+def base_from_object(object: Object) -> Base:
+    return Base.from_object(object)
+
+
+def base_into_data(base: Base) -> BaseData:
+    return base.into_data()
+
+
+class URIData(TypedDict):
+    uri: str
+
+
+class TrackData(URIData, BaseData):
+    album: AlbumData
+    artists: List[ArtistData]
 
     explicit: bool
-
-
-PT = TypeVar("PT", bound="PartialTrack")
-
-
-@define()
-class PartialTrack(Base):
-    artists: List[PartialArtist]
-
-    explicit: bool = field(default=DEFAULT_EXPLICIT)
-
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[int] = field(default=None)
-    yandex_music_id: Optional[int] = field(default=None)
-
-    @classmethod
-    def from_object(cls: Type[PT], object: Object) -> PT:  # type: ignore
-        return cls(
-            id=object.id,
-            name=object.name,
-            artists=iter(object.artists).map(partial_artist_from_object).list(),
-            explicit=object.explicit,
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
-
-    def into_data(self) -> PartialTrackData:
-        return PartialTrackData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            artists=iter(self.artists).map(partial_artist_into_data).list(),
-            explicit=self.explicit,
-        )
-
-
-def partial_track_from_object(object: Object) -> PartialTrack:
-    return PartialTrack.from_object(object)
-
-
-def partial_track_into_data(partial_track: PartialTrack) -> PartialTrackData:
-    return partial_track.into_data()
-
-
-class TrackData(PartialTrackData):
-    album: PartialAlbumData
 
     genres: List[str]
 
@@ -178,8 +161,9 @@ T = TypeVar("T", bound="Track")
 
 
 @define()
-class Track(PartialTrack):
-    album: PartialAlbum
+class Track(Base):
+    album: Album = field()
+    artists: List[Artist] = field()
 
     explicit: bool = field(default=DEFAULT_EXPLICIT)
 
@@ -196,10 +180,9 @@ class Track(PartialTrack):
         return cls(
             id=object.id,
             name=object.name,
-            artists=iter(object.artists).map(partial_artist_from_object).list(),
+            album=album_from_object(object.album),
+            artists=iter(object.artists).map(artist_from_object).list(),
             explicit=object.explicit,
-            album=partial_album_from_object(object.album),
-            genres=object.genres,
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -214,11 +197,16 @@ class Track(PartialTrack):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            artists=iter(self.artists).map(partial_artist_into_data).list(),
+            uri=self.uri,
+            album=album_into_data(self.album),
+            artists=iter(self.artists).map(artist_into_data).list(),
             explicit=self.explicit,
-            album=partial_album_into_data(self.album),
             genres=self.genres,
         )
+
+    @property
+    def uri(self) -> str:
+        return URI.format(type=TRACK, id=self.id)
 
 
 def track_from_object(object: Object) -> Track:
@@ -229,39 +217,20 @@ def track_into_data(track: Track) -> TrackData:
     return track.into_data()
 
 
-class PartialArtistData(BaseData):
-    pass
+class ArtistData(URIData, BaseData):
+    follower_count: int
 
-
-@define()
-class PartialArtist(Base):
-    pass
-
-
-def partial_artist_from_object(object: Object) -> PartialArtist:
-    return PartialArtist.from_object(object)
-
-
-def partial_artist_into_data(partial_artist: PartialArtist) -> PartialArtistData:
-    return partial_artist.into_data()
-
-
-class ArtistData(PartialArtistData):
     genres: List[str]
-
-    tracks: List[PartialTrackData]
-    albums: List[PartialAlbumData]
 
 
 AT = TypeVar("AT", bound="Artist")
 
 
 @define()
-class Artist(PartialArtist):
-    genres: List[str] = field(factory=list)
+class Artist(Base):
+    follower_count: int = field(default=DEFAULT_COUNT)
 
-    tracks: List[PartialTrack] = field(factory=list)
-    albums: List[PartialAlbum] = field(factory=list)
+    genres: List[str] = field(factory=list)
 
     created_at: DateTime = field(factory=utc_now)
 
@@ -274,9 +243,8 @@ class Artist(PartialArtist):
         return cls(
             id=object.id,
             name=object.name,
+            follower_count=object.follower_count,
             genres=object.genres,
-            tracks=iter(object.tracks).map(partial_track_from_object).list(),
-            albums=iter(object.albums).map(partial_album_from_object).list(),
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -291,10 +259,14 @@ class Artist(PartialArtist):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
+            uri=self.uri,
+            follower_count=self.follower_count,
             genres=self.genres,
-            tracks=iter(self.tracks).map(partial_track_into_data).list(),
-            albums=iter(self.albums).map(partial_album_into_data).list(),
         )
+
+    @property
+    def uri(self) -> str:
+        return URI.format(type=ARTIST, id=self.id)
 
 
 def artist_from_object(object: Object) -> Artist:
@@ -305,88 +277,32 @@ def artist_into_data(artist: Artist) -> ArtistData:
     return artist.into_data()
 
 
-class PartialAlbumData(BaseData):
+class AlbumData(URIData, BaseData):
+    artists: List[ArtistData]
+
     album_type: str
     release_date: str
 
     track_count: int
 
-
-PA = TypeVar("PA", bound="PartialAlbum")
-
-
-@define()
-class PartialAlbum(Base):
-    album_type: AlbumType = field(default=AlbumType.ALBUM)
-    release_date: Date = field(factory=utc_today)
-
-    track_count: int = field(default=DEFAULT_COUNT)
-
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[int] = field(default=None)
-    yandex_music_id: Optional[int] = field(default=None)
-
-    @classmethod
-    def from_object(cls: Type[PA], object: Object) -> PA:  # type: ignore
-        return cls(
-            id=object.id,
-            name=object.name,
-            album_type=AlbumType(object.album_type.value),
-            release_date=convert_standard_date(object.release_date),
-            track_count=object.track_count,
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
-
-    def into_data(self) -> PartialAlbumData:
-        return PartialAlbumData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            album_type=self.album_type.value,
-            release_date=str(self.release_date),
-            track_count=self.track_count,
-        )
-
-
-def partial_album_from_object(object: Object) -> PartialAlbum:
-    return PartialAlbum.from_object(object)
-
-
-def partial_album_into_data(partial_album: PartialAlbum) -> PartialAlbumData:
-    return partial_album.into_data()
-
-
-class AlbumData(PartialAlbumData):
-    label: str
+    label: Optional[str]
 
     genres: List[str]
-
-    artists: List[PartialArtistData]
-    tracks: List[PartialTrackData]
 
 
 A = TypeVar("A", bound="Album")
 
 
 @define()
-class Album(PartialAlbum):
-    label: str = field()
+class Album(Base):
+    artists: List[Artist] = field()
 
-    artists: List[PartialArtist] = field()
-    tracks: List[PartialTrack] = field()
-
-    album_type: AlbumType = field(default=AlbumType.ALBUM)
+    album_type: AlbumType = field(default=AlbumType.DEFAULT)
     release_date: Date = field(factory=utc_today)
 
     track_count: int = field(default=DEFAULT_COUNT)
+
+    label: Optional[str] = field(default=None)
 
     genres: List[str] = field(factory=list)
 
@@ -401,13 +317,11 @@ class Album(PartialAlbum):
         return cls(
             id=object.id,
             name=object.name,
+            artists=iter(object.artists).map(artist_from_object).list(),
             album_type=AlbumType(object.album_type.value),
-            release_date=object.release_date,
+            release_date=convert_standard_date(object.release_date),
             track_count=object.track_count,
-            label=object.label,
             genres=object.genres,
-            artists=iter(object.artists).map(partial_artist_from_object).list(),
-            tracks=iter(object.tracks).map(partial_track_from_object).list(),
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -422,14 +336,18 @@ class Album(PartialAlbum):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
+            uri=self.uri,
+            artists=iter(self.artists).map(artist_into_data).list(),
             album_type=self.album_type.value,
             release_date=str(self.release_date),
             track_count=self.track_count,
             label=self.label,
             genres=self.genres,
-            artists=iter(self.artists).map(partial_artist_into_data).list(),
-            tracks=iter(self.tracks).map(partial_track_into_data).list(),
         )
+
+    @property
+    def uri(self) -> str:
+        return URI.format(type=ALBUM, id=self.id)
 
 
 def album_from_object(object: Object) -> Album:
@@ -440,72 +358,29 @@ def album_into_data(album: Album) -> AlbumData:
     return album.into_data()
 
 
-class PartialPlaylistData(BaseData):
-    tracks: List[TrackData]
+AlbumTracks = List[Track]
+AlbumTracksData = List[TrackData]
 
+
+class PlaylistData(URIData, BaseData):
+    user: UserData
+
+    description: str
+
+    track_count: int
     privacy_type: str
-
-
-PP = TypeVar("PP", bound="PartialPlaylist")
-
-
-@define()
-class PartialPlaylist(Base):
-    tracks: List[Track] = field(factory=list)
-
-    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
-
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[int] = field(default=None)
-    yandex_music_id: Optional[int] = field(default=None)
-
-    @classmethod
-    def from_object(cls: Type[PP], object: Object) -> PP:  # type: ignore
-        return cls(
-            id=object.id,
-            name=object.name,
-            tracks=iter(object.tracks).map(track_from_object).list(),
-            privacy_type=PrivacyType(object.privacy_type.value),
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
-
-    def into_data(self) -> PartialPlaylistData:
-        return PartialPlaylistData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            tracks=iter(self.tracks).map(track_into_data).list(),
-            privacy_type=self.privacy_type.value,
-        )
-
-
-def partial_playlist_from_object(object: Object) -> PartialPlaylist:
-    return PartialPlaylist.from_object(object)
-
-
-def partial_playlist_into_data(partial_playlist: PartialPlaylist) -> PartialPlaylistData:
-    return partial_playlist.into_data()
-
-
-class PlaylistData(PartialPlaylistData):
-    user: PartialUserData
 
 
 P = TypeVar("P", bound="Playlist")
 
 
 @define()
-class Playlist(PartialPlaylist):
-    user: PartialUser = field()
-    tracks: List[Track] = field(factory=list)
+class Playlist(Base):
+    user: User = field()
+
+    description: str = field(default=EMPTY)
+
+    track_count: int = field(default=DEFAULT_COUNT)
 
     privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
 
@@ -520,8 +395,10 @@ class Playlist(PartialPlaylist):
         return cls(
             id=object.id,
             name=object.name,
-            user=partial_user_from_object(object.user),
-            tracks=iter(object.tracks).map(track_from_object).list(),
+            user=user_from_object(object.user),
+            description=object.description,
+            track_count=object.track_count,
+            privacy_type=PrivacyType(object.privacy_type.value),
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -536,10 +413,20 @@ class Playlist(PartialPlaylist):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            tracks=iter(self.tracks).map(track_into_data).list(),
+            uri=self.uri,
+            user=user_into_data(self.user),
+            description=self.description,
+            track_count=self.track_count,
             privacy_type=self.privacy_type.value,
-            user=partial_user_into_data(self.user),
         )
+
+    @property
+    def uri(self) -> str:
+        return URI.format(type=PLAYLIST, id=self.id)
+
+
+PlaylistTracks = List[Track]
+PlaylistTracksData = List[TrackData]
 
 
 def playlist_from_object(object: Object) -> Playlist:
@@ -550,73 +437,20 @@ def playlist_into_data(playlist: Playlist) -> PlaylistData:
     return playlist.into_data()
 
 
-class PartialUserData(BaseData):
+class UserData(URIData, BaseData):
+    follower_count: int
+
     privacy_type: str
-
-
-PU = TypeVar("PU", bound="PartialUser")
-
-
-@define()
-class PartialUser(Base):
-    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
-
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[int] = field(default=None)
-    yandex_music_id: Optional[int] = field(default=None)
-
-    @classmethod
-    def from_object(cls: Type[PU], object: Object) -> PU:  # type: ignore
-        return cls(
-            id=object.id,
-            name=object.name,
-            privacy_type=PrivacyType(object.privacy_type.value),
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
-
-    def into_data(self) -> PartialUserData:
-        return PartialUserData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            privacy_type=self.privacy_type.value,
-        )
-
-
-def partial_user_from_object(object: Object) -> PartialUser:
-    return PartialUser.from_object(object)
-
-
-def partial_user_into_data(partial_user: PartialUser) -> PartialUserData:
-    return partial_user.into_data()
-
-
-class UserData(PartialUserData):
-    tracks: List[TrackData]
-    albums: List[AlbumData]
-    artists: List[PartialArtistData]
-    playlists: List[PartialPlaylistData]
 
 
 U = TypeVar("U", bound="User")
 
 
 @define()
-class User(PartialUser):
-    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+class User(Base):
+    follower_count: int = field(default=DEFAULT_COUNT)
 
-    tracks: List[Track] = field(factory=list)
-    albums: List[Album] = field(factory=list)
-    artists: List[PartialArtist] = field(factory=list)
-    playlists: List[PartialPlaylist] = field(factory=list)
+    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
 
     created_at: DateTime = field(factory=utc_now)
 
@@ -629,11 +463,8 @@ class User(PartialUser):
         return cls(
             id=object.id,
             name=object.name,
+            follower_count=object.follower_count,
             privacy_type=PrivacyType(object.privacy_type.value),
-            tracks=iter(object.tracks).map(track_from_object).list(),
-            albums=iter(object.albums).map(album_from_object).list(),
-            artists=iter(object.artists).map(partial_artist_from_object).list(),
-            playlists=iter(object.playlists).map(partial_playlist_from_object).list(),
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -648,12 +479,33 @@ class User(PartialUser):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
+            uri=self.uri,
+            follower_count=self.follower_count,
             privacy_type=self.privacy_type.value,
-            tracks=iter(self.tracks).map(track_into_data).list(),
-            albums=iter(self.albums).map(album_into_data).list(),
-            artists=iter(self.artists).map(partial_artist_into_data).list(),
-            playlists=iter(self.playlists).map(partial_playlist_into_data).list(),
         )
+
+    @property
+    def uri(self) -> str:
+        return URI.format(type=USER, id=self.id)
+
+
+UserTracks = List[Track]
+UserTracksData = List[TrackData]
+
+UserAlbums = List[Album]
+UserAlbumsData = List[AlbumData]
+
+UserPlaylists = List[Playlist]
+UserPlaylistsData = List[PlaylistData]
+
+UserArtists = List[Artist]
+UserArtistsData = List[ArtistData]
+
+UserFriends = List[User]
+UserFriendsData = List[UserData]
+
+UserFollowers = List[User]
+UserFollowersData = List[UserData]
 
 
 def user_from_object(object: Object) -> User:
@@ -665,6 +517,7 @@ def user_into_data(user: User) -> UserData:
 
 
 class UserInfoData(AbstractData):
+    verified: bool
     email: str
     password_hash: str
 
@@ -674,12 +527,14 @@ UI = TypeVar("UI", bound="UserInfo")
 
 @define()
 class UserInfo(Abstract):
+    verified: bool
     email: str
     password_hash: str
 
     @classmethod
     def from_object(cls: Type[UI], object: Object) -> UI:  # type: ignore
         return cls(
+            verified=object.verified,
             id=object.id,
             email=object.email,
             password_hash=object.password_hash,
@@ -688,6 +543,18 @@ class UserInfo(Abstract):
     def into_data(self) -> UserInfoData:
         return UserInfoData(
             id=str(self.id),
+            verified=self.verified,
             email=self.email,
             password_hash=self.password_hash,
         )
+
+    def is_verified(self) -> bool:
+        return self.verified
+
+
+def user_info_from_object(object: Object) -> UserInfo:
+    return UserInfo.from_object(object)
+
+
+def user_info_into_data(user_info: UserInfo) -> UserInfoData:
+    return user_info.into_data()

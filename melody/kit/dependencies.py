@@ -8,7 +8,7 @@ from melody.kit.constants import SPACE
 from melody.kit.errors import AuthenticationError, ErrorCode
 from melody.kit.tokens import decode_token
 
-__all__ = ("token_dependency",)
+__all__ = ("token_dependency", "optional_token_dependency")
 
 AUTHORIZATION = "Authorization"
 
@@ -43,3 +43,11 @@ def token_dependency(request: Request, token: Optional[str] = None) -> UUID:
         ) from None
 
     return user_id
+
+
+def optional_token_dependency(request: Request, token: Optional[str] = None) -> Optional[UUID]:
+    try:
+        return token_dependency(request, token)
+
+    except AuthenticationError:
+        return None

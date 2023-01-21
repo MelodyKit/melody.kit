@@ -1,5 +1,3 @@
-using future nonrecursive_access_policies;
-
 module default {
     scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
     scalar type PrivacyType extending enum<`public`, `friends`, `private`>;
@@ -8,8 +6,8 @@ module default {
         required property name -> str;
 
         required property created_at -> datetime {
-            default := (select datetime_current());
-        }
+            default := datetime_current();
+        };
 
         property spotify_id -> str;
         property apple_music_id -> bigint;
@@ -27,12 +25,16 @@ module default {
 
         required property explicit -> bool {
             default := false;
-        }
+        };
 
         link album := assert_single(.<tracks[is Album]);
     }
 
     type Artist extending Base, Genres {
+        multi link followers := .<artists[is User];
+
+        property follower_count := count(.followers);
+
         multi link tracks := .<artists[is Track];
         multi link albums := .<artists[is Album];
     }
@@ -41,20 +43,30 @@ module default {
         required multi link artists -> Artist;
         required multi link tracks -> Track;
 
-        required property album_type -> AlbumType;
+        required property album_type -> AlbumType {
+            default := AlbumType.album;
+        };
+
         required property release_date -> cal::local_date;
 
-        required property label -> str;
+        property label -> str;
 
-        property track_count := (select count(.tracks));
+        property track_count := count(.tracks);
     }
 
     type Playlist extending Base {
         required link user -> User;
         multi link tracks -> Track;
+
+        required property description -> str {
+            default := "";
+        };
+
         required property privacy_type -> PrivacyType {
             default := PrivacyType.public;
         };
+
+        property track_count := count(.tracks);
     }
 
     type User extending Base {
@@ -62,6 +74,16 @@ module default {
         multi link albums -> Album;
         multi link artists -> Artist;
         multi link playlists -> Playlist;
+
+        multi link friends -> User;
+
+        multi link followers -> User;
+
+        property follower_count := count(.followers);
+
+        required property verified -> bool {
+            default := false;
+        };
 
         required property privacy_type -> PrivacyType {
             default := PrivacyType.public;
