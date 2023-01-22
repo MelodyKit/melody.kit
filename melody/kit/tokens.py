@@ -4,7 +4,7 @@ from jwt import ExpiredSignatureError, decode, encode
 from typing_extensions import TypedDict
 
 from melody.kit.core import config, tokens
-from melody.kit.utils import utc_from_timestamp, utc_now
+from melody.kit.date_time_utils import utc_from_timestamp, utc_now
 
 __all__ = ("TokenData", "encode_token", "decode_token")
 

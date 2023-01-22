@@ -1,6 +1,6 @@
 from enum import Enum
 
-__all__ = ("AlbumType", "PrivacyType")
+__all__ = ("AlbumType", "PrivacyType", "URIType")
 
 
 class AlbumType(Enum):
@@ -41,3 +41,26 @@ class PrivacyType(Enum):
 
     def is_default(self) -> bool:
         return self is type(self).DEFAULT
+
+
+class URIType(Enum):
+    TRACK = "track"
+    ARTIST = "artist"
+    ALBUM = "album"
+    PLAYLIST = "playlist"
+    USER = "user"
+
+    def is_track(self) -> bool:
+        return self is type(self).TRACK
+
+    def is_artist(self) -> bool:
+        return self is type(self).ARTIST
+
+    def is_album(self) -> bool:
+        return self is type(self).ALBUM
+
+    def is_playlist(self) -> bool:
+        return self is type(self).PLAYLIST
+
+    def is_user(self) -> bool:
+        return self is type(self).USER

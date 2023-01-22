@@ -46,18 +46,6 @@ class KitConfig:
     key: str
 
 
-@define()
-class TokenConfig:
-    years: float
-    months: int
-    weeks: int
-    days: int
-    hours: int
-    minutes: int
-    seconds: int
-    microseconds: int
-
-
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
 
@@ -156,7 +144,8 @@ class Config:
             port=kit_data.port.expect(EXPECTED_MELODY_KIT_PORT),
             key=(
                 kit_data.key.unwrap_or(EMPTY)
-                if ignore_key else kit_data.key.expect(EXPECTED_MELODY_KIT_KEY)
+                if ignore_key
+                else kit_data.key.expect(EXPECTED_MELODY_KIT_KEY)
             ),
         )
 

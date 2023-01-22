@@ -5,11 +5,11 @@ from edgedb import ConstraintViolationError
 from fastapi import Depends, status
 
 from melody.kit.core import database, hasher, tokens, v1
+from melody.kit.date_time_utils import utc_now
 from melody.kit.dependencies import token_dependency
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData
 from melody.kit.tokens import TokenData, encode_token
-from melody.kit.utils import utc_now
 
 __all__ = ("login", "logout", "register")
 
@@ -24,9 +24,7 @@ async def login(email: str, password: str) -> TokenData:
     user_info = await database.query_user_info_by_email(email)
 
     if user_info is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(email), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise Error(CAN_NOT_FIND_USER.format(email), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND)
 
     user_id = user_info.id
 

@@ -10,9 +10,15 @@ from pendulum import Date, DateTime
 from typing_extensions import TypedDict
 
 from melody.kit.constants import EMPTY
+from melody.kit.date_time_utils import (
+    convert_standard_date,
+    convert_standard_date_time,
+    utc_now,
+    utc_today,
+)
 from melody.kit.defaults import DEFAULT_COUNT, DEFAULT_EXPLICIT, DEFAULT_ID, DEFAULT_NAME
-from melody.kit.enums import AlbumType, PrivacyType
-from melody.kit.utils import convert_standard_date, convert_standard_date_time, utc_now, utc_today
+from melody.kit.enums import AlbumType, PrivacyType, URIType
+from melody.kit.uri import URI
 
 __all__ = (
     # models
@@ -50,14 +56,6 @@ __all__ = (
     "playlist_into_data",
     "user_into_data",
 )
-
-URI = "{type}:{id}"
-
-TRACK = "track"
-ARTIST = "artist"
-ALBUM = "album"
-PLAYLIST = "playlist"
-USER = "user"
 
 
 class AbstractData(TypedDict):
@@ -197,7 +195,7 @@ class Track(Base):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            uri=self.uri,
+            uri=str(self.uri),
             album=album_into_data(self.album),
             artists=iter(self.artists).map(artist_into_data).list(),
             explicit=self.explicit,
@@ -205,8 +203,8 @@ class Track(Base):
         )
 
     @property
-    def uri(self) -> str:
-        return URI.format(type=TRACK, id=self.id)
+    def uri(self) -> URI:
+        return URI(type=URIType.TRACK, id=self.id)
 
 
 def track_from_object(object: Object) -> Track:
@@ -259,14 +257,14 @@ class Artist(Base):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            uri=self.uri,
+            uri=str(self.uri),
             follower_count=self.follower_count,
             genres=self.genres,
         )
 
     @property
-    def uri(self) -> str:
-        return URI.format(type=ARTIST, id=self.id)
+    def uri(self) -> URI:
+        return URI(type=URIType.ARTIST, id=self.id)
 
 
 def artist_from_object(object: Object) -> Artist:
@@ -336,7 +334,7 @@ class Album(Base):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            uri=self.uri,
+            uri=str(self.uri),
             artists=iter(self.artists).map(artist_into_data).list(),
             album_type=self.album_type.value,
             release_date=str(self.release_date),
@@ -346,8 +344,8 @@ class Album(Base):
         )
 
     @property
-    def uri(self) -> str:
-        return URI.format(type=ALBUM, id=self.id)
+    def uri(self) -> URI:
+        return URI(type=URIType.ALBUM, id=self.id)
 
 
 def album_from_object(object: Object) -> Album:
@@ -413,7 +411,7 @@ class Playlist(Base):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            uri=self.uri,
+            uri=str(self.uri),
             user=user_into_data(self.user),
             description=self.description,
             track_count=self.track_count,
@@ -421,8 +419,8 @@ class Playlist(Base):
         )
 
     @property
-    def uri(self) -> str:
-        return URI.format(type=PLAYLIST, id=self.id)
+    def uri(self) -> URI:
+        return URI(type=URIType.PLAYLIST, id=self.id)
 
 
 PlaylistTracks = List[Track]
@@ -479,14 +477,14 @@ class User(Base):
             spotify_id=self.spotify_id,
             apple_music_id=self.apple_music_id,
             yandex_music_id=self.yandex_music_id,
-            uri=self.uri,
+            uri=str(self.uri),
             follower_count=self.follower_count,
             privacy_type=self.privacy_type.value,
         )
 
     @property
-    def uri(self) -> str:
-        return URI.format(type=USER, id=self.id)
+    def uri(self) -> URI:
+        return URI(type=URIType.USER, id=self.id)
 
 
 UserTracks = List[Track]
