@@ -1,0 +1,59 @@
+{% set icons = "https://use.fontawesome.com/releases/v6.1.1/js/all.js" %}
+
+{% set fonts = "https://fonts.cdnfonts.com/css/gotham-pro" %}
+
+{% set image = "https://melodykit.app/static/images/icon.png" %}
+
+{% set manifest = "/static/melodykit.webmanifest" %}
+
+{% set style = "/static/css/output.css" %}
+
+{% set icon_svg = "/static/images/icon.svg" %}
+{% set icon_png = "/static/images/icon.png" %}
+
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    {% block head %}
+
+    <title>{{ title }}</title>
+
+    <meta charset="utf-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta author="MelodyKit">
+    <meta name="description" content="{{ description }}">
+
+    <meta property="og:site_name" content="MelodyKit">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ description }}">
+    <meta property="og:image" content="{{ image }}">
+
+    <link rel="manifest" href="{{ manifest }}">
+
+    <link rel="icon" type="image/svg+xml" href="{{ icon_svg }}">
+    <link rel="icon" type="image/png" href="{{ icon_png }}">
+
+    <script defer src="{{ icons }}"></script>
+
+    {% endblock %}
+
+    {% block include %}
+
+    <link rel="preload" href="{{ style }}" as="style">
+
+    <link rel="stylesheet" href="{{ style }}">
+
+    <link rel="stylesheet" href="{{ fonts }}">
+
+    {% endblock %}
+  </head>
+  <body class="antialiased transition ease-in-out bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50">
+
+    {% block body %}
+
+    {% endblock %}
+
+  </body>
+</html>

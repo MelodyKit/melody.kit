@@ -1,7 +1,7 @@
-"""An API for MelodyKit."""
+"""All your music, in one place."""
 
-__description__ = "An API for MelodyKit."
-__url__ = "https://github.com/MelodyKit/melody.kit"
+__description__ = "All your music, in one place."
+__url__ = "https://github.com/MelodyKit/melody.web"
 
 __title__ = "kit"
 __author__ = "MelodyKit"

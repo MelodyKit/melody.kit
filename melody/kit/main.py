@@ -3,11 +3,11 @@ import uvicorn
 
 from melody.kit.core import app, config
 
-__all__ = ("kit",)
+__all__ = ("run",)
 
 
 @click.option("--host", "-h", default=config.kit.host, type=str)
 @click.option("--port", "-p", default=config.kit.port, type=int)
 @click.command()
-def kit(host: str, port: int) -> None:
+def run(host: str, port: int) -> None:
     uvicorn.run(app, host=host, port=port)

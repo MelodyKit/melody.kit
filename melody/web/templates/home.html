@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% set title = "Home" %}
+{% set description = "MelodyKit - All your music, in one place." %}
+
+{% set gradient = "/static/images/gradient.svg" %}
+
+{% block body %}
+
+{{ super() }}
+
+<div class="flex flex-col h-screen px-4 sm:px-6 md:px-8">
+  <header class="relative pt-6 lg:pt-8 flex items-center justify-between text-neutral-700 leading-6 dark:text-neutral-200">
+    <div class="flex items-center space-x-8">
+      <a href="#"><img class="w-auto h-10" src="{{ gradient }}"></img></a>
+      <a class="text-neutral-900 dark:text-neutral-50 text-2xl lg:text-3xl" href="#">MelodyKit</a>
+    </div>
+    <div class="flex items-center space-x-8">
+      <div class="hidden md:flex space-x-8">
+        <a class="text-neutral-900 dark:text-neutral-50" href="/github"><i class="fab fa-github w-auto h-10"></i></a>
+        <a class="text-discord" href="/discord"><i class="fab fa-discord w-auto h-10"></i></a>
+        <a class="text-twitter" href="/twitter"><i class="fab fa-twitter w-auto h-10"></i></a>
+        <a class="text-youtube" href="/youtube"><i class="fab fa-youtube w-auto h-10"></i></a>
+        <a class="text-reddit" href="/reddit"><i class="fab fa-reddit-alien w-auto h-10"></i></a>
+      </div>
+      <a class="transition ease-in-out text-neutral-900 dark:text-white text-xl font-mono bg-white dark:bg-neutral-900 focus:outline-none border-neutral-900 dark:border-white hover:border-melody-blue hover:text-melody-blue dark:hover:border-melody-purple dark:hover:text-melody-purple border-2 h-10 px-4 rounded-lg w-full flex items-center justify-center sm:w-auto" href="/login">
+        Login
+      </a>
+    </div>
+  </header>
+
+  <section class="relative max-w-5xl pt-16 sm:pt-20 lg:pt-24">
+    <h1 class="text-5xl lg:text-8xl">
+      All <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">your</span> music,
+      <br>in <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">one</span> place.
+    </h1>
+    <div class="mt-6 text-xl lg:text-2xl text-neutral-700 dark:text-neutral-500 font-mono">
+      Your favorite songs from all music platforms, united in one place.
+    </div>
+    <div class="mt-6"></div>
+      <a class="text-xl lg:text-2xl text-neutral-900 dark:text-neutral-50 font-mono" href="/intro">
+        <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">Watch the video</span> &gt;
+      </a>
+    </div>
+  </section>
+  <footer class="pb-16 text-xl leading-6 bg-neutral-200 dark:bg-neutral-800">
+    <div class="mx-auto divide-y px-4 sm:px-6 md:px-8">
+      <div class="flex">
+        <div class="flex-none w-1/2 space-y-10 sm:space-y-8 lg:flex lg:space-y-0">
+          <div class="lg:flex-none lg:w-1/2">
+            <div class="mt-6">
+              <h2 class="font-mono">MelodyKit</h2>
+              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+                <li><a class="font-mono" href="/">Home</a></li>
+                <li><a class="font-mono" href="/support">Support</a></li>
+                <li><a class="font-mono" href="/download">Download</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="lg:flex-none lg:w-1/2">
+            <div class="mt-6">
+              <h2 class="font-mono">Developers</h2>
+              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+                <li><a class="font-mono" href="/docs">Documentation</a></li>
+                <li><a class="font-mono" href="/api">API</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="flex-none w-1/2 space-y-10 sm:space-y-8 lg:flex lg:space-y-0">
+          <div class="lg:flex-none lg:w-1/2">
+            <div class="mt-6">
+              <h2 class="font-mono">Socials</h2>
+              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+                <li><a class="font-mono" href="/discord">Discord</a></li>
+                <li><a class="font-mono" href="/twitter">Twitter</a></li>
+                <li><a class="font-mono" href="/youtube">YouTube</a></li>
+                <li><a class="font-mono" href="/reddit">Reddit</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="lg:flex-none lg:w-1/2">
+            <div class="mt-6">
+              <h2 class="font-mono">Legal</h2>
+              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+                <li><a class="font-mono" href="/privacy">Privacy</a></li>
+                <li><a class="font-mono" href="/terms">Terms</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+{% endblock %}

@@ -1,5 +1,5 @@
 from entrypoint import entrypoint
 
-from melody.kit.main import kit
+from melody.kit.main import run
 
-entrypoint(__name__).call(kit)
+entrypoint(__name__).call(run)
