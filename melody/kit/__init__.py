@@ -29,7 +29,7 @@ from melody.kit.models import (
     User,
     UserData,
 )
-from melody.kit.playlists import get_playlist, get_playlist_link
+from melody.kit.playlists import get_playlist, get_playlist_link, get_playlist_tracks
 from melody.kit.tracks import get_track, get_track_link
 from melody.kit.uri import URI
 from melody.kit.users import get_self, get_self_link, get_user, get_user_link
@@ -75,6 +75,7 @@ __all__ = (
     # playlists
     "get_playlist",
     "get_playlist_link",
+    "get_playlist_tracks",
     # tracks
     "get_track",
     "get_track_link",
