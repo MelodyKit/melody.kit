@@ -94,8 +94,8 @@ class URI:
             image_factory=StyledPILImage,
             color_mask=VerticalGradiantColorMask(
                 back_color=TRANSPARENT,
-                top_color=MELODY_KIT_PURPLE,
-                bottom_color=MELODY_KIT_BLUE,
+                top_color=MELODY_PURPLE,
+                bottom_color=MELODY_BLUE,
             ),
         )
 
