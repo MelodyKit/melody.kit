@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "melody.web"
-version = "0.1.0"
+version = "0.1.1"
 description = "All your music, in one place."
 authors = ["MelodyKit"]
 license = "MIT"
@@ -94,7 +94,7 @@ warn_unused_ignores = false  # compatibility
 
 [tool.changelogging]
 name = "melody.web"
-version = "0.1.0"
+version = "0.1.1"
 url = "https://github.com/MelodyKit/melody.web"
 directory = "changes"
 output = "CHANGELOG.md"

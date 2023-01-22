@@ -6,7 +6,7 @@ __url__ = "https://github.com/MelodyKit/melody.web"
 __title__ = "kit"
 __author__ = "MelodyKit"
 __license__ = "MIT"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from melody.kit import endpoints
 from melody.kit.config import Config, ConfigData, get_config

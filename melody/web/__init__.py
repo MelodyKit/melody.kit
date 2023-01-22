@@ -6,7 +6,7 @@ __url__ = "https://github.com/MelodyKit/melody.web"
 __title__ = "web"
 __author__ = "MelodyKit"
 __license__ = "MIT"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from melody.web import endpoints
 
