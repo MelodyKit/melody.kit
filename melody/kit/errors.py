@@ -7,7 +7,7 @@ from attrs import frozen
 from fastapi import status
 from typing_extensions import TypedDict
 
-__all__ = ("AnyError", "Error", "ErrorCode", "ErrorData")
+__all__ = ("AnyError", "Error", "ErrorCode", "ErrorData", "AuthenticationError")
 
 
 class ErrorCode(Enum):
