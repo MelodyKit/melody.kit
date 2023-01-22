@@ -6,6 +6,7 @@ from attrs import define, field
 from edgedb import AsyncIOClient, create_async_client  # type: ignore
 from iters import iter
 
+from melody.kit.constants import KIT_ROOT
 from melody.kit.models import (
     Abstract,
     Album,
@@ -30,7 +31,7 @@ __all__ = ("Database",)
 # NOTE: any is everywhere! we need to be cautious!
 
 QUERIES_NAME = "queries"
-QUERIES = Path(__file__).parent / QUERIES_NAME
+QUERIES = KIT_ROOT / QUERIES_NAME
 
 QUERY = "{}.edgeql"
 query = QUERY.format

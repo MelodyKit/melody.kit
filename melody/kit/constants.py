@@ -1,6 +1,10 @@
+from pathlib import Path
 from uuid import UUID
 
 __all__ = (
+    # root
+    "MELODY_ROOT",
+    "KIT_ROOT",
     # empty
     "EMPTY",
     "EMPTY_BYTES",
@@ -26,6 +30,9 @@ __all__ = (
 )
 
 # constants
+
+KIT_ROOT = Path(__file__).parent
+MELODY_ROOT = KIT_ROOT.parent
 
 EMPTY_BYTES = bytes()
 EMPTY = str()

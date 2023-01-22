@@ -5,7 +5,9 @@ from attrs import define
 from toml import loads as load_string
 from wraps import Option, wrap_optional
 
-from melody.kit.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, DEFAULT_IGNORE_KEY, EMPTY
+from melody.kit.constants import (
+    DEFAULT_ENCODING, DEFAULT_ERRORS, DEFAULT_IGNORE_KEY, EMPTY, MELODY_ROOT
+)
 from melody.kit.typing import IntoPath, StringDict
 
 __all__ = ("Config", "ConfigData", "get_config")
@@ -19,7 +21,7 @@ MELODY_NAME = "melody"
 
 NAME = "kit.toml"
 
-DEFAULT_PATH = Path(__file__).parent.parent / NAME
+DEFAULT_PATH = MELODY_ROOT / NAME
 PATH = HOME / CONFIG_NAME / MELODY_NAME / NAME
 
 
