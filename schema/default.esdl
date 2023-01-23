@@ -55,7 +55,10 @@ module default {
     }
 
     type Playlist extending Base {
-        required link user -> User;
+        required link user -> User {
+            on target delete delete source;
+        };
+
         multi link tracks -> Track;
 
         required property description -> str {
@@ -73,7 +76,8 @@ module default {
         multi link tracks -> Track;
         multi link albums -> Album;
         multi link artists -> Artist;
-        multi link playlists -> Playlist;
+
+        multi link playlists := .<user[is Playlist];
 
         multi link friends -> User;
 

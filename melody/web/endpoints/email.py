@@ -13,4 +13,6 @@ DOMAIN = "melodykit.app"
 
 @app.get("/email/{name}")
 async def redirect_email(name: str) -> RedirectResponse:
-    return RedirectResponse(EMAIL_TO + EMAIL.format(name=name, domain=DOMAIN), status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(
+        EMAIL_TO + EMAIL.format(name=name, domain=DOMAIN), status_code=status.HTTP_302_FOUND
+    )

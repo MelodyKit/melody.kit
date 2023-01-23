@@ -21,15 +21,3 @@ select Album {
     apple_music_id,
     yandex_music_id
 }
-    id: 'UUID',
-    name: 'str',
-    artists: 'List[Artist]',
-    album_type: 'AlbumType' = <AlbumType.ALBUM: 'album'>,
-    release_date: 'Date' = NOTHING,
-    track_count: 'int' = 0,
-    label: 'Optional[str]' = None,
-    genres: 'List[str]' = NOTHING,
-    created_at: 'DateTime' = NOTHING,
-    spotify_id: 'Optional[str]' = None,
-    apple_music_id: 'Optional[int]' = None,
-    yandex_music_id: 'Optional[int]' = None,

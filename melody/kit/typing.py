@@ -1,9 +1,19 @@
 from os import PathLike
-from typing import Dict, TypeVar, Union
+from typing import Callable, Dict, TypeVar, Union
 
-__all__ = ("IntoPath", "StringDict")
+__all__ = (
+    "Unary",
+    "Predicate",
+    "StringDict",
+    "IntoPath",
+)
 
 T = TypeVar("T")
+R = TypeVar("R")
+
+Unary = Callable[[T], R]
+
+Predicate = Unary[T, bool]
 
 StringDict = Dict[str, T]
 

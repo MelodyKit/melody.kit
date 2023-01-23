@@ -6,7 +6,11 @@ from toml import loads as load_string
 from wraps import Option, wrap_optional
 
 from melody.kit.constants import (
-    DEFAULT_ENCODING, DEFAULT_ERRORS, DEFAULT_IGNORE_KEY, EMPTY, MELODY_ROOT
+    DEFAULT_ENCODING,
+    DEFAULT_ERRORS,
+    DEFAULT_IGNORE_KEY,
+    EMPTY,
+    MELODY_ROOT,
 )
 from melody.kit.typing import IntoPath, StringDict
 

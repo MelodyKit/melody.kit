@@ -41,6 +41,4 @@ SHELL = True
 @click.option("--watch", "-w", is_flag=True, default=DEFAULT_WATCH)
 @web.command()
 def build(input: Path, output: Path, watch: bool) -> None:
-    exit(
-        subprocess.call(build_command(input, output, watch=watch), cwd=WEB_ROOT, shell=SHELL)
-    )
+    exit(subprocess.call(build_command(input, output, watch=watch), cwd=WEB_ROOT, shell=SHELL))

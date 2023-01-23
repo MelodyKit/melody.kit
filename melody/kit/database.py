@@ -16,7 +16,11 @@ from melody.kit.models import (
     PlaylistTracks,
     Track,
     User,
+    UserAlbums,
+    UserArtists,
     UserInfo,
+    UserPlaylists,
+    UserTracks,
     abstract_from_object,
     album_from_object,
     artist_from_object,
@@ -55,6 +59,10 @@ PLAYLIST = load_query("playlist")
 PLAYLIST_TRACKS = load_query("playlist_tracks")
 
 USER = load_query("user")
+USER_TRACKS = load_query("user_tracks")
+USER_ARTISTS = load_query("user_artists")
+USER_ALBUMS = load_query("user_albums")
+USER_PLAYLISTS = load_query("user_playlists")
 
 INSERT_USER = load_query("insert_user")
 UPDATE_USER_PASSWORD_HASH = load_query("update_user_password_hash")
@@ -107,6 +115,26 @@ class Database:
         option = await self.client.query_single(USER, user_id=user_id)  # type: ignore
 
         return None if option is None else user_from_object(option)
+
+    async def query_user_tracks(self, user_id: UUID) -> Optional[UserTracks]:
+        option = await self.client.query_single(USER_TRACKS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.tracks).map(track_from_object).list()
+
+    async def query_user_artists(self, user_id: UUID) -> Optional[UserArtists]:
+        option = await self.client.query_single(USER_ARTISTS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.artists).map(artist_from_object).list()
+
+    async def query_user_albums(self, user_id: UUID) -> Optional[UserAlbums]:
+        option = await self.client.query_single(USER_ALBUMS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.albums).map(album_from_object).list()
+
+    async def query_user_playlists(self, user_id: UUID) -> Optional[UserPlaylists]:
+        option = await self.client.query_single(USER_PLAYLISTS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.playlists).map(playlist_from_object).list()
 
     async def insert_user(self, name: str, email: str, password_hash: str) -> Abstract:
         object = await self.client.query_single(  # type: ignore
