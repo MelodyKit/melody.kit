@@ -59,6 +59,7 @@ async def login(email: str, password: str) -> TokenData:
 
 
 @v1.get("/logout")
+@v1.post("/logout")
 async def logout(user_id: UUID = Depends(token_dependency)) -> None:
     tokens[user_id] = utc_now()
 
@@ -79,7 +80,7 @@ https://{domain}/api/v1/verify/{user_id}/{verification_token}
 """.strip()
 
 
-@v1.get("/register")
+@v1.post("/register")
 async def register(name: str, email: str, password: str) -> AbstractData:
     password_hash = hasher.hash(password)
 
