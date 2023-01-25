@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from pendulum import DateTime
 
 from melody.kit.config import get_config
-from melody.kit.constants import NAME, V1, VERSION_1
+from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors import AnyError, Error
 
@@ -25,6 +25,7 @@ hasher = PasswordHasher(
 )
 
 tokens: Dict[UUID, DateTime] = {}
+verification_tokens: Dict[UUID, str] = {}
 
 app = FastAPI(openapi_url=None, redoc_url=None)
 
@@ -38,7 +39,7 @@ def register_error_handler(app: FastAPI) -> None:
         )
 
 
-v1 = FastAPI(title=NAME, version=VERSION_1)
+v1 = FastAPI(title=config.name, version=VERSION_1)
 
 app.mount(V1, v1)
 

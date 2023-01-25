@@ -1,10 +1,14 @@
+from email.message import EmailMessage
+from secrets import token_hex
 from uuid import UUID
 
+from aiosmtplib import SMTP
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import Depends, status
 
-from melody.kit.core import database, hasher, tokens, v1
+from melody.kit.constants import VERIFICATION_TOKEN_SIZE
+from melody.kit.core import config, database, hasher, tokens, v1, verification_tokens
 from melody.kit.date_time_utils import utc_now
 from melody.kit.dependencies import token_dependency
 from melody.kit.errors import Error, ErrorCode
@@ -61,6 +65,19 @@ async def logout(user_id: UUID = Depends(token_dependency)) -> None:
 
 EMAIL_TAKEN = "the email `{}` is taken"
 
+FROM = "From"
+TO = "To"
+SUBJECT = "Subject"
+
+FROM_FORMAT = "{name} <{email}>"
+
+VERIFICATION = "Please verify your account"
+CONTENT = """
+Please verify your account by clicking the link below:
+
+https://{domain}/api/v1/verify/{user_id}/{verification_token}
+""".strip()
+
 
 @v1.get("/register")
 async def register(name: str, email: str, password: str) -> AbstractData:
@@ -75,4 +92,32 @@ async def register(name: str, email: str, password: str) -> AbstractData:
         ) from None
 
     else:
+        user_id = abstract.id
+        verification_token = token_hex(VERIFICATION_TOKEN_SIZE)
+
+        verification_tokens[user_id] = verification_token
+
+        message = EmailMessage()
+
+        message[FROM] = FROM_FORMAT.format(name=config.name, email=config.email.support)
+
+        message[TO] = email
+
+        message[SUBJECT] = VERIFICATION
+
+        message.set_content(
+            CONTENT.format(domain=config.domain, user_id=user_id, verification_token=verification_token)
+        )
+
+        client = SMTP(
+            config.email.host,
+            config.email.port,
+            config.email.name,
+            config.email.password,
+            start_tls=True,
+        )
+
+        async with client:
+            await client.send_message(message)
+
         return abstract.into_data()

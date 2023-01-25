@@ -16,12 +16,16 @@ from melody.kit.models import (
     UserAlbumsData,
     UserArtistsData,
     UserData,
+    UserFollowersData,
+    UserFollowingData,
+    UserFriendsData,
     UserPlaylistsData,
     UserTracksData,
     album_into_data,
     artist_into_data,
     playlist_into_data,
     track_into_data,
+    user_into_data,
 )
 from melody.kit.typing import Predicate
 from melody.kit.uri import URI
@@ -59,6 +63,90 @@ async def get_self_link(user_id: UUID = Depends(token_dependency)) -> FileRespon
     path = await uri.create_link()
 
     return FileResponse(path)
+
+
+@v1.get(f"/users/{ME}/tracks")
+async def get_self_tracks(user_id: UUID = Depends(token_dependency)) -> UserTracksData:
+    tracks = await database.query_user_tracks(user_id)
+
+    if tracks is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(tracks).map(track_into_data).list()
+
+
+@v1.get(f"/users/{ME}/artists")
+async def get_self_artists(user_id: UUID = Depends(token_dependency)) -> UserArtistsData:
+    artists = await database.query_user_artists(user_id)
+
+    if artists is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(artists).map(artist_into_data).list()
+
+
+@v1.get(f"/users/{ME}/albums")
+async def get_self_albums(user_id: UUID = Depends(token_dependency)) -> UserAlbumsData:
+    albums = await database.query_user_albums(user_id)
+
+    if albums is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(albums).map(album_into_data).list()
+
+
+@v1.get(f"/users/{ME}/playlists")
+async def get_self_playlists(user_id: UUID = Depends(token_dependency)) -> UserPlaylistsData:
+    playlists = await database.query_user_playlists(user_id)
+
+    if playlists is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(playlists).map(playlist_into_data).list()
+
+
+@v1.get(f"/users/{ME}/friends")
+async def get_self_friends(user_id: UUID = Depends(token_dependency)) -> UserFriendsData:
+    friends = await database.query_user_friends(user_id)
+
+    if friends is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(friends).map(user_into_data).list()
+
+
+@v1.get(f"/users/{ME}/followers")
+async def get_self_followers(user_id: UUID = Depends(token_dependency)) -> UserFollowersData:
+    followers = await database.query_user_followers(user_id)
+
+    if followers is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(followers).map(user_into_data).list()
+
+
+@v1.get(f"/users/{ME}/following")
+async def get_self_following(user_id: UUID = Depends(token_dependency)) -> UserFollowingData:
+    following = await database.query_user_following(user_id)
+
+    if following is None:
+        raise Error(
+            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )
+
+    return iter(following).map(user_into_data).list()
 
 
 @v1.get("/users/{user_id}")

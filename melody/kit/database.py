@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
@@ -18,6 +17,9 @@ from melody.kit.models import (
     User,
     UserAlbums,
     UserArtists,
+    UserFollowers,
+    UserFollowing,
+    UserFriends,
     UserInfo,
     UserPlaylists,
     UserTracks,
@@ -64,8 +66,13 @@ USER_ARTISTS = load_query("user_artists")
 USER_ALBUMS = load_query("user_albums")
 USER_PLAYLISTS = load_query("user_playlists")
 
+USER_FRIENDS = load_query("user_friends")
+USER_FOLLOWERS = load_query("user_followers")
+USER_FOLLOWING = load_query("user_following")
+
 INSERT_USER = load_query("insert_user")
 UPDATE_USER_PASSWORD_HASH = load_query("update_user_password_hash")
+UPDATE_USER_VERIFIED = load_query("update_user_verified")
 
 USER_INFO_BY_EMAIL = load_query("user_info_by_email")
 
@@ -136,6 +143,21 @@ class Database:
 
         return None if option is None else iter(option.playlists).map(playlist_from_object).list()
 
+    async def query_user_friends(self, user_id: UUID) -> Optional[UserFriends]:
+        option = await self.client.query_single(USER_FRIENDS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.friends).map(user_from_object).list()
+
+    async def query_user_followers(self, user_id: UUID) -> Optional[UserFollowers]:
+        option = await self.client.query_single(USER_FOLLOWERS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.followers).map(user_from_object).list()
+
+    async def query_user_following(self, user_id: UUID) -> Optional[UserFollowing]:
+        option = await self.client.query_single(USER_FOLLOWING, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.following).map(user_from_object).list()
+
     async def insert_user(self, name: str, email: str, password_hash: str) -> Abstract:
         object = await self.client.query_single(  # type: ignore
             INSERT_USER, name=name, email=email, password_hash=password_hash
@@ -146,6 +168,11 @@ class Database:
     async def update_user_password_hash(self, user_id: UUID, password_hash: str) -> None:
         await self.client.query_single(  # type: ignore
             UPDATE_USER_PASSWORD_HASH, user_id=user_id, password_hash=password_hash
+        )
+
+    async def update_user_verified(self, user_id: UUID, verified: bool) -> None:
+        await self.client.query_single(  # type: ignore
+            UPDATE_USER_VERIFIED, user_id=user_id, verified=verified
         )
 
     async def query_user_info_by_email(self, email: str) -> Optional[UserInfo]:

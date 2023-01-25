@@ -1,3 +1,12 @@
+[melody]
+name = "MelodyKit"
+domain = "melodykit.app"
+
+[melody.email]
+host = "smtp.gmail.com"
+port = 587
+support = "support@melodykit.app"
+
 [melody.hash]
 time_cost = 4
 memory_cost = 65536

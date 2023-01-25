@@ -504,6 +504,9 @@ UserFriendsData = List[UserData]
 UserFollowers = List[User]
 UserFollowersData = List[UserData]
 
+UserFollowing = List[User]
+UserFollowingData = List[UserData]
+
 
 def user_from_object(object: Object) -> User:
     return User.from_object(object)

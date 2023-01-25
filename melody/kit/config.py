@@ -8,7 +8,7 @@ from wraps import Option, wrap_optional
 from melody.kit.constants import (
     DEFAULT_ENCODING,
     DEFAULT_ERRORS,
-    DEFAULT_IGNORE_KEY,
+    DEFAULT_IGNORE_SENSITIVE,
     EMPTY,
     MELODY_ROOT,
 )
@@ -38,6 +38,15 @@ AnyConfigData = ConfigData[Any]
 
 
 @define()
+class EmailConfig:
+    host: str
+    port: int
+    support: str
+    name: str
+    password: str
+
+
+@define()
 class HashConfig:
     time_cost: int
     memory_cost: int
@@ -56,6 +65,14 @@ expected = EXPECTED.format
 
 
 EXPECTED_MELODY = expected("melody")
+EXPECTED_MELODY_NAME = expected("melody.name")
+EXPECTED_MELODY_DOMAIN = expected("melody.domain")
+EXPECTED_MELODY_EMAIL = expected("melody.email")
+EXPECTED_MELODY_EMAIL_HOST = expected("melody.email.host")
+EXPECTED_MELODY_EMAIL_PORT = expected("melody.email.port")
+EXPECTED_MELODY_EMAIL_SUPPORT = expected("melody.email.support")
+EXPECTED_MELODY_EMAIL_NAME = expected("melody.email.name")
+EXPECTED_MELODY_EMAIL_PASSWORD = expected("melody.email.password")
 EXPECTED_MELODY_HASH = expected("melody.hash")
 EXPECTED_MELODY_HASH_TIME_COST = expected("melody.hash.time_cost")
 EXPECTED_MELODY_HASH_MEMORY_COST = expected("melody.hash.memory_cost")
@@ -71,6 +88,9 @@ C = TypeVar("C", bound="Config")
 
 @define()
 class Config:
+    name: str
+    domain: str
+    email: EmailConfig
     hash: HashConfig
     kit: KitConfig
 
@@ -94,6 +114,17 @@ class Config:
 
         config_data = data.melody.unwrap_or_else(AnyConfigData)
 
+        email_data = config_data.email.unwrap_or_else(AnyConfigData)
+        email_config = default_config.email
+
+        email = EmailConfig(
+            host=email_data.host.unwrap_or(email_config.host),
+            port=email_data.port.unwrap_or(email_config.port),
+            support=email_data.support.unwrap_or(email_config.support),
+            name=email_data.name.expect(EXPECTED_MELODY_EMAIL_NAME),
+            password=email_data.password.expect(EXPECTED_MELODY_EMAIL_PASSWORD),
+        )
+
         hash_data = config_data.hash.unwrap_or_else(AnyConfigData)
         hash_config = default_config.hash
 
@@ -112,11 +143,16 @@ class Config:
             key=kit_data.key.expect(EXPECTED_MELODY_KIT_KEY),
         )
 
-        return cls(hash=hash, kit=kit)
+        name = config_data.name.unwrap_or(default_config.name)
+        domain = config_data.domain.unwrap_or(default_config.domain)
+
+        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit)
 
     @classmethod
-    def unsafe_from_string(cls: Type[C], string: str, ignore_key: bool = DEFAULT_IGNORE_KEY) -> C:
-        return cls.unsafe_from_data(cls.parse(string), ignore_key=ignore_key)
+    def unsafe_from_string(
+        cls: Type[C], string: str, ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE
+    ) -> C:
+        return cls.unsafe_from_data(cls.parse(string), ignore_sensitive=ignore_sensitive)
 
     @classmethod
     def unsafe_from_path(
@@ -124,15 +160,35 @@ class Config:
         path: IntoPath,
         encoding: str = DEFAULT_ENCODING,
         errors: str = DEFAULT_ERRORS,
-        ignore_key: bool = DEFAULT_IGNORE_KEY,
+        ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE,
     ) -> C:
-        return cls.unsafe_from_string(Path(path).read_text(encoding, errors), ignore_key=ignore_key)
+        return cls.unsafe_from_string(
+            Path(path).read_text(encoding, errors), ignore_sensitive=ignore_sensitive
+        )
 
     @classmethod
     def unsafe_from_data(
-        cls: Type[C], data: AnyConfigData, ignore_key: bool = DEFAULT_IGNORE_KEY
+        cls: Type[C], data: AnyConfigData, ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE
     ) -> C:
         config_data = data.melody.expect(EXPECTED_MELODY)
+
+        email_data = config_data.email.expect(EXPECTED_MELODY_EMAIL)
+
+        email = EmailConfig(
+            host=email_data.host.expect(EXPECTED_MELODY_EMAIL_HOST),
+            port=email_data.port.expect(EXPECTED_MELODY_EMAIL_PORT),
+            support=email_data.support.expect(EXPECTED_MELODY_EMAIL_SUPPORT),
+            name=(
+                email_data.name.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else email_data.name.expect(EXPECTED_MELODY_EMAIL_NAME)
+            ),
+            password=(
+                email_data.password.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else email_data.password.expect(EXPECTED_MELODY_EMAIL_PASSWORD)
+            ),
+        )
 
         hash_data = config_data.hash.expect(EXPECTED_MELODY_HASH)
 
@@ -149,15 +205,18 @@ class Config:
             port=kit_data.port.expect(EXPECTED_MELODY_KIT_PORT),
             key=(
                 kit_data.key.unwrap_or(EMPTY)
-                if ignore_key
+                if ignore_sensitive
                 else kit_data.key.expect(EXPECTED_MELODY_KIT_KEY)
             ),
         )
 
-        return cls(hash=hash, kit=kit)
+        name = config_data.name.expect(EXPECTED_MELODY_NAME)
+        domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
+
+        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit)
 
 
-DEFAULT_CONFIG = Config.unsafe_from_path(DEFAULT_PATH, ignore_key=True)
+DEFAULT_CONFIG = Config.unsafe_from_path(DEFAULT_PATH, ignore_sensitive=True)
 
 
 def ensure_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> None:

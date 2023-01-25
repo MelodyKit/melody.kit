@@ -83,6 +83,8 @@ module default {
 
         multi link followers -> User;
 
+        multi link following := .<followers[is User];
+
         property follower_count := count(.followers);
 
         required property verified -> bool {

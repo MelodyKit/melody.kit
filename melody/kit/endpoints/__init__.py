@@ -4,6 +4,7 @@ from melody.kit.endpoints.authentication import login, logout, register
 from melody.kit.endpoints.playlists import get_playlist, get_playlist_link, get_playlist_tracks
 from melody.kit.endpoints.tracks import get_track, get_track_link
 from melody.kit.endpoints.users import get_self, get_self_link, get_user, get_user_link
+from melody.kit.endpoints.verify import verify
 
 __all__ = (
     # albums
@@ -29,4 +30,6 @@ __all__ = (
     "get_self_link",
     "get_user",
     "get_user_link",
+    # verification
+    "verify",
 )

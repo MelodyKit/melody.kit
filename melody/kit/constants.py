@@ -10,15 +10,15 @@ __all__ = (
     "EMPTY_BYTES",
     # me
     "ME",
-    # application name
-    "NAME",
     # space
     "SPACE",
     # v1
     "V1",
     "VERSION_1",
+    # verify tokens
+    "VERIFICATION_TOKEN_SIZE",
     # config
-    "DEFAULT_IGNORE_KEY",
+    "DEFAULT_IGNORE_SENSITIVE",
     # encoding
     "DEFAULT_ENCODING",
     "DEFAULT_ERRORS",
@@ -39,7 +39,8 @@ EMPTY = str()
 
 SPACE = " "
 
-NAME = "melody.kit"
+VERIFICATION_TOKEN_SIZE = 32
+
 VERSION_1 = "1.0.0"
 V1 = "/api/v1"
 
@@ -47,7 +48,7 @@ ME = "@me"
 
 # defaults
 
-DEFAULT_IGNORE_KEY = False
+DEFAULT_IGNORE_SENSITIVE = False
 
 DEFAULT_ENCODING = "utf-8"
 DEFAULT_ERRORS = "strict"

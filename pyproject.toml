@@ -34,7 +34,7 @@ include = "melody"
 [tool.poetry.dependencies]
 python = ">= 3.7"
 pendulum = ">= 2.1.2"
-aiohttp = ">= 3.8.3"
+aiosmtplib = ">= 2.0.1"
 edgedb = ">= 1.2.0"
 redis = ">= 4.4.2"
 iters = ">= 0.10.0"
