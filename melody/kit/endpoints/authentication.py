@@ -15,7 +15,7 @@ from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData
 from melody.kit.tokens import TokenData, encode_token
 
-__all__ = ("login", "logout", "register")
+__all__ = ("login", "logout", "register", "verify")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
@@ -76,7 +76,7 @@ VERIFICATION = "Please verify your account"
 CONTENT = """
 Please verify your account by clicking the link below:
 
-https://{domain}/api/v1/verify/{user_id}/{verification_token}
+https://{domain}/verify/{user_id}/{verification_token}
 """.strip()
 
 
@@ -122,3 +122,26 @@ async def register(name: str, email: str, password: str) -> AbstractData:
             await client.send_message(message)
 
         return abstract.into_data()
+
+
+VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"
+VERIFICATION_NOT_FOUND = "verification for the user with id `{}` not found"
+
+
+@v1.get("/verify/{user_id}/{verification_token}")
+async def verify(user_id: UUID, verification_token: str) -> None:
+    if user_id in verification_tokens:
+        if verification_tokens[user_id] == verification_token:
+            del verification_tokens[user_id]
+
+            await database.update_user_verified(user_id, True)
+
+        else:
+            raise Error(
+                VERIFICATION_TOKEN_MISMATCH, ErrorCode.UNAUTHORIZED, status.HTTP_401_UNAUTHORIZED
+            )
+
+    else:
+        raise Error(
+            VERIFICATION_NOT_FOUND.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
+        )

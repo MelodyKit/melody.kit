@@ -1,3 +1,4 @@
+from melody.web.endpoints.authentication import login, logout, register, verify
 from melody.web.endpoints.docs import redirect_docs
 from melody.web.endpoints.email import redirect_email
 from melody.web.endpoints.github import redirect_github
@@ -6,6 +7,11 @@ from melody.web.endpoints.keys import get_key
 from melody.web.endpoints.redirect import create_redirect
 
 __all__ = (
+    # authentication
+    "login",
+    "logout",
+    "register",
+    "verify",
     # docs
     "redirect_docs",
     # email

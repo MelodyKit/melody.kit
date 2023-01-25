@@ -1,8 +1,12 @@
 from pathlib import Path
 
+from typing_extensions import Literal
+
 # constants
 
 WEB_ROOT = Path(__file__).parent
+
+TOKEN: Literal["token"] = "token"
 
 STATIC_PATH = "/static"
 
