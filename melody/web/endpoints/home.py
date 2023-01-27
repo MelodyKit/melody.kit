@@ -11,6 +11,7 @@ from melody.web.dependencies import optional_cookie_token_dependency
 __all__ = ("get_home",)
 
 PAGE_TEMPLATE = environment.get_template("page.html")
+HOME_TEMPLATE = environment.get_template("home.html")
 
 
 @app.get("/")
@@ -20,4 +21,4 @@ async def get_home(
     if user_id is None:
         return HTMLResponse(await PAGE_TEMPLATE.render_async())
 
-    return HTMLResponse()
+    return HTMLResponse(await HOME_TEMPLATE.render_async())
