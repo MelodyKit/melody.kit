@@ -13,6 +13,7 @@ from melody.kit.models import (
     Artist,
     Playlist,
     PlaylistTracks,
+    Statistics,
     Track,
     User,
     UserAlbums,
@@ -27,6 +28,7 @@ from melody.kit.models import (
     album_from_object,
     artist_from_object,
     playlist_from_object,
+    statistics_from_object,
     track_from_object,
     user_from_object,
     user_info_from_object,
@@ -75,6 +77,8 @@ UPDATE_USER_PASSWORD_HASH = load_query("update_user_password_hash")
 UPDATE_USER_VERIFIED = load_query("update_user_verified")
 
 USER_INFO_BY_EMAIL = load_query("user_info_by_email")
+
+STATISTICS = load_query("statistics")
 
 
 @define()
@@ -179,3 +183,8 @@ class Database:
         option = await self.client.query_single(USER_INFO_BY_EMAIL, email=email)  # type: ignore
 
         return None if option is None else user_info_from_object(option)
+
+    async def query_statistics(self) -> Statistics:
+        object = await self.client.query_required_single(STATISTICS)  # type: ignore
+
+        return statistics_from_object(object)

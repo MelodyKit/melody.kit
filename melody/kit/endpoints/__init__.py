@@ -2,6 +2,7 @@ from melody.kit.endpoints.albums import get_album, get_album_link, get_album_tra
 from melody.kit.endpoints.artists import get_artist, get_artist_link
 from melody.kit.endpoints.authentication import login, logout, register, verify
 from melody.kit.endpoints.playlists import get_playlist, get_playlist_link, get_playlist_tracks
+from melody.kit.endpoints.statistics import get_statistics
 from melody.kit.endpoints.tracks import get_track, get_track_link
 from melody.kit.endpoints.users import get_self, get_self_link, get_user, get_user_link
 
@@ -30,6 +31,6 @@ __all__ = (
     "get_self_link",
     "get_user",
     "get_user_link",
-    # verification
-    "verify",
+    # statistics
+    "get_statistics",
 )

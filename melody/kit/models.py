@@ -29,6 +29,7 @@ __all__ = (
     "Playlist",
     "User",
     "UserInfo",
+    "Statistics",
     # data
     "AbstractData",
     "BaseData",
@@ -38,6 +39,7 @@ __all__ = (
     "PlaylistData",
     "UserData",
     "UserInfoData",
+    "StatisticsData",
     # from object
     "abstract_from_object",
     "base_from_object",
@@ -46,6 +48,8 @@ __all__ = (
     "album_from_object",
     "playlist_from_object",
     "user_from_object",
+    "user_info_from_object",
+    "statistics_from_object",
     # into data
     "abstract_into_data",
     "base_into_data",
@@ -54,6 +58,8 @@ __all__ = (
     "album_into_data",
     "playlist_into_data",
     "user_into_data",
+    "user_info_into_data",
+    "statistics_into_data",
 )
 
 
@@ -558,3 +564,50 @@ def user_info_from_object(object: Object) -> UserInfo:
 
 def user_info_into_data(user_info: UserInfo) -> UserInfoData:
     return user_info.into_data()
+
+
+class StatisticsData(TypedDict):
+    track_count: int
+    artist_count: int
+    album_count: int
+    playlist_count: int
+    user_count: int
+
+
+S = TypeVar("S", bound="Statistics")
+
+
+@define()
+class Statistics:
+    track_count: int = DEFAULT_COUNT
+    artist_count: int = DEFAULT_COUNT
+    album_count: int = DEFAULT_COUNT
+    playlist_count: int = DEFAULT_COUNT
+    user_count: int = DEFAULT_COUNT
+
+    @classmethod
+    def from_object(cls: Type[S], object: Object) -> S:  # type: ignore
+        return cls(
+            track_count=object.track_count,
+            artist_count=object.artist_count,
+            album_count=object.album_count,
+            playlist_count=object.playlist_count,
+            user_count=object.user_count,
+        )
+
+    def into_data(self) -> StatisticsData:
+        return StatisticsData(
+            track_count=self.track_count,
+            artist_count=self.artist_count,
+            album_count=self.album_count,
+            playlist_count=self.playlist_count,
+            user_count=self.user_count,
+        )
+
+
+def statistics_from_object(object: Object) -> Statistics:
+    return Statistics.from_object(object)
+
+
+def statistics_into_data(statistics: Statistics) -> StatisticsData:
+    return statistics.into_data()
