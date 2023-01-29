@@ -5,12 +5,14 @@ from uuid import UUID
 from aiosmtplib import SMTP
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
-from fastapi import Depends, status
+from fastapi import Body, Depends, status
 
 from melody.kit.constants import VERIFICATION_TOKEN_SIZE
 from melody.kit.core import config, database, hasher, tokens, v1, verification_tokens
 from melody.kit.utils import utc_now
-from melody.kit.dependencies import token_dependency
+from melody.kit.dependencies import (
+    email_deliverability_dependency, email_dependency, token_dependency
+)
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData
 from melody.kit.tokens import TokenData, encode_token
@@ -23,8 +25,8 @@ PASSWORD_MISMATCH = "password mismatch"
 UNVERIFIED = "user with id `{}` is not verified"
 
 
-@v1.get("/login")
-async def login(email: str, password: str) -> TokenData:
+@v1.post("/login")
+async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokenData:
     user_info = await database.query_user_info_by_email(email)
 
     if user_info is None:
@@ -58,7 +60,6 @@ async def login(email: str, password: str) -> TokenData:
         return TokenData(token=token)
 
 
-@v1.get("/logout")
 @v1.post("/logout")
 async def logout(user_id: UUID = Depends(token_dependency)) -> None:
     tokens[user_id] = utc_now()
@@ -81,7 +82,11 @@ https://{domain}/verify/{user_id}/{verification_token}
 
 
 @v1.post("/register")
-async def register(name: str, email: str, password: str) -> AbstractData:
+async def register(
+    name: str = Body(),
+    email: str = Depends(email_deliverability_dependency),
+    password: str = Body(),
+) -> AbstractData:
     password_hash = hasher.hash(password)
 
     try:
@@ -95,8 +100,6 @@ async def register(name: str, email: str, password: str) -> AbstractData:
     else:
         user_id = abstract.id
         verification_token = token_hex(VERIFICATION_TOKEN_SIZE)
-
-        verification_tokens[user_id] = verification_token
 
         message = EmailMessage()
 
@@ -121,6 +124,8 @@ async def register(name: str, email: str, password: str) -> AbstractData:
         async with client:
             await client.send_message(message)
 
+        verification_tokens[user_id] = verification_token
+
         return abstract.into_data()
 
 
@@ -128,7 +133,7 @@ VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"
 VERIFICATION_NOT_FOUND = "verification for the user with id `{}` not found"
 
 
-@v1.get("/verify/{user_id}/{verification_token}")
+@v1.post("/verify/{user_id}/{verification_token}")
 async def verify(user_id: UUID, verification_token: str) -> None:
     if user_id in verification_tokens:
         if verification_tokens[user_id] == verification_token:

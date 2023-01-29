@@ -1,10 +1,13 @@
 from typing import Optional
 from uuid import UUID
 
+from async_extensions.blocking import run_blocking_in_thread
+from email_validator import EmailNotValidError, validate_email  # type: ignore
+from fastapi import Form
 from fastapi.requests import Request
 from jwt import DecodeError, ExpiredSignatureError
 
-from melody.kit.errors import AuthenticationError, ErrorCode
+from melody.kit.errors import AuthenticationError, ErrorCode, ValidationError
 from melody.kit.tokens import decode_token
 from melody.web.constants import TOKEN
 
@@ -45,3 +48,26 @@ def optional_cookie_token_dependency(request: Request) -> Optional[UUID]:
 
     except AuthenticationError:
         return None
+
+
+INVALID_EMAIL = "email `{}` is invalid"
+
+
+def form_email_dependency(email: str = Form()) -> str:
+    try:
+        result = validate_email(email, check_deliverability=False)
+
+    except EmailNotValidError:
+        raise ValidationError(INVALID_EMAIL.format(email))
+
+    return result.email  # type: ignore
+
+
+async def form_email_deliverability_dependency(email: str = Form()) -> str:
+    try:
+        result = await run_blocking_in_thread(validate_email, email, check_deliverability=True)
+
+    except EmailNotValidError:
+        raise ValidationError(INVALID_EMAIL.format(email))
+
+    return result.email  # type: ignore

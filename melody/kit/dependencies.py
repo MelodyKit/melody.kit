@@ -1,14 +1,22 @@
 from typing import Optional
 from uuid import UUID
 
+from async_extensions.blocking import run_blocking_in_thread
+from email_validator import EmailNotValidError, validate_email  # type: ignore
+from fastapi import Body
 from fastapi.requests import Request
 from jwt import DecodeError, ExpiredSignatureError
 
 from melody.kit.constants import SPACE
-from melody.kit.errors import AuthenticationError, ErrorCode
+from melody.kit.errors import AuthenticationError, ErrorCode, ValidationError
 from melody.kit.tokens import decode_token
 
-__all__ = ("token_dependency", "optional_token_dependency")
+__all__ = (
+    "token_dependency",
+    "optional_token_dependency",
+    "email_dependency",
+    "email_deliverability_dependency",
+)
 
 AUTHORIZATION = "Authorization"
 
@@ -17,17 +25,16 @@ AUTHENTICATION_MISSING = "authentication is missing"
 AUTHENTICATION_EXPIRED = "authentication has expired"
 
 
-def token_dependency(request: Request, token: Optional[str] = None) -> UUID:
-    if token is None:
-        header = request.headers.get(AUTHORIZATION)
+def token_dependency(request: Request) -> UUID:
+    header = request.headers.get(AUTHORIZATION)
 
-        if header is None:
-            raise AuthenticationError(AUTHENTICATION_MISSING, ErrorCode.AUTHENTICATION_MISSING)
+    if header is None:
+        raise AuthenticationError(AUTHENTICATION_MISSING, ErrorCode.AUTHENTICATION_MISSING)
 
-        _, _, token = header.partition(SPACE)
+    _, _, token = header.partition(SPACE)
 
-        if not token:
-            raise AuthenticationError(AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID)
+    if not token:
+        raise AuthenticationError(AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID)
 
     try:
         user_id = decode_token(token)
@@ -45,9 +52,32 @@ def token_dependency(request: Request, token: Optional[str] = None) -> UUID:
     return user_id
 
 
-def optional_token_dependency(request: Request, token: Optional[str] = None) -> Optional[UUID]:
+def optional_token_dependency(request: Request) -> Optional[UUID]:
     try:
-        return token_dependency(request, token)
+        return token_dependency(request)
 
     except AuthenticationError:
         return None
+
+
+INVALID_EMAIL = "email `{}` is invalid"
+
+
+def email_dependency(email: str = Body()) -> str:
+    try:
+        result = validate_email(email, check_deliverability=False)
+
+    except EmailNotValidError:
+        raise ValidationError(INVALID_EMAIL.format(email))
+
+    return result.email  # type: ignore
+
+
+async def email_deliverability_dependency(email: str = Body()) -> str:
+    try:
+        result = await run_blocking_in_thread(validate_email, email, check_deliverability=True)
+
+    except EmailNotValidError:
+        raise ValidationError(INVALID_EMAIL.format(email))
+
+    return result.email  # type: ignore

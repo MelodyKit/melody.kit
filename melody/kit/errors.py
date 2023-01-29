@@ -7,7 +7,7 @@ from attrs import frozen
 from fastapi import status
 from typing_extensions import TypedDict
 
-__all__ = ("AnyError", "Error", "ErrorCode", "ErrorData", "AuthenticationError")
+__all__ = ("AnyError", "Error", "ErrorCode", "ErrorData", "AuthenticationError", "ValidationError")
 
 
 class ErrorCode(Enum):
@@ -74,3 +74,11 @@ class AuthenticationError(Error[T]):
 
     code: ErrorCode = ErrorCode.AUTHENTICATION_ERROR
     status_code: int = status.HTTP_401_UNAUTHORIZED
+
+
+@frozen()
+class ValidationError(Error[T]):
+    """Validation has failed."""
+
+    code: ErrorCode = ErrorCode.UNPROCESSABLE_ENTITY
+    status_code: int = status.HTTP_422_UNPROCESSABLE_ENTITY
