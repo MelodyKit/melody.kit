@@ -1,6 +1,6 @@
 from enum import Enum
 
-__all__ = ("AlbumType", "PrivacyType", "URIType")
+__all__ = ("AlbumType", "PrivacyType", "URIType", "LogLevel")
 
 
 class AlbumType(Enum):
@@ -64,3 +64,12 @@ class URIType(Enum):
 
     def is_user(self) -> bool:
         return self is type(self).USER
+
+
+class LogLevel(Enum):
+    CRITICAL = "critical"
+    ERROR = "error"
+    WARNING = "warning"
+    INFO = "info"
+    DEBUG = "debug"
+    TRACE = "trace"

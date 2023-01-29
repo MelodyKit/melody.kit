@@ -12,6 +12,7 @@ from melody.kit.constants import (
     EMPTY,
     MELODY_ROOT,
 )
+from melody.kit.enums import LogLevel
 from melody.kit.typing import IntoPath, StringDict
 
 __all__ = ("Config", "ConfigData", "get_config")
@@ -60,6 +61,11 @@ class KitConfig:
     key: str
 
 
+@define()
+class LogConfig:
+    level: LogLevel
+
+
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
 
@@ -81,6 +87,8 @@ EXPECTED_MELODY_KIT = expected("melody.kit")
 EXPECTED_MELODY_KIT_HOST = expected("melody.kit.host")
 EXPECTED_MELODY_KIT_PORT = expected("melody.kit.port")
 EXPECTED_MELODY_KIT_KEY = expected("melody.kit.key")
+EXPECTED_MELODY_LOG = expected("melody.log")
+EXPECTED_MELODY_LOG_LEVEL = expected("melody.log.level")
 
 
 C = TypeVar("C", bound="Config")
@@ -93,6 +101,7 @@ class Config:
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
+    log: LogConfig
 
     @classmethod
     def from_string(cls: Type[C], string: str) -> C:
@@ -143,10 +152,15 @@ class Config:
             key=kit_data.key.expect(EXPECTED_MELODY_KIT_KEY),
         )
 
+        log_data = config_data.log.unwrap_or_else(AnyConfigData)
+        log_config = default_config.log
+
+        log = LogConfig(level=log_data.level.unwrap_or(log_config.level))
+
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
 
-        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit)
+        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit, log=log)
 
     @classmethod
     def unsafe_from_string(
@@ -210,10 +224,14 @@ class Config:
             ),
         )
 
+        log_data = config_data.log.expect(EXPECTED_MELODY_LOG)
+
+        log = LogConfig(level=log_data.level.expect(EXPECTED_MELODY_LOG_LEVEL))
+
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
 
-        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit)
+        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit, log=log)
 
 
 DEFAULT_CONFIG = Config.unsafe_from_path(DEFAULT_PATH, ignore_sensitive=True)

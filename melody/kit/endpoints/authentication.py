@@ -9,7 +9,7 @@ from fastapi import Depends, status
 
 from melody.kit.constants import VERIFICATION_TOKEN_SIZE
 from melody.kit.core import config, database, hasher, tokens, v1, verification_tokens
-from melody.kit.date_time_utils import utc_now
+from melody.kit.utils import utc_now
 from melody.kit.dependencies import token_dependency
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData

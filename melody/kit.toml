@@ -15,3 +15,6 @@ parallelism = 4
 [melody.kit]
 host = "127.0.0.1"
 port = 1342
+
+[melody.log]
+level = "error"
