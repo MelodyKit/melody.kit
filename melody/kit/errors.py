@@ -7,7 +7,15 @@ from attrs import frozen
 from fastapi import status
 from typing_extensions import TypedDict
 
-__all__ = ("AnyError", "Error", "ErrorCode", "ErrorData", "AuthenticationError", "ValidationError")
+__all__ = (
+    "AnyError",
+    "Error",
+    "ErrorCode",
+    "ErrorData",
+    "AuthenticationError",
+    "ValidationError",
+    "InternalError",
+)
 
 
 class ErrorCode(Enum):
@@ -56,11 +64,6 @@ class Error(Exception, Generic[T]):
     code: ErrorCode = ErrorCode.DEFAULT
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    def __init__(self, detail: T, code: ErrorCode, status_code: int) -> None:
-        super().__init__(detail)
-
-        self.__attrs_init__(detail=detail, code=code, status_code=status_code)  # type: ignore
-
     def into_data(self) -> ErrorData[T]:
         return ErrorData(code=self.code.value, detail=self.detail)
 
@@ -82,3 +85,15 @@ class ValidationError(Error[T]):
 
     code: ErrorCode = ErrorCode.UNPROCESSABLE_ENTITY
     status_code: int = status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+INTERNAL_ERROR = "internal error"
+
+
+@frozen()
+class InternalError(Error[str]):
+    """Internal error has occured."""
+
+    detail: str = INTERNAL_ERROR
+    code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR
+    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR

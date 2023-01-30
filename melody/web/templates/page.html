@@ -8,89 +8,113 @@
 
 {{ super() }}
 
-<div class="flex flex-col h-screen px-4 sm:px-6 md:px-8">
-  <header class="relative pt-6 lg:pt-8 flex items-center justify-between text-neutral-700 leading-6 dark:text-neutral-200">
-    <div class="flex items-center space-x-8">
-      <a href="#"><img class="w-auto h-10" src="{{ gradient }}"></img></a>
-      <a class="text-neutral-900 dark:text-neutral-50 text-2xl lg:text-3xl" href="#">MelodyKit</a>
-    </div>
-    <div class="flex items-center space-x-8">
-      <div class="hidden md:flex space-x-8">
-        <a class="text-neutral-900 dark:text-neutral-50" href="/github"><i class="fa-brands fa-github w-auto h-10"></i></a>
-        <a class="text-discord" href="/discord"><i class="fa-brands fa-discord w-auto h-10"></i></a>
-        <a class="text-twitter" href="/twitter"><i class="fa-brands fa-twitter w-auto h-10"></i></a>
-        <a class="text-youtube" href="/youtube"><i class="fa-brands fa-youtube w-auto h-10"></i></a>
-        <a class="text-reddit" href="/reddit"><i class="fa-brands fa-reddit-alien w-auto h-10"></i></a>
+<header class="relative">
+  <div class="px-4 sm:px-6 md:px-8 h-screen">
+    <div class="relative pt-6 lg:pt-8 flex items-center justify-between text-neutral-900 dark:text-neutral-50">
+      <div class="flex items-center gap-x-8">
+        <a href="/"><img class="w-auto h-10" src="{{ gradient }}"></img></a>
+        <a class="text-2xl lg:text-3xl" href="/">MelodyKit</a>
       </div>
-      <a class="transition ease-in-out text-neutral-900 dark:text-neutral-50 bg-gradient-to-b from-melody-purple to-melody-blue text-xl h-10 px-4 rounded-lg w-full sm:w-auto flex items-center justify-center" href="/login">
-        Log in
-      </a>
+      <div class="flex items-center gap-x-8">
+        <nav class="hidden md:flex items-center">
+          <ul class="flex items-center gap-x-8">
+            <li><a href="/github"><i class="fa-brands fa-github w-auto h-10"></i></a></li>
+            <li><a class="text-discord" href="/discord"><i class="fa-brands fa-discord w-auto h-10"></i></a></li>
+            <li><a class="text-twitter" href="/twitter"><i class="fa-brands fa-twitter w-auto h-10"></i></a></li>
+            <li><a class="text-youtube" href="/youtube"><i class="fa-brands fa-youtube w-auto h-10"></i></a></li>
+            <li><a class="text-reddit" href="/reddit"><i class="fa-brands fa-reddit-alien w-auto h-10"></i></a></li>
+          </ul>
+        </nav>
+        <a class="bg-gradient-to-b from-melody-purple to-melody-blue text-xl h-10 px-4 rounded-lg flex items-center justify-center">
+          Log in
+        </a>
+      </div>
     </div>
-  </header>
+    <div class="relative max-w-5xl pt-16 sm:pt-20 lg:pt-24 text-neutral-900 dark:text-neutral-50">
+      <h1 class="text-5xl lg:text-8xl">
+        All <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">your</span> music,
+        <br>in <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">one</span> place.
+      </h1>
+      <div class="mt-6 mb-6 text-xl lg:text-2xl font-mono">
+        <p class="text-neutral-700 dark:text-neutral-500">
+          Your favorite tracks from all music platforms, united in one place.
+        </p>
+        <div class="mt-6">
+          <a href="/intro">
+            <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">
+              Watch the video
+            </span> &gt;
+          </a>
+        </div>
+      </div>
+      <hr class="my-4 border-neutral-700 dark:border-neutral-400">
+      <ul class="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 text-xl lg:text-2xl font-mono">
+        <li>
+          <span>Users</span>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">{{ user_count }}</h2>
+        </li>
+        <li>
+          <span>Premium Users</span>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">{{ premium_user_count }}</h2>
+        </li>
+        <li>
+          <span>Tracks</span>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">{{ track_count }}</h2>
+        </li>
+        <li>
+          <span>Artists</span>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">{{ artist_count }}</h2>
+        </li>
+        <li>
+          <span>Albums</span>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">{{ album_count }}</h2>
+        </li>
+        <li>
+          <span>Playlists</span>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">{{ playlist_count }}</h2>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
 
-  <section class="relative max-w-5xl pt-16 sm:pt-20 lg:pt-24">
-    <h1 class="text-5xl lg:text-8xl">
-      All <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">your</span> music,
-      <br>in <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">one</span> place.
-    </h1>
-    <div class="mt-6 text-xl lg:text-2xl text-neutral-700 dark:text-neutral-500 font-mono">
-      Your favorite tracks from all music platforms, united in one place. ({{ user_count }} users)
-    </div>
-    <div class="mt-6"></div>
-      <a class="text-xl lg:text-2xl text-neutral-900 dark:text-neutral-50 font-mono" href="/intro">
-        <span class="text-transparent bg-clip-text bg-gradient-to-b from-melody-purple to-melody-blue">Watch the video</span> &gt;
-      </a>
-    </div>
-  </section>
-  <footer class="pb-16 text-xl leading-6 bg-neutral-200 dark:bg-neutral-800">
-    <div class="mx-auto divide-y px-4 sm:px-6 md:px-8">
-      <div class="flex">
-        <div class="flex-none w-1/2 space-y-10 sm:space-y-8 lg:flex lg:space-y-0">
-          <div class="lg:flex-none lg:w-1/2">
-            <div class="mt-6">
-              <h2 class="font-mono">MelodyKit</h2>
-              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
-                <li><a class="font-mono" href="/">Home</a></li>
-                <li><a class="font-mono" href="/support">Support</a></li>
-                <li><a class="font-mono" href="/download">Download</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="lg:flex-none lg:w-1/2">
-            <div class="mt-6">
-              <h2 class="font-mono">Developers</h2>
-              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
-                <li><a class="font-mono" href="/docs">Documentation</a></li>
-                <li><a class="font-mono" href="/api/v1/docs">API v1</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="flex-none w-1/2 space-y-10 sm:space-y-8 lg:flex lg:space-y-0">
-          <div class="lg:flex-none lg:w-1/2">
-            <div class="mt-6">
-              <h2 class="font-mono">Socials</h2>
-              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
-                <li><a class="font-mono" href="/discord">Discord</a></li>
-                <li><a class="font-mono" href="/twitter">Twitter</a></li>
-                <li><a class="font-mono" href="/youtube">YouTube</a></li>
-                <li><a class="font-mono" href="/reddit">Reddit</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="lg:flex-none lg:w-1/2">
-            <div class="mt-6">
-              <h2 class="font-mono">Legal</h2>
-              <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
-                <li><a class="font-mono" href="/privacy">Privacy</a></li>
-                <li><a class="font-mono" href="/terms">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
+<footer class="relative pb-16 text-xl bg-neutral-200 dark:bg-neutral-800 font-mono">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 flex">
+    <div class="flex-none w-1/2 space-y-10 sm:space-y-8 lg:flex lg:space-y-0">
+      <div class="lg:flex-none lg:w-1/2">
+        <h2>MelodyKit</h2>
+        <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+          <li><a href="/">Home</a></li>
+          <li><a href="/download">Download</a></li>
+        </ul>
+      </div>
+      <div class="lg:flex-none lg:w-1/2">
+        <h2>Developers</h2>
+        <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+          <li><a href="/docs">Documentation</a></li>
+          <li><a href="/api/v1/docs">API v1</a></li>
+        </ul>
       </div>
     </div>
-  </footer>
-</div>
+    <div class="flex-none w-1/2 space-y-10 sm:space-y-8 lg:flex lg:space-y-0">
+      <div class="lg:flex-none lg:w-1/2">
+        <h2>Socials</h2>
+        <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+          <li><a href="/discord">Discord</a></li>
+          <li><a href="/twitter">Twitter</a></li>
+          <li><a href="/youtube">YouTube</a></li>
+          <li><a href="/reddit">Reddit</a></li>
+        </ul>
+      </div>
+      <div class="lg:flex-none lg:w-1/2">
+        <h2>Legal</h2>
+        <ul class="mt-3 space-y-2 text-neutral-700 dark:text-neutral-400">
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
 
 {% endblock %}

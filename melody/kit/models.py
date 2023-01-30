@@ -572,6 +572,7 @@ class StatisticsData(TypedDict):
     album_count: int
     playlist_count: int
     user_count: int
+    premium_user_count: int
 
 
 S = TypeVar("S", bound="Statistics")
@@ -584,6 +585,7 @@ class Statistics:
     album_count: int = DEFAULT_COUNT
     playlist_count: int = DEFAULT_COUNT
     user_count: int = DEFAULT_COUNT
+    premium_user_count: int = DEFAULT_COUNT
 
     @classmethod
     def from_object(cls: Type[S], object: Object) -> S:  # type: ignore
@@ -593,6 +595,7 @@ class Statistics:
             album_count=object.album_count,
             playlist_count=object.playlist_count,
             user_count=object.user_count,
+            premium_user_count=object.premium_user_count,
         )
 
     def into_data(self) -> StatisticsData:
@@ -602,6 +605,7 @@ class Statistics:
             album_count=self.album_count,
             playlist_count=self.playlist_count,
             user_count=self.user_count,
+            premium_user_count=self.premium_user_count,
         )
 
 

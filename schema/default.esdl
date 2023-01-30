@@ -91,6 +91,10 @@ module default {
             default := false;
         };
 
+        required property premium -> bool {
+            default := false;
+        }
+
         required property privacy_type -> PrivacyType {
             default := PrivacyType.public;
         };

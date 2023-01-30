@@ -6,6 +6,9 @@ from typing_extensions import Literal
 
 WEB_ROOT = Path(__file__).parent
 
+NEW_LINE = "\n"
+BREAK = "<br>"
+
 TOKEN: Literal["token"] = "token"
 
 STATIC_PATH = "/static"
