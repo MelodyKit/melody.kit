@@ -1,0 +1,20 @@
+{
+    "short_name": "MelodyKit",
+    "name": "MelodyKit",
+    "description": "All your music, in one place.",
+    "categories": ["entertainment", "music", "utilities"],
+    "start_url": "/",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/static/images/icon.png",
+            "sizes": "any",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/images/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

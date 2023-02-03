@@ -9,6 +9,8 @@
 {% set icon_svg = "/static/images/icon.svg" %}
 {% set icon_png = "/static/images/icon.png" %}
 
+{% set manifest = "/static/manifest.json" %}
+
 <!DOCTYPE html>
 <html lang="en-US">
   <head>
@@ -28,10 +30,20 @@
     <meta property="og:description" content="{{ description }}">
     <meta property="og:image" content="{{ image }}">
 
+    <meta name="application-name" content="MelodyKit">
+
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MelodyKit">
+
     <link rel="icon" type="image/svg+xml" href="{{ icon_svg }}">
     <link rel="icon" type="image/png" href="{{ icon_png }}">
 
     <link rel="apple-touch-icon" href="{{ icon_png }}">
+
+    <link rel="manifest" href="{{ manifest }}">
 
     <script defer src="{{ icons }}"></script>
 
