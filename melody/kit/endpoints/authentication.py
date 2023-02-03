@@ -17,7 +17,7 @@ from melody.kit.errors import Error, ErrorCode
 from melody.kit.models import AbstractData
 from melody.kit.tokens import TokenData, encode_token
 
-__all__ = ("login", "logout", "register", "verify")
+__all__ = ("login", "revoke", "register", "verify")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
@@ -60,8 +60,8 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         return TokenData(token=token)
 
 
-@v1.post("/logout")
-async def logout(user_id: UUID = Depends(token_dependency)) -> None:
+@v1.post("/revoke")
+async def revoke(user_id: UUID = Depends(token_dependency)) -> None:
     tokens[user_id] = utc_now()
 
 

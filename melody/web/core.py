@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from melody.kit.core import app
 from melody.kit.errors import AnyError, Error, ErrorCode, InternalError
-from melody.web.constants import BREAK, NEW_LINE, STATIC, STATIC_PATH, TEMPLATES
+from melody.web.constants import BREAK, NEW_LINE, STATIC, STATIC_NAME, STATIC_PATH, TEMPLATES
 
 __all__ = ("environment",)
 
@@ -21,7 +21,7 @@ environment = Environment(
 
 ERROR_TEMPLATE = environment.get_template("error.html")
 
-app.mount(STATIC_PATH, StaticFiles(directory=STATIC))
+app.mount(STATIC_PATH, StaticFiles(directory=STATIC), name=STATIC_NAME)
 
 
 def register_error_handlers(app: FastAPI) -> None:

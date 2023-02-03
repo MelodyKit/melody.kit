@@ -76,3 +76,7 @@ cython_debug/
 # remove if lock file should be included
 
 poetry.lock
+
+# do not include migrations (for now)
+
+migrations/

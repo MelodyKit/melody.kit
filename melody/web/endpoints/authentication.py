@@ -5,8 +5,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from melody.kit.core import app
 from melody.kit.endpoints.authentication import login as kit_login
-from melody.kit.endpoints.authentication import logout as kit_logout
 from melody.kit.endpoints.authentication import register as kit_register
+from melody.kit.endpoints.authentication import revoke as kit_revoke
 from melody.kit.endpoints.authentication import verify as kit_verify
 from melody.web.constants import TOKEN
 from melody.web.core import environment
@@ -41,9 +41,18 @@ async def login(
 
 @app.get("/logout")
 async def logout(user_id: UUID = Depends(cookie_token_dependency)) -> RedirectResponse:
-    await kit_logout(user_id)
-
     response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+    response.delete_cookie(TOKEN)
+
+    return response
+
+
+@app.get("/revoke")
+async def revoke(user_id: UUID = Depends(cookie_token_dependency)) -> RedirectResponse:
+    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+    await kit_revoke(user_id)
 
     response.delete_cookie(TOKEN)
 
