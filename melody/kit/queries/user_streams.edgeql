@@ -1,5 +1,5 @@
 select User {
-    tracks: {
+    streams: {
         id,
         name,
         album: {

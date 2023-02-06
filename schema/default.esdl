@@ -2,16 +2,23 @@ module default {
     scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
     scalar type PrivacyType extending enum<`public`, `friends`, `private`>;
 
-    abstract type Base {
+    abstract type CreatedAt {
+        required property created_at -> datetime {
+            default := datetime_of_statement();
+            readonly := true;
+        };
+    }
+
+    scalar type duration_ms extending int64 {
+        constraint min_value(0);
+    }
+
+    abstract type Base extending CreatedAt {
         required property name -> str;
 
-        required property created_at -> datetime {
-            default := datetime_current();
-        };
-
         property spotify_id -> str;
-        property apple_music_id -> bigint;
-        property yandex_music_id -> bigint;
+        property apple_music_id -> str;
+        property yandex_music_id -> str;
     }
 
     abstract type Genres {
@@ -27,6 +34,13 @@ module default {
             default := false;
         };
 
+        required property duration_ms -> duration_ms;
+
+        multi link streams := .<track[is Stream];
+
+        property stream_count := count(.streams);
+        property stream_duration_ms := sum(.streams.duration_ms);
+
         link album := assert_single(.<tracks[is Album]);
     }
 
@@ -34,6 +48,11 @@ module default {
         multi link followers := .<artists[is User];
 
         property follower_count := count(.followers);
+
+        multi link streams := (select Stream filter Artist in .track.artists);
+
+        property stream_count := count(.streams);
+        property stream_duration_ms := sum(.streams.duration_ms);
 
         multi link tracks := .<artists[is Track];
         multi link albums := .<artists[is Album];
@@ -50,6 +69,8 @@ module default {
         required property release_date -> cal::local_date;
 
         property label -> str;
+
+        property duration_ms := sum(.tracks.duration_ms);
 
         property track_count := count(.tracks);
     }
@@ -69,7 +90,21 @@ module default {
             default := PrivacyType.public;
         };
 
+        property duration_ms := sum(.tracks.duration_ms);
+
         property track_count := count(.tracks);
+    }
+
+    type Stream extending CreatedAt {
+        required link user -> User {
+            on target delete delete source;
+        };
+
+        required link track -> Track {
+            on target delete delete source;
+        };
+
+        required property duration_ms -> duration_ms;
     }
 
     type User extending Base {
@@ -86,6 +121,11 @@ module default {
         multi link following := .<followers[is User];
 
         property follower_count := count(.followers);
+
+        multi link streams := .<user[is Stream].track;
+
+        property stream_count := count(.streams);
+        property stream_duration_ms := sum(.streams.duration_ms);
 
         required property verified -> bool {
             default := false;

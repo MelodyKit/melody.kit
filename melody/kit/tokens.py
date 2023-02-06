@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from jwt import ExpiredSignatureError, decode, encode
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict as Data
 
 from melody.kit.core import config, tokens
 from melody.kit.utils import utc_from_timestamp, utc_now
@@ -9,7 +9,7 @@ from melody.kit.utils import utc_from_timestamp, utc_now
 __all__ = ("TokenData", "encode_token", "decode_token")
 
 
-class TokenData(TypedDict):
+class TokenData(Data):
     token: str
 
 

@@ -1,7 +1,5 @@
-select Track {
-    id,
-    name,
-    album: {
+select Artist {
+    albums: {
         id,
         name,
         artists: {
@@ -26,26 +24,5 @@ select Track {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    },
-    artists: {
-        id,
-        name,
-        follower_count,
-        stream_count,
-        stream_duration_ms,
-        genres,
-        created_at,
-        spotify_id,
-        apple_music_id,
-        yandex_music_id
-    },
-    explicit,
-    duration_ms,
-    stream_count,
-    stream_duration_ms,
-    genres,
-    created_at,
-    spotify_id,
-    apple_music_id,
-    yandex_music_id
-} filter .id = <uuid>$track_id;
+    }
+} filter .id = <uuid>$artist_id;

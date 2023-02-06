@@ -2,6 +2,8 @@ select User {
     id,
     name,
     follower_count,
+    stream_count,
+    stream_duration_ms,
     privacy_type,
     created_at,
     spotify_id,

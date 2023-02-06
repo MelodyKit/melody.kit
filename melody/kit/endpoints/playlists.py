@@ -9,13 +9,20 @@ from melody.kit.core import database, v1
 from melody.kit.dependencies import optional_token_dependency
 from melody.kit.enums import URIType
 from melody.kit.errors import Error, ErrorCode
-from melody.kit.models import Playlist, PlaylistData, PlaylistTracksData, track_into_data
+from melody.kit.models.playlist import (
+    Playlist,
+    PlaylistData,
+    PlaylistTracksData,
+    playlist_into_data,
+)
+from melody.kit.models.track import track_into_data
+from melody.kit.tags import LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
 
 __all__ = ("get_playlist", "get_playlist_link", "get_playlist_tracks")
 
-CAN_NOT_FIND_PLAYLIST = "can not find the playlist with id `{}`"
-INACCESSIBLE_PLAYLIST = "the playlist with id `{}` is inaccessible"
+CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
+INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
 
 
 async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -> bool:
@@ -43,7 +50,11 @@ async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -
     return True
 
 
-@v1.get("/playlists/{playlist_id}")
+@v1.get(
+    "/playlists/{playlist_id}",
+    tags=[PLAYLISTS],
+    summary="Fetches the playlist with the given ID.",
+)
 async def get_playlist(
     playlist_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
@@ -58,7 +69,7 @@ async def get_playlist(
         )
 
     if await check_accessible(playlist, user_id_option):
-        return playlist.into_data()
+        return playlist_into_data(playlist)
 
     raise Error(
         INACCESSIBLE_PLAYLIST.format(playlist_id),
@@ -67,7 +78,11 @@ async def get_playlist(
     )
 
 
-@v1.get("/playlists/{playlist_id}/link")
+@v1.get(
+    "/playlists/{playlist_id}/link",
+    tags=[PLAYLISTS, LINKS],
+    summary="Fetches the playlist link with the given ID.",
+)
 async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     uri = URI(type=URIType.PLAYLIST, id=playlist_id)
 
@@ -76,7 +91,11 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     return FileResponse(path)
 
 
-@v1.get("/playlists/{playlist_id}/tracks")
+@v1.get(
+    "/playlists/{playlist_id}/tracks",
+    tags=[PLAYLISTS, TRACKS],
+    summary="Fetches playlist tracks with the given ID.",
+)
 async def get_playlist_tracks(
     playlist_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),

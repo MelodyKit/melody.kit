@@ -1,4 +1,11 @@
-from melody.web.endpoints.authentication import get_login, get_register, login, logout, register, verify
+from melody.web.endpoints.authentication import (
+    get_login,
+    get_register,
+    login,
+    logout,
+    register,
+    verify,
+)
 from melody.web.endpoints.docs import redirect_docs
 from melody.web.endpoints.email import redirect_email
 from melody.web.endpoints.github import redirect_github

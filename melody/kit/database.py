@@ -6,33 +6,25 @@ from edgedb import AsyncIOClient, create_async_client  # type: ignore
 from iters import iter
 
 from melody.kit.constants import KIT_ROOT
-from melody.kit.models import (
-    Abstract,
-    Album,
-    AlbumTracks,
-    Artist,
-    Playlist,
-    PlaylistTracks,
-    Statistics,
-    Track,
+from melody.kit.models.abstract import Abstract, abstract_from_object
+from melody.kit.models.album import Album, AlbumTracks, album_from_object
+from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_from_object
+from melody.kit.models.playlist import Playlist, PlaylistTracks, playlist_from_object
+from melody.kit.models.statistics import Statistics, statistics_from_object
+from melody.kit.models.track import Track, track_from_object
+from melody.kit.models.user import (
     User,
     UserAlbums,
     UserArtists,
     UserFollowers,
     UserFollowing,
     UserFriends,
-    UserInfo,
     UserPlaylists,
+    UserStreams,
     UserTracks,
-    abstract_from_object,
-    album_from_object,
-    artist_from_object,
-    playlist_from_object,
-    statistics_from_object,
-    track_from_object,
     user_from_object,
-    user_info_from_object,
 )
+from melody.kit.models.user_info import UserInfo, user_info_from_object
 
 __all__ = ("Database",)
 
@@ -55,6 +47,8 @@ CHECK_FRIENDS = load_query("check_friends")
 TRACK = load_query("track")
 
 ARTIST = load_query("artist")
+ARTIST_TRACKS = load_query("artist_tracks")
+ARTIST_ALBUMS = load_query("artist_albums")
 
 ALBUM = load_query("album")
 ALBUM_TRACKS = load_query("album_tracks")
@@ -67,6 +61,8 @@ USER_TRACKS = load_query("user_tracks")
 USER_ARTISTS = load_query("user_artists")
 USER_ALBUMS = load_query("user_albums")
 USER_PLAYLISTS = load_query("user_playlists")
+
+USER_STREAMS = load_query("user_streams")
 
 USER_FRIENDS = load_query("user_friends")
 USER_FOLLOWERS = load_query("user_followers")
@@ -101,6 +97,16 @@ class Database:
         option = await self.client.query_single(ARTIST, artist_id=artist_id)  # type: ignore
 
         return None if option is None else artist_from_object(option)
+
+    async def query_artist_tracks(self, artist_id: UUID) -> Optional[ArtistTracks]:
+        option = await self.client.query_single(ARTIST_TRACKS, artist_id=artist_id)  # type: ignore
+
+        return None if option is None else iter(option.tracks).map(track_from_object).list()
+
+    async def query_artist_albums(self, artist_id: UUID) -> Optional[ArtistAlbums]:
+        option = await self.client.query_single(ARTIST_ALBUMS, artist_id=artist_id)  # type: ignore
+
+        return None if option is None else iter(option.albums).map(album_from_object).list()
 
     async def query_album(self, album_id: UUID) -> Optional[Album]:
         option = await self.client.query_single(ALBUM, album_id=album_id)  # type: ignore
@@ -146,6 +152,11 @@ class Database:
         option = await self.client.query_single(USER_PLAYLISTS, user_id=user_id)  # type: ignore
 
         return None if option is None else iter(option.playlists).map(playlist_from_object).list()
+
+    async def query_user_streams(self, user_id: UUID) -> Optional[UserStreams]:
+        option = await self.client.query_single(USER_STREAMS, user_id=user_id)  # type: ignore
+
+        return None if option is None else iter(option.streams).map(track_from_object).list()
 
     async def query_user_friends(self, user_id: UUID) -> Optional[UserFriends]:
         option = await self.client.query_single(USER_FRIENDS, user_id=user_id)  # type: ignore

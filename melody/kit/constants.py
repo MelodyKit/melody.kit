@@ -1,5 +1,4 @@
 from pathlib import Path
-from uuid import UUID
 
 __all__ = (
     # root
@@ -8,8 +7,6 @@ __all__ = (
     # empty
     "EMPTY",
     "EMPTY_BYTES",
-    # me
-    "ME",
     # space
     "SPACE",
     # v1
@@ -24,9 +21,8 @@ __all__ = (
     "DEFAULT_ERRORS",
     # models
     "DEFAULT_COUNT",
+    "DEFAULT_DURATION",
     "DEFAULT_EXPLICIT",
-    "DEFAULT_ID",
-    "DEFAULT_NAME",
 )
 
 # constants
@@ -44,8 +40,6 @@ VERIFICATION_TOKEN_SIZE = 32
 VERSION_1 = "1.0.0"
 V1 = "/api/v1"
 
-ME = "@me"
-
 # defaults
 
 DEFAULT_IGNORE_SENSITIVE = False
@@ -54,6 +48,5 @@ DEFAULT_ENCODING = "utf-8"
 DEFAULT_ERRORS = "strict"
 
 DEFAULT_COUNT = 0
+DEFAULT_DURATION = 0
 DEFAULT_EXPLICIT = False
-DEFAULT_ID = UUID(int=0)
-DEFAULT_NAME = "unknown"

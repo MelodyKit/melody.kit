@@ -33,7 +33,9 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)  # type: ignore
-    async def validation_error_handler(request: Request, error: RequestValidationError) -> HTMLResponse:
+    async def validation_error_handler(
+        request: Request, error: RequestValidationError
+    ) -> HTMLResponse:
         converted_error = Error(
             str(error).replace(NEW_LINE, BREAK),
             code=ErrorCode.UNPROCESSABLE_ENTITY,

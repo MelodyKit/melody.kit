@@ -2,6 +2,8 @@ select Artist {
     id,
     name,
     follower_count,
+    stream_count,
+    stream_duration_ms,
     genres,
     created_at,
     spotify_id,

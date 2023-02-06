@@ -13,22 +13,6 @@ from melody.kit.config import Config, ConfigData, get_config
 from melody.kit.database import Database
 from melody.kit.enums import AlbumType, PrivacyType, URIType
 from melody.kit.errors import AuthenticationError, Error, ErrorCode, ErrorData
-from melody.kit.models import (
-    Abstract,
-    AbstractData,
-    Album,
-    AlbumData,
-    Artist,
-    ArtistData,
-    Base,
-    BaseData,
-    Playlist,
-    PlaylistData,
-    Track,
-    TrackData,
-    User,
-    UserData,
-)
 from melody.kit.uri import URI
 
 __all__ = (
@@ -40,23 +24,6 @@ __all__ = (
     "get_config",
     # database
     "Database",
-    # models
-    "Abstract",
-    "Base",
-    "Track",
-    "Artist",
-    "Album",
-    "Playlist",
-    "User",
-    # data
-    "AbstractData",
-    "BaseData",
-    "ArtistData",
-    "TrackData",
-    "ArtistData",
-    "AlbumData",
-    "PlaylistData",
-    "UserData",
     # enums
     "AlbumType",
     "PrivacyType",

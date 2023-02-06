@@ -5,7 +5,7 @@ from typing import Any, Generic, TypeVar
 
 from attrs import frozen
 from fastapi import status
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict as Data
 
 __all__ = (
     "AnyError",
@@ -53,7 +53,7 @@ class ErrorCode(Enum):
 T = TypeVar("T")
 
 
-class ErrorData(TypedDict, Generic[T]):
+class ErrorData(Data, Generic[T]):
     detail: T
     code: int
 

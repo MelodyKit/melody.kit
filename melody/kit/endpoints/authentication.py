@@ -9,23 +9,30 @@ from fastapi import Body, Depends, status
 
 from melody.kit.constants import VERIFICATION_TOKEN_SIZE
 from melody.kit.core import config, database, hasher, tokens, v1, verification_tokens
-from melody.kit.utils import utc_now
 from melody.kit.dependencies import (
-    email_deliverability_dependency, email_dependency, token_dependency
+    email_deliverability_dependency,
+    email_dependency,
+    token_dependency,
 )
 from melody.kit.errors import Error, ErrorCode
-from melody.kit.models import AbstractData
+from melody.kit.models.abstract import AbstractData, abstract_into_data
+from melody.kit.tags import AUTHENTICATION
 from melody.kit.tokens import TokenData, encode_token
+from melody.kit.utils import utc_now
 
 __all__ = ("login", "revoke", "register", "verify")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
 
-UNVERIFIED = "user with id `{}` is not verified"
+UNVERIFIED = "user with ID `{}` is not verified"
 
 
-@v1.post("/login")
+@v1.post(
+    "/login",
+    tags=[AUTHENTICATION],
+    summary="Logs in the user with the given email and password.",
+)
 async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokenData:
     user_info = await database.query_user_info_by_email(email)
 
@@ -60,7 +67,11 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         return TokenData(token=token)
 
 
-@v1.post("/revoke")
+@v1.post(
+    "/revoke",
+    tags=[AUTHENTICATION],
+    summary="Revokes all tokens of the user",
+)
 async def revoke(user_id: UUID = Depends(token_dependency)) -> None:
     tokens[user_id] = utc_now()
 
@@ -81,7 +92,11 @@ https://{domain}/verify/{user_id}/{verification_token}
 """.strip()
 
 
-@v1.post("/register")
+@v1.post(
+    "/register",
+    tags=[AUTHENTICATION],
+    summary="Registers the user with the given name, email and password.",
+)
 async def register(
     name: str = Body(),
     email: str = Depends(email_deliverability_dependency),
@@ -110,7 +125,9 @@ async def register(
         message[SUBJECT] = VERIFICATION
 
         message.set_content(
-            CONTENT.format(domain=config.domain, user_id=user_id, verification_token=verification_token)
+            CONTENT.format(
+                domain=config.domain, user_id=user_id, verification_token=verification_token
+            )
         )
 
         client = SMTP(
@@ -126,14 +143,18 @@ async def register(
 
         verification_tokens[user_id] = verification_token
 
-        return abstract.into_data()
+        return abstract_into_data(abstract)
 
 
 VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"
-VERIFICATION_NOT_FOUND = "verification for the user with id `{}` not found"
+VERIFICATION_NOT_FOUND = "verification for the user with ID `{}` not found"
 
 
-@v1.post("/verify/{user_id}/{verification_token}")
+@v1.post(
+    "/verify/{user_id}/{verification_token}",
+    tags=[AUTHENTICATION],
+    summary="Verifies the user with the given ID.",
+)
 async def verify(user_id: UUID, verification_token: str) -> None:
     if user_id in verification_tokens:
         if verification_tokens[user_id] == verification_token:

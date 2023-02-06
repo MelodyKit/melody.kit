@@ -11,7 +11,9 @@ from melody.kit.endpoints.authentication import verify as kit_verify
 from melody.web.constants import TOKEN
 from melody.web.core import environment
 from melody.web.dependencies import (
-    cookie_token_dependency, form_email_deliverability_dependency, form_email_dependency
+    cookie_token_dependency,
+    form_email_deliverability_dependency,
+    form_email_dependency,
 )
 
 __all__ = ("get_login", "login", "logout", "get_register", "register", "verify")

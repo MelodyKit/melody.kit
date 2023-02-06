@@ -1,4 +1,4 @@
-select User {
+select Artist {
     tracks: {
         id,
         name,
@@ -50,4 +50,4 @@ select User {
         apple_music_id,
         yandex_music_id
     }
-} filter .id = <uuid>$user_id;
+} filter .id = <uuid>$artist_id;
