@@ -49,7 +49,7 @@ module default {
 
         property follower_count := count(.followers);
 
-        multi link streams := (select Stream filter Artist in .track.artists);
+        multi link streams := .<artists[is Track].<track[is Stream];
 
         property stream_count := count(.streams);
         property stream_duration_ms := sum(.streams.duration_ms);
