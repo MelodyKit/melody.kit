@@ -1,0 +1,3 @@
+__all__ = ("DEFAULT_RETRIES",)
+
+DEFAULT_RETRIES = 3
