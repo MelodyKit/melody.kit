@@ -2,7 +2,8 @@ from typing import Type, TypeVar
 
 from attrs import frozen
 
-from melody.spotify.enums import URIType
+from melody.shared.converter import CONVERTER
+from melody.spotify.enums import EntityType
 
 __all__ = ("URI",)
 
@@ -20,7 +21,7 @@ U = TypeVar("U", bound="URI")
 
 @frozen()
 class URI:
-    type: URIType
+    type: EntityType
     id: str
 
     def __str__(self) -> str:
@@ -33,9 +34,21 @@ class URI:
         if header != HEADER:
             raise ValueError(INVALID_HEADER.format(header))
 
-        type = URIType(type_string)
+        type = EntityType(type_string)
 
         return cls(type=type, id=id)
 
     def to_string(self) -> str:
         return uri_string(header=HEADER, type=self.type.value, id=self.id)
+
+
+def structure_uri(string: str, uri_type: Type[U]) -> U:
+    return uri_type.from_string(string)
+
+
+def unstructure_uri(uri: URI) -> str:
+    return uri.to_string()
+
+
+CONVERTER.register_structure_hook(URI, structure_uri)
+CONVERTER.register_unstructure_hook(URI, unstructure_uri)

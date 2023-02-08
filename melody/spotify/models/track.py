@@ -1,4 +1,13 @@
-from melody.spotify.models.base import Base
+from attrs import define
+from melody.spotify.models.entity import Entity, EntityData
 
-class Track(Base):
+__all__ = ("Track", "TrackData")
+
+
+class TrackData(EntityData):
+    ...
+
+
+@define()
+class Track(Entity):
     ...

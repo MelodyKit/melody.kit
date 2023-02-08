@@ -1,6 +1,6 @@
 from enum import Enum
 
-__all__ = ("AlbumType", "URIType")
+__all__ = ("AlbumType", "EntityType")
 
 
 class AlbumType(Enum):
@@ -23,7 +23,7 @@ class AlbumType(Enum):
         return self is type(self).DEFAULT
 
 
-class URIType(Enum):
+class EntityType(Enum):
     TRACK = "track"
     ARTIST = "artist"
     ALBUM = "album"
