@@ -1,9 +1,9 @@
 from fastapi import status
 from fastapi.responses import PlainTextResponse
 
-from melody.kit.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
 from melody.kit.core import app
 from melody.kit.errors import Error, ErrorCode
+from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
 from melody.web.constants import KEY_SUFFIX, KEYS
 
 __all__ = ("get_key",)

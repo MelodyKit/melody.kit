@@ -7,9 +7,9 @@ from fastapi import Body
 from fastapi.requests import Request
 from jwt import DecodeError, ExpiredSignatureError
 
-from melody.kit.constants import SPACE
 from melody.kit.errors import AuthenticationError, ErrorCode, ValidationError
 from melody.kit.tokens import decode_token
+from melody.shared.constants import SPACE
 
 __all__ = (
     "token_dependency",

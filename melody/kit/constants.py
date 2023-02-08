@@ -4,11 +4,6 @@ __all__ = (
     # root
     "MELODY_ROOT",
     "KIT_ROOT",
-    # empty
-    "EMPTY",
-    "EMPTY_BYTES",
-    # space
-    "SPACE",
     # v1
     "V1",
     "VERSION_1",
@@ -16,9 +11,6 @@ __all__ = (
     "VERIFICATION_TOKEN_SIZE",
     # config
     "DEFAULT_IGNORE_SENSITIVE",
-    # encoding
-    "DEFAULT_ENCODING",
-    "DEFAULT_ERRORS",
     # models
     "DEFAULT_COUNT",
     "DEFAULT_DURATION",
@@ -30,11 +22,6 @@ __all__ = (
 KIT_ROOT = Path(__file__).parent
 MELODY_ROOT = KIT_ROOT.parent
 
-EMPTY_BYTES = bytes()
-EMPTY = str()
-
-SPACE = " "
-
 VERIFICATION_TOKEN_SIZE = 32
 
 VERSION_1 = "1.0.0"
@@ -43,9 +30,6 @@ V1 = "/api/v1"
 # defaults
 
 DEFAULT_IGNORE_SENSITIVE = False
-
-DEFAULT_ENCODING = "utf-8"
-DEFAULT_ERRORS = "strict"
 
 DEFAULT_COUNT = 0
 DEFAULT_DURATION = 0

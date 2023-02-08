@@ -5,14 +5,9 @@ from attrs import define
 from toml import loads as load_string
 from wraps import Option, wrap_optional
 
-from melody.kit.constants import (
-    DEFAULT_ENCODING,
-    DEFAULT_ERRORS,
-    DEFAULT_IGNORE_SENSITIVE,
-    EMPTY,
-    MELODY_ROOT,
-)
+from melody.kit.constants import DEFAULT_IGNORE_SENSITIVE, MELODY_ROOT
 from melody.kit.enums import LogLevel
+from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, EMPTY
 from melody.shared.typing import IntoPath, StringDict
 
 __all__ = ("Config", "ConfigData", "get_config")

@@ -1,6 +1,9 @@
 __all__ = (
-    # defaults
-    "DEFAULT_RETRIES",
+    # empty
+    "EMPTY",
+    "EMPTY_BYTES",
+    # space
+    "SPACE",
     # methods
     "HEAD",
     "GET",
@@ -14,9 +17,18 @@ __all__ = (
     # names
     "NAME",
     "PYTHON",
+    # defaults
+    "DEFAULT_RETRIES",
+    "DEFAULT_ENCODING",
+    "DEFAULT_ERRORS",
 )
 
-DEFAULT_RETRIES = 3
+# constants
+
+EMPTY = str()
+EMPTY_BYTES = bytes()
+
+SPACE = " "
 
 HEAD = "HEAD"
 GET = "GET"
@@ -33,3 +45,10 @@ TRACE = "TRACE"
 
 NAME = "MelodyKit"
 PYTHON = "Python"
+
+# defaults
+
+DEFAULT_RETRIES = 3
+
+DEFAULT_ENCODING = "utf-8"
+DEFAULT_ERRORS = "strict"

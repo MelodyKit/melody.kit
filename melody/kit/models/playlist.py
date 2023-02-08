@@ -6,12 +6,13 @@ from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
 
-from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION, EMPTY
+from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import PrivacyType, URIType
 from melody.kit.models.base import Base, BaseData
 from melody.kit.models.uri import URIData
 from melody.kit.uri import URI
 from melody.kit.utils import convert_standard_date_time, utc_now
+from melody.shared.constants import EMPTY
 
 __all__ = (
     "Playlist",

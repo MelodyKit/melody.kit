@@ -1,15 +1,21 @@
+from builtins import isinstance as is_instance
 from os import PathLike
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Iterable, Optional, TypeVar, Union
+
+from typing_extensions import TypeGuard
 
 __all__ = (
     "Unary",
     "Predicate",
+    "MaybeIterable",
     "StringDict",
     "Primitive",
     "Parameters",
     "Headers",
     "Payload",
     "IntoPath",
+    "is_instance",
+    "is_string",
 )
 
 T = TypeVar("T")
@@ -18,6 +24,8 @@ R = TypeVar("R")
 Unary = Callable[[T], R]
 
 Predicate = Unary[T, bool]
+
+MaybeIterable = Union[T, Iterable[T]]
 
 StringDict = Dict[str, T]
 
@@ -34,3 +42,7 @@ try:
 
 except TypeError:
     IntoPath = Union[str, PathLike]  # type: ignore
+
+
+def is_string(item: Any) -> TypeGuard[str]:
+    return is_instance(item, str)

@@ -61,6 +61,7 @@ class HTTPClient:
         path: str,
         response_type: Literal[ResponseType.JSON] = ...,
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> Payload:
@@ -73,6 +74,7 @@ class HTTPClient:
         path: str,
         response_type: Literal[ResponseType.TEXT],
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> str:
@@ -85,6 +87,7 @@ class HTTPClient:
         path: str,
         response_type: Literal[ResponseType.BYTES],
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> bytes:
@@ -97,6 +100,7 @@ class HTTPClient:
         path: str,
         response_type: ResponseType,
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> Response:
@@ -108,6 +112,7 @@ class HTTPClient:
         path: str,
         response_type: ResponseType = ResponseType.JSON,
         payload: Optional[Payload] = None,
+        data: Optional[Parameters] = None,
         parameters: Optional[Parameters] = None,
         headers: Optional[Headers] = None,
     ) -> Response:
@@ -118,6 +123,12 @@ class HTTPClient:
 
         else:
             parameters = {name: str(value) for name, value in parameters.items()}
+
+        if data is None:
+            data = {}
+
+        else:
+            data = {name: str(value) for name, value in data.items()}
 
         if headers is None:
             headers = {}
@@ -130,7 +141,7 @@ class HTTPClient:
         while attempts:
             try:
                 response = await self.client.request(
-                    method, path, json=payload, params=parameters, headers=headers
+                    method, path, json=payload, data=data, params=parameters, headers=headers
                 )
 
                 response.raise_for_status()
@@ -160,6 +171,7 @@ class HTTPClient:
         route: Route,
         response_type: Literal[ResponseType.JSON] = ...,
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> Payload:
@@ -171,6 +183,7 @@ class HTTPClient:
         route: Route,
         response_type: Literal[ResponseType.TEXT],
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> str:
@@ -182,6 +195,7 @@ class HTTPClient:
         route: Route,
         response_type: Literal[ResponseType.BYTES],
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> bytes:
@@ -193,6 +207,7 @@ class HTTPClient:
         route: Route,
         response_type: ResponseType,
         payload: Optional[Payload] = ...,
+        data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
     ) -> Response:
@@ -203,6 +218,7 @@ class HTTPClient:
         route: Route,
         response_type: ResponseType = ResponseType.JSON,
         payload: Optional[Payload] = None,
+        data: Optional[Parameters] = None,
         parameters: Optional[Parameters] = None,
         headers: Optional[Headers] = None,
     ) -> Response:
@@ -211,6 +227,7 @@ class HTTPClient:
             route.path,
             response_type=response_type,
             payload=payload,
+            data=data,
             parameters=parameters,
             headers=headers,
         )
