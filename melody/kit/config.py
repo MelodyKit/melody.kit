@@ -13,7 +13,7 @@ from melody.kit.constants import (
     MELODY_ROOT,
 )
 from melody.kit.enums import LogLevel
-from melody.kit.typing import IntoPath, StringDict
+from melody.shared.typing import IntoPath, StringDict
 
 __all__ = ("Config", "ConfigData", "get_config")
 

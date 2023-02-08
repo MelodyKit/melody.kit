@@ -22,8 +22,8 @@ from melody.kit.models.user import (
     UserTracksData,
 )
 from melody.kit.tags import ALBUMS, ARTISTS, LINKS, PLAYLISTS, TRACKS, USERS
-from melody.kit.typing import Predicate
 from melody.kit.uri import URI
+from melody.shared.typing import Predicate
 
 __all__ = (
     "get_user",

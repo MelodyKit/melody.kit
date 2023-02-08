@@ -45,6 +45,7 @@ wraps = ">= 0.2.0"
 pyjwt = ">= 2.6.0"
 argon2-cffi = ">= 21.3.0"
 click = ">= 8.1.3"
+versions = ">= 1.3.0"
 entrypoint = ">= 1.3.0"
 email-validator = ">= 1.3.1"
 async-extensions = ">= 1.2.1"
@@ -74,7 +75,7 @@ version = "5.11.4"
 optional = true
 
 [tool.poetry.group.check.dependencies]
-mypy = "0.991"
+mypy = "1.0.0"
 
 [tool.black]
 line_length = 100

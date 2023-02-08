@@ -31,6 +31,7 @@ KIT_CACHE = HOME / CACHE_NAME / MELODY / KIT
 KIT_CACHE.mkdir(parents=True, exist_ok=True)
 
 IMAGE_NAME = "{type}.{id}.png"
+image_name = IMAGE_NAME.format
 
 VERSION = None  # auto-detect version
 ERROR_CORRECTION = ERROR_CORRECTION_HIGH
@@ -48,10 +49,11 @@ HEADER = "melody.link"
 URI_SEPARATOR = ":"
 
 URI_STRING = f"{{header}}{URI_SEPARATOR}{{type}}{URI_SEPARATOR}{{id}}"
-
-U = TypeVar("U", bound="URI")
+uri_string = URI_STRING.format
 
 INVALID_HEADER = f"invalid header `{{}}`; expected `{HEADER}`"
+
+U = TypeVar("U", bound="URI")
 
 
 @frozen()
@@ -76,11 +78,11 @@ class URI:
         return cls(type=type, id=id)
 
     def to_string(self) -> str:
-        return URI_STRING.format(header=HEADER, type=self.type.value, id=self.id)
+        return uri_string(header=HEADER, type=self.type.value, id=self.id)
 
     @property
     def image_name(self) -> str:
-        return IMAGE_NAME.format(type=self.type.value, id=self.id)
+        return image_name(type=self.type.value, id=self.id)
 
     @property
     def link_path(self) -> Path:
