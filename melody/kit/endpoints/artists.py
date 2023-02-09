@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from iters import iter
 
 from melody.kit.core import database, v1
-from melody.kit.enums import URIType
+from melody.kit.enums import EntityType
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import (
@@ -45,7 +45,7 @@ async def get_artist(artist_id: UUID) -> ArtistData:
     summary="Fetches the artist link with the given ID.",
 )
 async def get_artist_link(artist_id: UUID) -> FileResponse:
-    uri = URI(type=URIType.ARTIST, id=artist_id)
+    uri = URI(type=EntityType.ARTIST, id=artist_id)
 
     path = await uri.create_link()
 

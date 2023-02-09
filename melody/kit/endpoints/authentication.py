@@ -15,10 +15,10 @@ from melody.kit.dependencies import (
     token_dependency,
 )
 from melody.kit.errors import Error, ErrorCode
-from melody.kit.models.abstract import AbstractData, abstract_into_data
+from melody.kit.models.base import BaseData, base_into_data
 from melody.kit.tags import AUTHENTICATION
 from melody.kit.tokens import TokenData, encode_token
-from melody.kit.utils import utc_now
+from melody.shared.date_time import utc_now
 
 __all__ = ("login", "revoke", "register", "verify")
 
@@ -101,11 +101,11 @@ async def register(
     name: str = Body(),
     email: str = Depends(email_deliverability_dependency),
     password: str = Body(),
-) -> AbstractData:
+) -> BaseData:
     password_hash = hasher.hash(password)
 
     try:
-        abstract = await database.insert_user(name, email, password_hash)
+        base = await database.insert_user(name, email, password_hash)
 
     except ConstraintViolationError:
         raise Error(
@@ -113,7 +113,7 @@ async def register(
         ) from None
 
     else:
-        user_id = abstract.id
+        user_id = base.id
         verification_token = token_hex(VERIFICATION_TOKEN_SIZE)
 
         message = EmailMessage()
@@ -143,7 +143,7 @@ async def register(
 
         verification_tokens[user_id] = verification_token
 
-        return abstract_into_data(abstract)
+        return base_into_data(base)
 
 
 VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"

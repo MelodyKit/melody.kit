@@ -8,6 +8,9 @@ __all__ = ("Client",)
 
 @define()
 class Client:
+    client_id: str = field()
+    client_secret: str = field()
+
     http: HTTPClient = field(factory=HTTPClient)
 
     async def get_track(self, track_id: str) -> Track:

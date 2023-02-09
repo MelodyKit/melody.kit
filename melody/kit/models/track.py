@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
@@ -8,16 +8,18 @@ from iters import iter
 from pendulum import DateTime
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION, DEFAULT_EXPLICIT
-from melody.kit.enums import URIType
-from melody.kit.models.base import Base, BaseData
-from melody.kit.models.uri import URIData
+from melody.kit.enums import EntityType
+from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
-from melody.kit.utils import convert_standard_date_time, utc_now
+from melody.shared.converter import CONVERTER
+from melody.shared.date_time import convert_standard_date_time, utc_now
 
-__all__ = ("Track", "TrackData", "track_from_object", "track_into_data")
+__all__ = ("Track", "TrackData", "track_from_object", "track_from_data", "track_into_data")
 
 
-class TrackData(URIData, BaseData):
+class TrackData(EntityData):
+    uri: str
+
     album: AlbumData
     artists: List[ArtistData]
 
@@ -35,7 +37,7 @@ T = TypeVar("T", bound="Track")
 
 
 @define()
-class Track(Base):
+class Track(Entity):
     album: Album = field()
     artists: List[Artist] = field()
 
@@ -53,6 +55,12 @@ class Track(Base):
     spotify_id: Optional[str] = field(default=None)
     apple_music_id: Optional[str] = field(default=None)
     yandex_music_id: Optional[str] = field(default=None)
+
+    uri: URI = field()
+
+    @uri.default
+    def default_uri(self) -> URI:
+        return URI(type=EntityType.TRACK, id=self.id)
 
     @classmethod
     def from_object(cls: Type[T], object: Object) -> T:  # type: ignore
@@ -72,36 +80,45 @@ class Track(Base):
             yandex_music_id=object.yandex_music_id,
         )
 
+    @classmethod
+    def from_data(cls: Type[T], data: TrackData) -> T:  # type: ignore
+        return CONVERTER.structure(data, cls)
+
     def into_data(self) -> TrackData:
-        return TrackData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            uri=str(self.uri),
-            album=album_into_data(self.album),
-            artists=iter(self.artists).map(artist_into_data).list(),
-            explicit=self.explicit,
-            duration_ms=self.duration_ms,
-            stream_count=self.stream_count,
-            stream_duration_ms=self.stream_duration_ms,
-            genres=self.genres,
-        )
-
-    @property
-    def uri(self) -> URI:
-        return URI(type=URIType.TRACK, id=self.id)
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
+@overload
 def track_from_object(object: Object) -> Track:
-    return Track.from_object(object)
+    ...
+
+
+@overload
+def track_from_object(object: Object, track_type: Type[T]) -> T:
+    ...
+
+
+def track_from_object(object: Object, track_type: Type[Track] = Track) -> Track:
+    return track_type.from_object(object)
+
+
+@overload
+def track_from_data(data: TrackData) -> Track:
+    ...
+
+
+@overload
+def track_from_data(data: TrackData, track_type: Type[T]) -> T:
+    ...
+
+
+def track_from_data(data: TrackData, track_type: Type[Track] = Track) -> Track:
+    return track_type.from_data(data)
 
 
 def track_into_data(track: Track) -> TrackData:
     return track.into_data()
 
 
-from melody.kit.models.album import Album, AlbumData, album_from_object, album_into_data
-from melody.kit.models.artist import Artist, ArtistData, artist_from_object, artist_into_data
+from melody.kit.models.album import Album, AlbumData, album_from_object
+from melody.kit.models.artist import Artist, ArtistData, artist_from_object

@@ -1,15 +1,15 @@
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
-from melody.kit.enums import URIType
-from melody.kit.models.base import Base, BaseData
-from melody.kit.models.uri import URIData
+from melody.kit.enums import EntityType
+from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
-from melody.kit.utils import convert_standard_date_time, utc_now
+from melody.shared.converter import CONVERTER
+from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
     "Artist",
@@ -19,11 +19,14 @@ __all__ = (
     "ArtistAlbums",
     "ArtistAlbumsData",
     "artist_from_object",
+    "artist_from_data",
     "artist_into_data",
 )
 
 
-class ArtistData(URIData, BaseData):
+class ArtistData(EntityData):
+    uri: str
+
     follower_count: int
 
     stream_count: int
@@ -36,7 +39,7 @@ A = TypeVar("A", bound="Artist")
 
 
 @define()
-class Artist(Base):
+class Artist(Entity):
     follower_count: int = field(default=DEFAULT_COUNT)
 
     stream_count: int = field(default=DEFAULT_COUNT)
@@ -49,6 +52,12 @@ class Artist(Base):
     spotify_id: Optional[str] = field(default=None)
     apple_music_id: Optional[str] = field(default=None)
     yandex_music_id: Optional[str] = field(default=None)
+
+    uri: URI = field()
+
+    @uri.default
+    def default_uri(self) -> URI:
+        return URI(type=EntityType.ARTIST, id=self.id)
 
     @classmethod
     def from_object(cls: Type[A], object: Object) -> A:  # type: ignore
@@ -65,28 +74,40 @@ class Artist(Base):
             yandex_music_id=object.yandex_music_id,
         )
 
+    @classmethod
+    def from_data(cls: Type[A], data: ArtistData) -> A:  # type: ignore
+        return CONVERTER.structure(data, cls)
+
     def into_data(self) -> ArtistData:
-        return ArtistData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            uri=str(self.uri),
-            follower_count=self.follower_count,
-            stream_count=self.stream_count,
-            stream_duration_ms=self.stream_duration_ms,
-            genres=self.genres,
-        )
-
-    @property
-    def uri(self) -> URI:
-        return URI(type=URIType.ARTIST, id=self.id)
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
+@overload
 def artist_from_object(object: Object) -> Artist:
-    return Artist.from_object(object)
+    ...
+
+
+@overload
+def artist_from_object(object: Object, artist_type: Type[A]) -> A:
+    ...
+
+
+def artist_from_object(object: Object, artist_type: Type[Artist] = Artist) -> Artist:
+    return artist_type.from_object(object)
+
+
+@overload
+def artist_from_data(data: ArtistData) -> Artist:
+    ...
+
+
+@overload
+def artist_from_data(data: ArtistData, artist_type: Type[A]) -> A:
+    ...
+
+
+def artist_from_data(data: ArtistData, artist_type: Type[Artist] = Artist) -> Artist:
+    return artist_type.from_data(data)
 
 
 def artist_into_data(artist: Artist) -> ArtistData:

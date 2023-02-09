@@ -7,7 +7,7 @@ from iters import iter
 
 from melody.kit.core import database, v1
 from melody.kit.dependencies import optional_token_dependency
-from melody.kit.enums import URIType
+from melody.kit.enums import EntityType
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
@@ -59,7 +59,7 @@ async def get_user(user_id: UUID) -> UserData:
     summary="Fetches the user link with the given ID.",
 )
 async def get_user_link(user_id: UUID) -> FileResponse:
-    uri = URI(type=URIType.USER, id=user_id)
+    uri = URI(type=EntityType.USER, id=user_id)
 
     path = await uri.create_link()
 

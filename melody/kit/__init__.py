@@ -11,7 +11,7 @@ __version__ = "0.1.1"
 from melody.kit import endpoints
 from melody.kit.config import Config, ConfigData, get_config
 from melody.kit.database import Database
-from melody.kit.enums import AlbumType, PrivacyType, URIType
+from melody.kit.enums import AlbumType, EntityType, PrivacyType
 from melody.kit.errors import AuthenticationError, Error, ErrorCode, ErrorData
 from melody.kit.uri import URI
 
@@ -27,7 +27,7 @@ __all__ = (
     # enums
     "AlbumType",
     "PrivacyType",
-    "URIType",
+    "EntityType",
     # errors
     "AuthenticationError",
     "Error",

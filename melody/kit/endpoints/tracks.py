@@ -4,7 +4,7 @@ from fastapi import status
 from fastapi.responses import FileResponse
 
 from melody.kit.core import database, v1
-from melody.kit.enums import URIType
+from melody.kit.enums import EntityType
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models.track import TrackData, track_into_data
 from melody.kit.tags import LINKS, TRACKS
@@ -37,7 +37,7 @@ async def get_track(track_id: UUID) -> TrackData:
     summary="Fetches the track link with the given ID.",
 )
 async def get_track_link(track_id: UUID) -> FileResponse:
-    uri = URI(type=URIType.TRACK, id=track_id)
+    uri = URI(type=EntityType.TRACK, id=track_id)
 
     path = await uri.create_link()
 

@@ -1,15 +1,15 @@
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
-from melody.kit.enums import PrivacyType, URIType
-from melody.kit.models.base import Base, BaseData
-from melody.kit.models.uri import URIData
+from melody.kit.enums import EntityType, PrivacyType
+from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
-from melody.kit.utils import convert_standard_date_time, utc_now
+from melody.shared.converter import CONVERTER
+from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
     "User",
@@ -31,11 +31,14 @@ __all__ = (
     "UserStreams",
     "UserStreamsData",
     "user_from_object",
+    "user_from_data",
     "user_into_data",
 )
 
 
-class UserData(URIData, BaseData):
+class UserData(EntityData):
+    uri: str
+
     follower_count: int
 
     stream_count: int
@@ -48,7 +51,7 @@ U = TypeVar("U", bound="User")
 
 
 @define()
-class User(Base):
+class User(Entity):
     follower_count: int = field(default=DEFAULT_COUNT)
 
     stream_count: int = field(default=DEFAULT_COUNT)
@@ -61,6 +64,12 @@ class User(Base):
     spotify_id: Optional[str] = field(default=None)
     apple_music_id: Optional[str] = field(default=None)
     yandex_music_id: Optional[str] = field(default=None)
+
+    uri: URI = field()
+
+    @uri.default
+    def default_uri(self) -> URI:
+        return URI(type=EntityType.USER, id=self.id)
 
     @classmethod
     def from_object(cls: Type[U], object: Object) -> U:  # type: ignore
@@ -77,28 +86,40 @@ class User(Base):
             yandex_music_id=object.yandex_music_id,
         )
 
+    @classmethod
+    def from_data(cls: Type[U], data: UserData) -> U:  # type: ignore
+        return CONVERTER.structure(data, cls)
+
     def into_data(self) -> UserData:
-        return UserData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            uri=str(self.uri),
-            follower_count=self.follower_count,
-            stream_count=self.stream_count,
-            stream_duration_ms=self.stream_duration_ms,
-            privacy_type=self.privacy_type.value,
-        )
-
-    @property
-    def uri(self) -> URI:
-        return URI(type=URIType.USER, id=self.id)
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
+@overload
 def user_from_object(object: Object) -> User:
-    return User.from_object(object)
+    ...
+
+
+@overload
+def user_from_object(object: Object, user_type: Type[U]) -> U:
+    ...
+
+
+def user_from_object(object: Object, user_type: Type[User] = User) -> User:
+    return user_type.from_object(object)
+
+
+@overload
+def user_from_data(data: UserData) -> User:
+    ...
+
+
+@overload
+def user_from_data(data: UserData, user_type: Type[U]) -> U:
+    ...
+
+
+def user_from_data(data: UserData, user_type: Type[User] = User) -> User:
+    return user_type.from_data(data)
 
 
 def user_into_data(user: User) -> UserData:

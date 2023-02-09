@@ -7,7 +7,7 @@ from iters import iter
 
 from melody.kit.core import database, v1
 from melody.kit.dependencies import optional_token_dependency
-from melody.kit.enums import URIType
+from melody.kit.enums import EntityType
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models.playlist import (
     Playlist,
@@ -84,7 +84,7 @@ async def get_playlist(
     summary="Fetches the playlist link with the given ID.",
 )
 async def get_playlist_link(playlist_id: UUID) -> FileResponse:
-    uri = URI(type=URIType.PLAYLIST, id=playlist_id)
+    uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
     path = await uri.create_link()
 

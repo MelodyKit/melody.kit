@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
-from melody.kit.enums import PrivacyType, URIType
-from melody.kit.models.base import Base, BaseData
-from melody.kit.models.uri import URIData
+from melody.kit.enums import EntityType, PrivacyType
+from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
-from melody.kit.utils import convert_standard_date_time, utc_now
 from melody.shared.constants import EMPTY
+from melody.shared.converter import CONVERTER
+from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
     "Playlist",
@@ -20,11 +20,14 @@ __all__ = (
     "PlaylistTracks",
     "PlaylistTracksData",
     "playlist_from_object",
+    "playlist_from_data",
     "playlist_into_data",
 )
 
 
-class PlaylistData(URIData, BaseData):
+class PlaylistData(EntityData):
+    uri: str
+
     user: UserData
 
     description: str
@@ -39,7 +42,7 @@ P = TypeVar("P", bound="Playlist")
 
 
 @define()
-class Playlist(Base):
+class Playlist(Entity):
     user: User = field()
 
     description: str = field(default=EMPTY)
@@ -55,6 +58,12 @@ class Playlist(Base):
     spotify_id: Optional[str] = field(default=None)
     apple_music_id: Optional[str] = field(default=None)
     yandex_music_id: Optional[str] = field(default=None)
+
+    uri: URI = field()
+
+    @uri.default
+    def default_uri(self) -> URI:
+        return URI(type=EntityType.PLAYLIST, id=self.id)
 
     @classmethod
     def from_object(cls: Type[P], object: Object) -> P:  # type: ignore
@@ -72,29 +81,40 @@ class Playlist(Base):
             yandex_music_id=object.yandex_music_id,
         )
 
+    @classmethod
+    def from_data(cls: Type[P], data: PlaylistData) -> P:  # type: ignore
+        return CONVERTER.structure(data, cls)
+
     def into_data(self) -> PlaylistData:
-        return PlaylistData(
-            id=str(self.id),
-            name=self.name,
-            created_at=str(self.created_at),
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-            uri=str(self.uri),
-            user=user_into_data(self.user),
-            description=self.description,
-            duration_ms=self.duration_ms,
-            track_count=self.track_count,
-            privacy_type=self.privacy_type.value,
-        )
-
-    @property
-    def uri(self) -> URI:
-        return URI(type=URIType.PLAYLIST, id=self.id)
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
+@overload
 def playlist_from_object(object: Object) -> Playlist:
-    return Playlist.from_object(object)
+    ...
+
+
+@overload
+def playlist_from_object(object: Object, playlist_type: Type[P]) -> P:
+    ...
+
+
+def playlist_from_object(object: Object, playlist_type: Type[Playlist] = Playlist) -> Playlist:
+    return playlist_type.from_object(object)
+
+
+@overload
+def playlist_from_data(data: PlaylistData) -> Playlist:
+    ...
+
+
+@overload
+def playlist_from_data(data: PlaylistData, playlist_type: Type[P]) -> P:
+    ...
+
+
+def playlist_from_data(data: PlaylistData, playlist_type: Type[Playlist] = Playlist) -> Playlist:
+    return playlist_type.from_data(data)
 
 
 def playlist_into_data(playlist: Playlist) -> PlaylistData:
@@ -102,7 +122,7 @@ def playlist_into_data(playlist: Playlist) -> PlaylistData:
 
 
 from melody.kit.models.track import Track, TrackData
-from melody.kit.models.user import User, UserData, user_from_object, user_into_data
+from melody.kit.models.user import User, UserData, user_from_object
 
 PlaylistTracks = List[Track]
 PlaylistTracksData = List[TrackData]

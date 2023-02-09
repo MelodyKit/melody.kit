@@ -1,12 +1,19 @@
-from typing import Type, TypeVar
+from typing import Type, TypeVar, overload
 
 from attrs import define
 from edgedb import Object  # type: ignore
 from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT
+from melody.shared.converter import CONVERTER
 
-__all__ = ("Statistics", "StatisticsData", "statistics_from_object", "statistics_into_data")
+__all__ = (
+    "Statistics",
+    "StatisticsData",
+    "statistics_from_object",
+    "statistics_from_data",
+    "statistics_into_data",
+)
 
 
 class StatisticsData(Data):
@@ -41,19 +48,44 @@ class Statistics:
             stream_count=object.stream_count,
         )
 
+    @classmethod
+    def from_data(cls: Type[S], data: StatisticsData) -> S:
+        return CONVERTER.structure(data, cls)
+
     def into_data(self) -> StatisticsData:
-        return StatisticsData(
-            track_count=self.track_count,
-            artist_count=self.artist_count,
-            album_count=self.album_count,
-            playlist_count=self.playlist_count,
-            user_count=self.user_count,
-            stream_count=self.stream_count,
-        )
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
+@overload
 def statistics_from_object(object: Object) -> Statistics:
-    return Statistics.from_object(object)
+    ...
+
+
+@overload
+def statistics_from_object(object: Object, statistics_type: Type[S]) -> S:
+    ...
+
+
+def statistics_from_object(
+    object: Object, statistics_type: Type[Statistics] = Statistics
+) -> Statistics:
+    return statistics_type.from_object(object)
+
+
+@overload
+def statistics_from_data(data: StatisticsData) -> Statistics:
+    ...
+
+
+@overload
+def statistics_from_data(data: StatisticsData, statistics_type: Type[S]) -> S:
+    ...
+
+
+def statistics_from_data(
+    data: StatisticsData, statistics_type: Type[Statistics] = Statistics
+) -> Statistics:
+    return statistics_type.from_data(data)
 
 
 def statistics_into_data(statistics: Statistics) -> StatisticsData:

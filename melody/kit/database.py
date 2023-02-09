@@ -6,9 +6,9 @@ from edgedb import AsyncIOClient, create_async_client  # type: ignore
 from iters import iter
 
 from melody.kit.constants import KIT_ROOT
-from melody.kit.models.abstract import Abstract, abstract_from_object
 from melody.kit.models.album import Album, AlbumTracks, album_from_object
 from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_from_object
+from melody.kit.models.base import Base, base_from_object
 from melody.kit.models.playlist import Playlist, PlaylistTracks, playlist_from_object
 from melody.kit.models.statistics import Statistics, statistics_from_object
 from melody.kit.models.track import Track, track_from_object
@@ -173,12 +173,12 @@ class Database:
 
         return None if option is None else iter(option.following).map(user_from_object).list()
 
-    async def insert_user(self, name: str, email: str, password_hash: str) -> Abstract:
+    async def insert_user(self, name: str, email: str, password_hash: str) -> Base:
         object = await self.client.query_single(  # type: ignore
             INSERT_USER, name=name, email=email, password_hash=password_hash
         )
 
-        return abstract_from_object(object)
+        return base_from_object(object)
 
     async def update_user_password_hash(self, user_id: UUID, password_hash: str) -> None:
         await self.client.query_single(  # type: ignore

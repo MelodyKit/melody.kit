@@ -9,7 +9,8 @@ from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH  # type: i
 from qrcode.image.styledpil import StyledPilImage as StyledPILImage  # type: ignore
 from qrcode.image.styles.colormasks import VerticalGradiantColorMask  # type: ignore
 
-from melody.kit.enums import URIType
+from melody.kit.enums import EntityType
+from melody.shared.converter import CONVERTER
 
 __all__ = ("URI",)
 
@@ -58,7 +59,7 @@ U = TypeVar("U", bound="URI")
 
 @frozen()
 class URI:
-    type: URIType
+    type: EntityType
     id: UUID
 
     def __str__(self) -> str:
@@ -71,7 +72,7 @@ class URI:
         if header != HEADER:
             raise ValueError(INVALID_HEADER.format(header))
 
-        type = URIType(type_string)
+        type = EntityType(type_string)
 
         id = UUID(id_string)
 
@@ -121,3 +122,15 @@ class URI:
         image.save(path)
 
         return path
+
+
+def structure_uri(string: str, uri_type: Type[U]) -> U:
+    return uri_type.from_string(string)
+
+
+def unstructure_uri(uri: URI) -> str:
+    return uri.to_string()
+
+
+CONVERTER.register_structure_hook(URI, structure_uri)
+CONVERTER.register_unstructure_hook(URI, unstructure_uri)

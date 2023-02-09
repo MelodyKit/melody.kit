@@ -13,7 +13,7 @@ module default {
         constraint min_value(0);
     }
 
-    abstract type Base extending CreatedAt {
+    abstract type Entity extending CreatedAt {
         required property name -> str;
 
         property spotify_id -> str;
@@ -27,7 +27,7 @@ module default {
         };
     }
 
-    type Track extending Base, Genres {
+    type Track extending Entity, Genres {
         required multi link artists -> Artist;
 
         required property explicit -> bool {
@@ -44,7 +44,7 @@ module default {
         link album := assert_single(.<tracks[is Album]);
     }
 
-    type Artist extending Base, Genres {
+    type Artist extending Entity, Genres {
         multi link followers := .<artists[is User];
 
         property follower_count := count(.followers);
@@ -58,7 +58,7 @@ module default {
         multi link albums := .<artists[is Album];
     }
 
-    type Album extending Base, Genres {
+    type Album extending Entity, Genres {
         required multi link artists -> Artist;
         required multi link tracks -> Track;
 
@@ -75,7 +75,7 @@ module default {
         property track_count := count(.tracks);
     }
 
-    type Playlist extending Base {
+    type Playlist extending Entity {
         required link user -> User {
             on target delete delete source;
         };
@@ -107,7 +107,7 @@ module default {
         required property duration_ms -> duration_ms;
     }
 
-    type User extending Base {
+    type User extending Entity {
         multi link tracks -> Track;
         multi link albums -> Album;
         multi link artists -> Artist;
