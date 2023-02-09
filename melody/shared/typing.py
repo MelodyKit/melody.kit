@@ -1,6 +1,6 @@
 from builtins import isinstance as is_instance
 from os import PathLike
-from typing import Any, Callable, Dict, List, Iterable, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, Union
 
 from typing_extensions import TypeGuard
 

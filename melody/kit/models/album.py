@@ -12,7 +12,12 @@ from melody.kit.enums import AlbumType, EntityType
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date, convert_standard_date_time, utc_now, utc_today
+from melody.shared.date_time import (
+    convert_standard_date,
+    convert_standard_date_time,
+    utc_now,
+    utc_today,
+)
 
 __all__ = (
     "Album",

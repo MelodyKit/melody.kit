@@ -1,4 +1,5 @@
 from attrs import define
+
 from melody.spotify.models.entity import Entity, EntityData
 
 __all__ = ("Track", "TrackData")

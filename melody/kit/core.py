@@ -2,9 +2,7 @@ from typing import Dict
 from uuid import UUID
 
 from argon2 import PasswordHasher
-from fastapi import status
 from fastapi.applications import FastAPI
-from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from pendulum import DateTime

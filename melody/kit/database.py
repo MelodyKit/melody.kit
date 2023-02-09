@@ -124,7 +124,9 @@ class Database:
         return None if option is None else playlist_from_object(option)
 
     async def query_playlist_tracks(self, playlist_id: UUID) -> Optional[PlaylistTracks]:
-        option = await self.client.query_single(PLAYLIST_TRACKS, playlist_id=playlist_id)  # type: ignore
+        option = await self.client.query_single(  # type: ignore
+            PLAYLIST_TRACKS, playlist_id=playlist_id
+        )
 
         return None if option is None else iter(option.tracks).map(track_from_object).list()
 
