@@ -46,15 +46,23 @@ CHECK_FRIENDS = load_query("check_friends")
 
 TRACK = load_query("track")
 
+DELETE_TRACK = load_query("delete_track")
+
 ARTIST = load_query("artist")
 ARTIST_TRACKS = load_query("artist_tracks")
 ARTIST_ALBUMS = load_query("artist_albums")
 
+DELETE_ARTIST = load_query("delete_artist")
+
 ALBUM = load_query("album")
 ALBUM_TRACKS = load_query("album_tracks")
 
+DELETE_ALBUM = load_query("delete_album")
+
 PLAYLIST = load_query("playlist")
 PLAYLIST_TRACKS = load_query("playlist_tracks")
+
+DELETE_PLAYLIST = load_query("delete_playlist")
 
 USER = load_query("user")
 USER_TRACKS = load_query("user_tracks")
@@ -67,6 +75,8 @@ USER_STREAMS = load_query("user_streams")
 USER_FRIENDS = load_query("user_friends")
 USER_FOLLOWERS = load_query("user_followers")
 USER_FOLLOWING = load_query("user_following")
+
+DELETE_USER = load_query("delete_user")
 
 INSERT_USER = load_query("insert_user")
 UPDATE_USER_PASSWORD_HASH = load_query("update_user_password_hash")
@@ -93,6 +103,9 @@ class Database:
 
         return None if option is None else track_from_object(option)
 
+    async def delete_track(self, track_id: UUID) -> None:
+        await self.client.query_single(DELETE_TRACK, track_id=track_id)  # type: ignore
+
     async def query_artist(self, artist_id: UUID) -> Optional[Artist]:
         option = await self.client.query_single(ARTIST, artist_id=artist_id)  # type: ignore
 
@@ -108,6 +121,9 @@ class Database:
 
         return None if option is None else iter(option.albums).map(album_from_object).list()
 
+    async def delete_artist(self, artist_id: UUID) -> None:
+        await self.client.query_single(DELETE_ARTIST, artist_id=artist_id)  # type: ignore
+
     async def query_album(self, album_id: UUID) -> Optional[Album]:
         option = await self.client.query_single(ALBUM, album_id=album_id)  # type: ignore
 
@@ -117,6 +133,9 @@ class Database:
         option = await self.client.query_single(ALBUM_TRACKS, album_id=album_id)  # type: ignore
 
         return None if option is None else iter(option.tracks).map(track_from_object).list()
+
+    async def delete_album(self, album_id: UUID) -> None:
+        await self.client.query_single(DELETE_ALBUM, album_id=album_id)  # type: ignore
 
     async def query_playlist(self, playlist_id: UUID) -> Optional[Playlist]:
         option = await self.client.query_single(PLAYLIST, playlist_id=playlist_id)  # type: ignore
@@ -129,6 +148,9 @@ class Database:
         )
 
         return None if option is None else iter(option.tracks).map(track_from_object).list()
+
+    async def delete_playlist(self, playlist_id: UUID) -> None:
+        await self.client.query_single(DELETE_PLAYLIST, playlist_id=playlist_id)  # type: ignore
 
     async def query_user(self, user_id: UUID) -> Optional[User]:
         option = await self.client.query_single(USER, user_id=user_id)  # type: ignore
@@ -174,6 +196,9 @@ class Database:
         option = await self.client.query_single(USER_FOLLOWING, user_id=user_id)  # type: ignore
 
         return None if option is None else iter(option.following).map(user_from_object).list()
+
+    async def delete_user(self, user_id: UUID) -> None:
+        await self.client.query_single(DELETE_USER, user_id=user_id)  # type: ignore
 
     async def insert_user(self, name: str, email: str, password_hash: str) -> Base:
         object = await self.client.query_single(  # type: ignore

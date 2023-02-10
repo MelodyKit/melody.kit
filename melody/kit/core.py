@@ -1,6 +1,3 @@
-from typing import Dict
-from uuid import UUID
-
 from argon2 import PasswordHasher
 from fastapi.applications import FastAPI
 from fastapi.requests import Request
@@ -11,6 +8,7 @@ from melody.kit.config import get_config
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors import AnyError, Error, InternalError
+from melody.kit.typing import UUIDDict
 
 __all__ = ("config", "database", "hasher", "tokens", "app", "v1")
 
@@ -24,8 +22,8 @@ hasher = PasswordHasher(
     parallelism=config.hash.parallelism,
 )
 
-tokens: Dict[UUID, DateTime] = {}
-verification_tokens: Dict[UUID, str] = {}
+tokens: UUIDDict[DateTime] = {}
+verification_tokens: UUIDDict[str] = {}
 
 app = FastAPI(openapi_url=None, redoc_url=None)
 

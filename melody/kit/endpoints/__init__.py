@@ -5,7 +5,7 @@ from melody.kit.endpoints.artists import (
     get_artist_link,
     get_artist_tracks,
 )
-from melody.kit.endpoints.authentication import login, register, revoke, verify
+from melody.kit.endpoints.authentication import login, register, reset, revoke, verify
 from melody.kit.endpoints.playlists import get_playlist, get_playlist_link, get_playlist_tracks
 from melody.kit.endpoints.self import (
     get_self,
@@ -45,6 +45,7 @@ __all__ = (
     "revoke",
     "register",
     "verify",
+    "reset",
     # playlists
     "get_playlist",
     "get_playlist_link",

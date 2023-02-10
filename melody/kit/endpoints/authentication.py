@@ -20,7 +20,7 @@ from melody.kit.tags import AUTHENTICATION
 from melody.kit.tokens import TokenData, encode_token
 from melody.shared.date_time import utc_now
 
-__all__ = ("login", "revoke", "register", "verify")
+__all__ = ("login", "revoke", "register", "verify", "reset")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
@@ -138,8 +138,14 @@ async def register(
             start_tls=True,
         )
 
-        async with client:
-            await client.send_message(message)
+        try:
+            async with client:
+                await client.send_message(message)
+
+        except Exception:
+            await database.delete_user(user_id)
+
+            raise
 
         verification_tokens[user_id] = verification_token
 
@@ -171,3 +177,14 @@ async def verify(user_id: UUID, verification_token: str) -> None:
         raise Error(
             VERIFICATION_NOT_FOUND.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
         )
+
+
+@v1.post(
+    "/reset",
+    tags=[AUTHENTICATION],
+    summary="Resets the password of the user.",
+)
+async def reset(user_id: UUID = Depends(token_dependency), password: str = Body()) -> None:
+    password_hash = hasher.hash(password)
+
+    await database.update_user_password_hash(user_id, password_hash)
