@@ -1,14 +1,14 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, status
+from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters import iter
 
 from melody.kit.core import database, v1
 from melody.kit.dependencies import optional_token_dependency
 from melody.kit.enums import EntityType
-from melody.kit.errors import Error, ErrorCode
+from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
 from melody.kit.models.playlist import Playlist, playlist_into_data
@@ -46,9 +46,7 @@ async def get_user(user_id: UUID) -> UserData:
     user = await database.query_user(user_id)
 
     if user is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return user.into_data()
 
@@ -99,21 +97,17 @@ async def get_user_tracks(
     user = await database.query_user(user_id)
 
     if user is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
         tracks = await database.query_user_tracks(user_id)
 
         if tracks is None:
-            raise Error(
-                CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
         return iter(tracks).map(track_into_data).list()
 
-    raise Error(INACCESSIBLE_TRACKS.format(user_id), ErrorCode.FORBIDDEN, status.HTTP_403_FORBIDDEN)
+    raise Forbidden(INACCESSIBLE_TRACKS.format(user_id))
 
 
 INACCESSIBLE_ARTISTS = "the artists of the user with ID `{}` are inaccessible"
@@ -131,23 +125,17 @@ async def get_user_artists(
     user = await database.query_user(user_id)
 
     if user is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
         artists = await database.query_user_artists(user_id)
 
         if artists is None:
-            raise Error(
-                CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
         return iter(artists).map(artist_into_data).list()
 
-    raise Error(
-        INACCESSIBLE_ARTISTS.format(user_id), ErrorCode.FORBIDDEN, status.HTTP_403_FORBIDDEN
-    )
+    raise Forbidden(INACCESSIBLE_ARTISTS.format(user_id))
 
 
 INACCESSIBLE_ALBUMS = "the albums of the user with ID `{}` are inaccessible"
@@ -165,21 +153,17 @@ async def get_user_albums(
     user = await database.query_user(user_id)
 
     if user is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
         albums = await database.query_user_albums(user_id)
 
         if albums is None:
-            raise Error(
-                CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
         return iter(albums).map(album_into_data).list()
 
-    raise Error(INACCESSIBLE_ALBUMS.format(user_id), ErrorCode.FORBIDDEN, status.HTTP_403_FORBIDDEN)
+    raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
 
 
 async def create_playlist_predicate(
@@ -220,17 +204,13 @@ async def get_user_playlists(
     user = await database.query_user(user_id)
 
     if user is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
         playlists = await database.query_user_playlists(user_id)
 
         if playlists is None:
-            raise Error(
-                CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
         return (
             iter(playlists)
@@ -239,6 +219,4 @@ async def get_user_playlists(
             .list()
         )
 
-    raise Error(
-        INACCESSIBLE_PLAYLISTS.format(user_id), ErrorCode.FORBIDDEN, status.HTTP_403_FORBIDDEN
-    )
+    raise Forbidden(INACCESSIBLE_PLAYLISTS.format(user_id))

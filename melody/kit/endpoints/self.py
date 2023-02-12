@@ -1,13 +1,13 @@
 from uuid import UUID
 
-from fastapi import Depends, status
+from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters import iter
 
 from melody.kit.core import database, v1
 from melody.kit.dependencies import token_dependency
 from melody.kit.enums import EntityType
-from melody.kit.errors import Error, ErrorCode
+from melody.kit.errors import NotFound
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
 from melody.kit.models.playlist import playlist_into_data
@@ -52,9 +52,7 @@ async def get_self(user_id: UUID = Depends(token_dependency)) -> UserData:
     user = await database.query_user(user_id)
 
     if user is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return user.into_data()
 
@@ -81,9 +79,7 @@ async def get_self_tracks(user_id: UUID = Depends(token_dependency)) -> UserTrac
     tracks = await database.query_user_tracks(user_id)
 
     if tracks is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(tracks).map(track_into_data).list()
 
@@ -97,9 +93,7 @@ async def get_self_artists(user_id: UUID = Depends(token_dependency)) -> UserArt
     artists = await database.query_user_artists(user_id)
 
     if artists is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(artists).map(artist_into_data).list()
 
@@ -113,9 +107,7 @@ async def get_self_albums(user_id: UUID = Depends(token_dependency)) -> UserAlbu
     albums = await database.query_user_albums(user_id)
 
     if albums is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(albums).map(album_into_data).list()
 
@@ -129,9 +121,7 @@ async def get_self_playlists(user_id: UUID = Depends(token_dependency)) -> UserP
     playlists = await database.query_user_playlists(user_id)
 
     if playlists is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(playlists).map(playlist_into_data).list()
 
@@ -145,9 +135,7 @@ async def get_self_streams(user_id: UUID = Depends(token_dependency)) -> UserStr
     streams = await database.query_user_streams(user_id)
 
     if streams is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(streams).map(track_into_data).list()
 
@@ -161,9 +149,7 @@ async def get_self_friends(user_id: UUID = Depends(token_dependency)) -> UserFri
     friends = await database.query_user_friends(user_id)
 
     if friends is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(friends).map(user_into_data).list()
 
@@ -177,9 +163,7 @@ async def get_self_followers(user_id: UUID = Depends(token_dependency)) -> UserF
     followers = await database.query_user_followers(user_id)
 
     if followers is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(followers).map(user_into_data).list()
 
@@ -193,8 +177,6 @@ async def get_self_following(user_id: UUID = Depends(token_dependency)) -> UserF
     following = await database.query_user_following(user_id)
 
     if following is None:
-        raise Error(
-            CAN_NOT_FIND_USER.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(following).map(user_into_data).list()

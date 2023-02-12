@@ -4,20 +4,29 @@ from uuid import UUID
 from aiosmtplib import SMTP
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
-from fastapi import Body, Depends, status
+from fastapi import Body, Depends
 
 from melody.kit.core import config, database, hasher, v1, verification_tokens
 from melody.kit.dependencies import (
+    BoundToken,
+    bound_token_dependency,
     email_deliverability_dependency,
     email_dependency,
     token_dependency,
 )
-from melody.kit.errors import Error, ErrorCode
+from melody.kit.errors import Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData, base_into_data
 from melody.kit.tags import AUTHENTICATION
-from melody.kit.tokens import TokenData, fetch_token, generate_token, token_factory, token_into_data
+from melody.kit.tokens import (
+    TokenData,
+    delete_token,
+    delete_tokens_for,
+    generate_token,
+    token_factory,
+    token_into_data,
+)
 
-__all__ = ("login", "revoke", "register", "verify", "reset")
+__all__ = ("login", "logout", "revoke", "register", "verify", "reset")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
@@ -34,14 +43,12 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
     user_info = await database.query_user_info_by_email(email)
 
     if user_info is None:
-        raise Error(CAN_NOT_FIND_USER.format(email), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND)
+        raise NotFound(CAN_NOT_FIND_USER.format(email))
 
     user_id = user_info.id
 
     if not user_info.is_verified():
-        raise Error(
-            UNVERIFIED.format(user_id), ErrorCode.UNAUTHORIZED, status.HTTP_401_UNAUTHORIZED
-        )
+        raise Unauthorized(UNVERIFIED.format(user_id))
 
     password_hash = user_info.password_hash
 
@@ -49,9 +56,7 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         hasher.verify(password_hash, password)
 
     except VerifyMismatchError:
-        raise Error(
-            PASSWORD_MISMATCH, ErrorCode.UNAUTHORIZED, status.HTTP_401_UNAUTHORIZED
-        ) from None
+        raise Unauthorized(PASSWORD_MISMATCH) from None
 
     else:
         token = await generate_token(user_id)
@@ -65,12 +70,21 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
 
 
 @v1.post(
+    "/logout",
+    tags=[AUTHENTICATION],
+    summary="Logs out the user, revoking the current token.",
+)
+async def logout(bound_token: BoundToken = Depends(bound_token_dependency)) -> None:
+    await delete_token(bound_token.token)
+
+
+@v1.post(
     "/revoke",
     tags=[AUTHENTICATION],
-    summary="Revokes all tokens of the user",
+    summary="Revokes all tokens of the user.",
 )
 async def revoke(user_id: UUID = Depends(token_dependency)) -> None:
-    ...
+    await delete_tokens_for(user_id)
 
 
 EMAIL_TAKEN = "the email `{}` is taken"
@@ -105,9 +119,7 @@ async def register(
         base = await database.insert_user(name, email, password_hash)
 
     except ConstraintViolationError:
-        raise Error(
-            EMAIL_TAKEN.format(email), ErrorCode.CONFLICT, status.HTTP_409_CONFLICT
-        ) from None
+        raise Conflict(EMAIL_TAKEN.format(email)) from None
 
     else:
         user_id = base.id
@@ -166,22 +178,20 @@ async def verify(user_id: UUID, verification_token: str) -> None:
             await database.update_user_verified(user_id, True)
 
         else:
-            raise Error(
-                VERIFICATION_TOKEN_MISMATCH, ErrorCode.UNAUTHORIZED, status.HTTP_401_UNAUTHORIZED
-            )
+            raise Unauthorized(VERIFICATION_TOKEN_MISMATCH)
 
     else:
-        raise Error(
-            VERIFICATION_NOT_FOUND.format(user_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        )
+        raise NotFound(VERIFICATION_NOT_FOUND.format(user_id))
 
 
 @v1.post(
     "/reset",
     tags=[AUTHENTICATION],
-    summary="Resets the password of the user.",
+    summary="Resets the password of the user, revoking all tokens.",
 )
 async def reset(user_id: UUID = Depends(token_dependency), password: str = Body()) -> None:
+    await revoke(user_id)
+
     password_hash = hasher.hash(password)
 
     await database.update_user_password_hash(user_id, password_hash)

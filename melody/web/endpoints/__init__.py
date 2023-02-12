@@ -1,9 +1,12 @@
 from melody.web.endpoints.authentication import (
     get_login,
     get_register,
+    get_reset,
     login,
     logout,
     register,
+    reset,
+    revoke,
     verify,
 )
 from melody.web.endpoints.docs import redirect_docs
@@ -18,9 +21,12 @@ __all__ = (
     "get_login",
     "login",
     "logout",
+    "revoke",
     "get_register",
     "register",
     "verify",
+    "get_reset",
+    "reset",
     # docs
     "redirect_docs",
     # email

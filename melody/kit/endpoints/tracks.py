@@ -1,11 +1,10 @@
 from uuid import UUID
 
-from fastapi import status
 from fastapi.responses import FileResponse
 
 from melody.kit.core import database, v1
 from melody.kit.enums import EntityType
-from melody.kit.errors import Error, ErrorCode
+from melody.kit.errors import NotFound
 from melody.kit.models.track import TrackData, track_into_data
 from melody.kit.tags import LINKS, TRACKS
 from melody.kit.uri import URI
@@ -24,9 +23,7 @@ async def get_track(track_id: UUID) -> TrackData:
     track = await database.query_track(track_id)
 
     if track is None:
-        raise Error(
-            CAN_NOT_FIND_TRACK.format(track_id), ErrorCode.NOT_FOUND, status.HTTP_404_NOT_FOUND
-        ) from None
+        raise NotFound(CAN_NOT_FIND_TRACK.format(track_id))
 
     return track_into_data(track)
 

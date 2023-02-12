@@ -2,53 +2,67 @@ from typing import Optional
 from uuid import UUID
 
 from async_extensions.blocking import run_blocking_in_thread
+from attrs import define
 from email_validator import EmailNotValidError, validate_email  # type: ignore
 from fastapi import Body
 from fastapi.requests import Request
 
-from melody.kit.errors import AuthenticationError, ErrorCode, ValidationError
-from melody.kit.tokens import fetch_token
+from melody.kit.errors import (
+    AuthenticationError,
+    AuthenticationInvalid,
+    AuthenticationMissing,
+    AuthenticationNotFound,
+    ValidationError,
+)
+from melody.kit.tokens import fetch_user_id_by
 from melody.shared.constants import SPACE
 
 __all__ = (
+    "BoundToken",
+    "bound_token_dependency",
     "token_dependency",
     "optional_token_dependency",
     "email_dependency",
     "email_deliverability_dependency",
 )
 
+
+@define()
+class BoundToken:
+    token: str
+    user_id: UUID
+
+
 AUTHORIZATION = "Authorization"
 
 AUTHENTICATION_INVALID = "authentication is invalid"
 AUTHENTICATION_MISSING = "authentication is missing"
-AUTHENTICATION_EXPIRED = "authentication has expired"
+AUTHENTICATION_NOT_FOUND = "authentication not found"
 
 
-async def token_dependency(request: Request) -> UUID:
+async def bound_token_dependency(request: Request) -> BoundToken:
     header = request.headers.get(AUTHORIZATION)
 
     if header is None:
-        raise AuthenticationError(AUTHENTICATION_MISSING, ErrorCode.AUTHENTICATION_MISSING)
+        raise AuthenticationMissing(AUTHENTICATION_MISSING)
 
     _, _, token = header.partition(SPACE)
 
     if not token:
-        raise AuthenticationError(AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID)
+        raise AuthenticationInvalid(AUTHENTICATION_INVALID)
 
-    try:
-        user_id = await fetch_token(token)
+    user_id = await fetch_user_id_by(token)
 
-    except LookupError:
-        raise AuthenticationError(
-            AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID
-        ) from None
+    if user_id is None:
+        raise AuthenticationNotFound(AUTHENTICATION_NOT_FOUND)
 
-    except TimeoutError:
-        raise AuthenticationError(
-            AUTHENTICATION_EXPIRED, ErrorCode.AUTHENTICATION_EXPIRED
-        ) from None
+    return BoundToken(token, user_id)
 
-    return user_id
+
+async def token_dependency(request: Request) -> UUID:
+    bound_token = await bound_token_dependency(request)
+
+    return bound_token.user_id
 
 
 async def optional_token_dependency(request: Request) -> Optional[UUID]:

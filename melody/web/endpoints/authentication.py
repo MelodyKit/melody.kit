@@ -4,19 +4,35 @@ from fastapi import Depends, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from melody.kit.core import app
+from melody.kit.dependencies import BoundToken
 from melody.kit.endpoints.authentication import login as kit_login
+from melody.kit.endpoints.authentication import logout as kit_logout
 from melody.kit.endpoints.authentication import register as kit_register
+from melody.kit.endpoints.authentication import reset as kit_reset
 from melody.kit.endpoints.authentication import revoke as kit_revoke
 from melody.kit.endpoints.authentication import verify as kit_verify
+from melody.kit.errors import Unauthorized
+from melody.kit.tokens import Token
 from melody.web.constants import TOKEN
 from melody.web.core import environment
 from melody.web.dependencies import (
+    bound_cookie_token_dependency,
     cookie_token_dependency,
     form_email_deliverability_dependency,
     form_email_dependency,
 )
 
-__all__ = ("get_login", "login", "logout", "get_register", "register", "verify")
+__all__ = (
+    "get_login",
+    "login",
+    "logout",
+    "revoke",
+    "get_register",
+    "register",
+    "verify",
+    "get_reset",
+    "reset",
+)
 
 LOGIN_TEMPLATE = environment.get_template("login.html")
 
@@ -34,15 +50,23 @@ async def login(
 
     token_data = await kit_login(email, password)
 
-    token = token_data[TOKEN]
+    token = Token.from_data(token_data)
 
-    response.set_cookie(TOKEN, token)
+    expires_at = token.expires_at
+
+    expires = None if expires_at is None else expires_at.int_timestamp
+
+    response.set_cookie(TOKEN, token.token, expires=expires)
 
     return response
 
 
 @app.get("/logout")
-async def logout(user_id: UUID = Depends(cookie_token_dependency)) -> RedirectResponse:
+async def logout(
+    bound_token: BoundToken = Depends(bound_cookie_token_dependency),
+) -> RedirectResponse:
+    await kit_logout(bound_token)
+
     response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
 
     response.delete_cookie(TOKEN)
@@ -52,9 +76,9 @@ async def logout(user_id: UUID = Depends(cookie_token_dependency)) -> RedirectRe
 
 @app.get("/revoke")
 async def revoke(user_id: UUID = Depends(cookie_token_dependency)) -> RedirectResponse:
-    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
-
     await kit_revoke(user_id)
+
+    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
 
     response.delete_cookie(TOKEN)
 
@@ -84,4 +108,33 @@ async def register(
 async def verify(user_id: UUID, verification_token: str) -> RedirectResponse:
     await kit_verify(user_id, verification_token)
 
-    return RedirectResponse("/login", status_code=status.HTTP_302_FOUND)
+    return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+
+RESET_TEMPLATE = environment.get_template("reset.html")
+
+
+@app.get("/reset")
+async def get_reset(user_id: UUID = Depends(cookie_token_dependency)) -> HTMLResponse:
+    return HTMLResponse(await RESET_TEMPLATE.render_async())
+
+
+PASSWORD_MISMATCH = "password mismatch"
+
+
+@app.post("/reset")
+async def reset(
+    user_id: UUID = Depends(cookie_token_dependency),
+    password: str = Form(),
+    confirm_password: str = Form(),
+) -> RedirectResponse:
+    if password != confirm_password:
+        raise Unauthorized(PASSWORD_MISMATCH)
+
+    await kit_reset(user_id, password)
+
+    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+    response.delete_cookie(TOKEN)
+
+    return response

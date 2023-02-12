@@ -1,16 +1,28 @@
 from secrets import token_hex
-from typing import Optional, Type, TypeVar, overload
+from typing import AsyncIterator, Optional, Type, TypeVar, overload
 from uuid import UUID
 
 from attrs import define, field
-from pendulum import DateTime, duration, parse
+from pendulum import DateTime, Duration, duration
 from typing_extensions import TypedDict as Data
 
 from melody.kit.core import config, redis
+from melody.shared.constants import STAR
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import utc_now
 
-__all__ = ("Token", "TokenData", "token_factory", "token_from_data", "token_into_data")
+__all__ = (
+    "Token",
+    "TokenData",
+    "token_factory",
+    "token_from_data",
+    "token_into_data",
+    "generate_token",
+    "delete_token",
+    "delete_tokens_for",
+    "fetch_user_id_by",
+    "fetch_tokens_for",
+)
 
 
 class TokenData(Data):
@@ -38,8 +50,11 @@ class Token:
     created_at: DateTime = field(factory=utc_now)
     expires_at: Optional[DateTime] = field()
 
-    @expires_at.default
-    def default_expires_at(self) -> Optional[DateTime]:
+    def __str__(self) -> str:
+        return self.token
+
+    @property
+    def expires_in(self) -> Optional[Duration]:
         expires = config.token.expires
 
         expires_in = duration(
@@ -52,10 +67,13 @@ class Token:
             seconds=expires.seconds,
         )
 
-        if not expires_in.total_seconds():  # type: ignore
-            return None
+        return expires_in if expires_in.total_seconds() else None  # type: ignore
 
-        return self.created_at + expires_in  # type: ignore
+    @expires_at.default
+    def default_expires_at(self) -> Optional[DateTime]:
+        expires_in = self.expires_in
+
+        return None if expires_in is None else self.created_at + expires_in
 
     @classmethod
     def from_data(cls: Type[T], data: TokenData) -> T:  # type: ignore
@@ -83,51 +101,67 @@ def token_into_data(token: Token) -> TokenData:
     return token.into_data()
 
 
-TOKEN_KEY = "token:{token}"
+NAME_SEPARATOR = ":"
+
+TOKEN_KEY = f"token{NAME_SEPARATOR}{{}}"
 token_key = TOKEN_KEY.format
 
-EXPIRES_AT_KEY = "expires_at:{token}"
-expires_at_key = EXPIRES_AT_KEY.format
+
+def key_token(key: str) -> Optional[str]:
+    _, _, token = key.partition(NAME_SEPARATOR)
+
+    return token if token else None
 
 
 async def generate_token(user_id: UUID) -> Token:
-    result = Token()
+    token = Token()
 
-    token = result.token
+    expires_in = token.expires_in
 
-    await redis.set(token_key(token=token), str(user_id))
+    expires_seconds = None if expires_in is None else expires_in.total_seconds()  # type: ignore
 
-    expires_at = result.expires_at
+    await redis.set(token_key(token), str(user_id), ex=expires_seconds)
 
-    if expires_at is not None:
-        await redis.set(expires_at_key(token=token), str(expires_at))
+    return token
 
-    return result
+
+async def delete_token(token: str) -> None:
+    await redis.delete(token_key(token))
+
+
+async def delete_tokens_for(user_id: UUID) -> None:
+    async for token in fetch_tokens_for(user_id):
+        await delete_token(token)
 
 
 CAN_NOT_FIND_TOKEN = "can not find token `{}`"
 can_not_find_token = CAN_NOT_FIND_TOKEN.format
 
-EXPIRED_TOKEN = "token `{}` has expired"
-expired_token = EXPIRED_TOKEN.format
 
-
-async def fetch_token(token: str) -> UUID:
-    option = await redis.get(token_key(token=token))
+async def fetch_user_id_by(token: str) -> Optional[UUID]:
+    option = await redis.get(token_key(token))
 
     if option is None:
         raise LookupError(can_not_find_token(token))
 
     user_id = UUID(option)
 
-    option = await redis.get(expires_at_key(token=token))
+    return user_id
 
-    if option is None:
-        return user_id
 
-    expires_at: DateTime = parse(option)  # type: ignore
+async def fetch_tokens_for(user_id: UUID) -> AsyncIterator[str]:
+    async for key in redis.scan_iter(token_key(STAR)):
+        option = await redis.get(key)
 
-    if expires_at > utc_now():
-        return user_id
+        if option is None:
+            continue
 
-    raise TimeoutError(expired_token(token))
+        target_id = UUID(option)
+
+        if target_id == user_id:
+            token = key_token(key)
+
+            if token is None:
+                continue
+
+            yield token

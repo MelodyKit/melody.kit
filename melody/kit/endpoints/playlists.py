@@ -1,14 +1,14 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, status
+from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters import iter
 
 from melody.kit.core import database, v1
 from melody.kit.dependencies import optional_token_dependency
 from melody.kit.enums import EntityType
-from melody.kit.errors import Error, ErrorCode
+from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.playlist import (
     Playlist,
     PlaylistData,
@@ -62,20 +62,12 @@ async def get_playlist(
     playlist = await database.query_playlist(playlist_id)
 
     if playlist is None:
-        raise Error(
-            CAN_NOT_FIND_PLAYLIST.format(playlist_id),
-            ErrorCode.NOT_FOUND,
-            status.HTTP_404_NOT_FOUND,
-        )
+        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
     if await check_accessible(playlist, user_id_option):
         return playlist_into_data(playlist)
 
-    raise Error(
-        INACCESSIBLE_PLAYLIST.format(playlist_id),
-        ErrorCode.FORBIDDEN,
-        status.HTTP_403_FORBIDDEN,
-    )
+    raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
 
 @v1.get(
@@ -103,26 +95,14 @@ async def get_playlist_tracks(
     playlist = await database.query_playlist(playlist_id)
 
     if playlist is None:
-        raise Error(
-            CAN_NOT_FIND_PLAYLIST.format(playlist_id),
-            ErrorCode.NOT_FOUND,
-            status.HTTP_404_NOT_FOUND,
-        )
+        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
     if await check_accessible(playlist, user_id_option):
         tracks = await database.query_playlist_tracks(playlist_id)
 
         if tracks is None:
-            raise Error(
-                CAN_NOT_FIND_PLAYLIST.format(playlist_id),
-                ErrorCode.NOT_FOUND,
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
         return iter(tracks).map(track_into_data).list()
 
-    raise Error(
-        INACCESSIBLE_PLAYLIST.format(playlist_id),
-        ErrorCode.FORBIDDEN,
-        status.HTTP_403_FORBIDDEN,
-    )
+    raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))

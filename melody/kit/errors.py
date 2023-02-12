@@ -13,6 +13,9 @@ __all__ = (
     "ErrorCode",
     "ErrorData",
     "AuthenticationError",
+    "AuthenticationInvalid",
+    "AuthenticationMissing",
+    "AuthenticationNotFound",
     "ValidationError",
     "BadRequest",
     "Unauthorized",
@@ -46,7 +49,7 @@ class ErrorCode(Enum):
     AUTHENTICATION_ERROR = 13600
     AUTHENTICATION_INVALID = 13601
     AUTHENTICATION_MISSING = 13602
-    AUTHENTICATION_EXPIRED = 13603
+    AUTHENTICATION_NOT_FOUND = 13603
 
     @classmethod
     def from_status_code(cls, status_code: int) -> ErrorCode:
@@ -86,6 +89,27 @@ class AuthenticationError(Error[T]):
 
     code: ErrorCode = ErrorCode.AUTHENTICATION_ERROR
     status_code: int = status.HTTP_401_UNAUTHORIZED
+
+
+@frozen()
+class AuthenticationInvalid(AuthenticationError[T]):
+    """Authentication is invalid."""
+
+    code: ErrorCode = ErrorCode.AUTHENTICATION_INVALID
+
+
+@frozen()
+class AuthenticationMissing(AuthenticationError[T]):
+    """Authentication is missing."""
+
+    code: ErrorCode = ErrorCode.AUTHENTICATION_MISSING
+
+
+@frozen()
+class AuthenticationNotFound(AuthenticationError[T]):
+    """Authentication was not found."""
+
+    code: ErrorCode = ErrorCode.AUTHENTICATION_NOT_FOUND
 
 
 @frozen()

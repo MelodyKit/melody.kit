@@ -4,6 +4,8 @@ __all__ = (
     "EMPTY_BYTES",
     # space
     "SPACE",
+    # star
+    "STAR",
     # methods
     "HEAD",
     "GET",
@@ -29,6 +31,8 @@ EMPTY = str()
 EMPTY_BYTES = bytes()
 
 SPACE = " "
+
+STAR = "*"
 
 HEAD = "HEAD"
 GET = "GET"
