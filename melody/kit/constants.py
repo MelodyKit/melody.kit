@@ -7,8 +7,6 @@ __all__ = (
     # v1
     "V1",
     "VERSION_1",
-    # verify tokens
-    "VERIFICATION_TOKEN_SIZE",
     # config
     "DEFAULT_IGNORE_SENSITIVE",
     # models
@@ -21,8 +19,6 @@ __all__ = (
 
 KIT_ROOT = Path(__file__).parent
 MELODY_ROOT = KIT_ROOT.parent
-
-VERIFICATION_TOKEN_SIZE = 32
 
 VERSION_1 = "1.0.0"
 V1 = "/api/v1"

@@ -1,5 +1,4 @@
 from email.message import EmailMessage
-from secrets import token_hex
 from uuid import UUID
 
 from aiosmtplib import SMTP
@@ -7,8 +6,7 @@ from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import Body, Depends, status
 
-from melody.kit.constants import VERIFICATION_TOKEN_SIZE
-from melody.kit.core import config, database, hasher, tokens, v1, verification_tokens
+from melody.kit.core import config, database, hasher, v1, verification_tokens
 from melody.kit.dependencies import (
     email_deliverability_dependency,
     email_dependency,
@@ -17,8 +15,7 @@ from melody.kit.dependencies import (
 from melody.kit.errors import Error, ErrorCode
 from melody.kit.models.base import BaseData, base_into_data
 from melody.kit.tags import AUTHENTICATION
-from melody.kit.tokens import TokenData, encode_token
-from melody.shared.date_time import utc_now
+from melody.kit.tokens import TokenData, fetch_token, generate_token, token_factory, token_into_data
 
 __all__ = ("login", "revoke", "register", "verify", "reset")
 
@@ -57,14 +54,14 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         ) from None
 
     else:
-        token = encode_token(user_id)
+        token = await generate_token(user_id)
 
         if hasher.check_needs_rehash(password_hash):
             password_hash = hasher.hash(password)
 
             await database.update_user_password_hash(user_id, password_hash)
 
-        return TokenData(token=token)
+        return token_into_data(token)
 
 
 @v1.post(
@@ -73,7 +70,7 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
     summary="Revokes all tokens of the user",
 )
 async def revoke(user_id: UUID = Depends(token_dependency)) -> None:
-    tokens[user_id] = utc_now()
+    ...
 
 
 EMAIL_TAKEN = "the email `{}` is taken"
@@ -114,7 +111,7 @@ async def register(
 
     else:
         user_id = base.id
-        verification_token = token_hex(VERIFICATION_TOKEN_SIZE)
+        verification_token = token_factory()
 
         message = EmailMessage()
 

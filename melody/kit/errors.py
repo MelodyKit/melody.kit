@@ -14,6 +14,15 @@ __all__ = (
     "ErrorData",
     "AuthenticationError",
     "ValidationError",
+    "BadRequest",
+    "Unauthorized",
+    "Forbidden",
+    "NotFound",
+    "MethodNotAllowed",
+    "Conflict",
+    "Gone",
+    "PayloadTooLarge",
+    "RateLimited",
     "InternalError",
 )
 
@@ -85,6 +94,78 @@ class ValidationError(Error[T]):
 
     code: ErrorCode = ErrorCode.UNPROCESSABLE_ENTITY
     status_code: int = status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+@frozen()
+class BadRequest(Error[T]):
+    """Bad request."""
+
+    code: ErrorCode = ErrorCode.BAD_REQUEST
+    status_code: int = status.HTTP_400_BAD_REQUEST
+
+
+@frozen()
+class Unauthorized(Error[T]):
+    """User is unauthorized."""
+
+    code: ErrorCode = ErrorCode.UNAUTHORIZED
+    status_code: int = status.HTTP_401_UNAUTHORIZED
+
+
+@frozen()
+class Forbidden(Error[T]):
+    """Access is forbidden."""
+
+    code: ErrorCode = ErrorCode.FORBIDDEN
+    status_code: int = status.HTTP_403_FORBIDDEN
+
+
+@frozen()
+class NotFound(Error[T]):
+    """Item was not found."""
+
+    code: ErrorCode = ErrorCode.NOT_FOUND
+    status_code: int = status.HTTP_404_NOT_FOUND
+
+
+@frozen()
+class MethodNotAllowed(Error[T]):
+    """Method is not allowed."""
+
+    code: ErrorCode = ErrorCode.METHOD_NOT_ALLOWED
+    status_code: int = status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+@frozen()
+class Conflict(Error[T]):
+    """Conflict has occured."""
+
+    code: ErrorCode = ErrorCode.CONFLICT
+    status_code: int = status.HTTP_409_CONFLICT
+
+
+@frozen()
+class Gone(Error[T]):
+    """Item is gone."""
+
+    code: ErrorCode = ErrorCode.GONE
+    status_code: int = status.HTTP_410_GONE
+
+
+@frozen()
+class PayloadTooLarge(Error[T]):
+    """Payload is too large."""
+
+    code: ErrorCode = ErrorCode.PAYLOAD_TOO_LARGE
+    status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+
+
+@frozen()
+class RateLimited(Error[T]):
+    """Rate limit has occured."""
+
+    code: ErrorCode = ErrorCode.TOO_MANY_REQUESTS
+    status_code: int = status.HTTP_429_TOO_MANY_REQUESTS
 
 
 INTERNAL_ERROR = "internal error"

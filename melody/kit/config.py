@@ -10,7 +10,7 @@ from melody.kit.enums import LogLevel
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, EMPTY
 from melody.shared.typing import IntoPath, StringDict
 
-__all__ = ("Config", "ConfigData", "get_config")
+__all__ = ("Config", "ConfigData", "get_config", "get_default_config")
 
 T = TypeVar("T")
 
@@ -23,6 +23,11 @@ NAME = "kit.toml"
 
 DEFAULT_PATH = MELODY_ROOT / NAME
 PATH = HOME / CONFIG_NAME / MELODY_NAME / NAME
+
+
+if not PATH.exists():
+    PATH.parent.mkdir(parents=True, exist_ok=True)
+    PATH.write_bytes(DEFAULT_PATH.read_bytes())
 
 
 class ConfigData(StringDict[T]):
@@ -61,6 +66,30 @@ class LogConfig:
     level: LogLevel
 
 
+@define()
+class RedisConfig:
+    host: str
+    port: int
+
+
+@define()
+class ExpiresConfig:
+    years: float
+    months: float
+    weeks: float
+    days: float
+    hours: float
+    minutes: float
+    seconds: float
+
+
+@define()
+class TokenConfig:
+    size: int
+    type: str
+    expires: ExpiresConfig
+
+
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
 
@@ -84,7 +113,20 @@ EXPECTED_MELODY_KIT_PORT = expected("melody.kit.port")
 EXPECTED_MELODY_KIT_KEY = expected("melody.kit.key")
 EXPECTED_MELODY_LOG = expected("melody.log")
 EXPECTED_MELODY_LOG_LEVEL = expected("melody.log.level")
-
+EXPECTED_MELODY_REDIS = expected("melody.redis")
+EXPECTED_MELODY_REDIS_HOST = expected("melody.redis.host")
+EXPECTED_MELODY_REDIS_PORT = expected("melody.redis.port")
+EXPECTED_MELODY_TOKEN = expected("melody.token")
+EXPECTED_MELODY_TOKEN_SIZE = expected("melody.token.size")
+EXPECTED_MELODY_TOKEN_TYPE = expected("melody.token.type")
+EXPECTED_MELODY_TOKEN_EXPIRES = expected("melody.token.expires")
+EXPECTED_MELODY_TOKEN_EXPIRES_YEARS = expected("melody.token.expires.years")
+EXPECTED_MELODY_TOKEN_EXPIRES_MONTHS = expected("melody.token.expires.months")
+EXPECTED_MELODY_TOKEN_EXPIRES_WEEKS = expected("melody.token.expires.weeks")
+EXPECTED_MELODY_TOKEN_EXPIRES_DAYS = expected("melody.token.expires.days")
+EXPECTED_MELODY_TOKEN_EXPIRES_HOURS = expected("melody.token.expires.hours")
+EXPECTED_MELODY_TOKEN_EXPIRES_MINUTES = expected("melody.token.expires.minutes")
+EXPECTED_MELODY_TOKEN_EXPIRES_SECONDS = expected("melody.token.expires.seconds")
 
 C = TypeVar("C", bound="Config")
 
@@ -97,6 +139,8 @@ class Config:
     hash: HashConfig
     kit: KitConfig
     log: LogConfig
+    redis: RedisConfig
+    token: TokenConfig
 
     @classmethod
     def from_string(cls: Type[C], string: str) -> C:
@@ -152,10 +196,47 @@ class Config:
 
         log = LogConfig(level=log_data.level.unwrap_or(log_config.level))
 
+        redis_data = config_data.redis.unwrap_or_else(AnyConfigData)
+        redis_config = default_config.redis
+
+        redis = RedisConfig(
+            host=redis_data.host.unwrap_or(redis_config.host),
+            port=redis_data.port.unwrap_or(redis_config.port),
+        )
+
+        token_data = config_data.token.unwrap_or_else(AnyConfigData)
+        token_config = default_config.token
+
+        expires_data = token_data.expires.unwrap_or_else(AnyConfigData)
+        expires_config = token_config.expires
+
+        token = TokenConfig(
+            size=token_data.size.unwrap_or(token_config.size),
+            type=token_data.type.unwrap_or(token_config.type),
+            expires=ExpiresConfig(
+                years=expires_data.years.unwrap_or(expires_config.years),
+                months=expires_data.months.unwrap_or(expires_config.months),
+                weeks=expires_data.weeks.unwrap_or(expires_config.weeks),
+                days=expires_data.days.unwrap_or(expires_config.days),
+                hours=expires_data.hours.unwrap_or(expires_config.hours),
+                minutes=expires_data.minutes.unwrap_or(expires_config.minutes),
+                seconds=expires_data.seconds.unwrap_or(expires_config.seconds),
+            ),
+        )
+
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
 
-        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit, log=log)
+        return cls(
+            name=name,
+            domain=domain,
+            email=email,
+            hash=hash,
+            kit=kit,
+            log=log,
+            redis=redis,
+            token=token,
+        )
 
     @classmethod
     def unsafe_from_string(
@@ -223,24 +304,53 @@ class Config:
 
         log = LogConfig(level=log_data.level.expect(EXPECTED_MELODY_LOG_LEVEL))
 
+        redis_data = config_data.redis.expect(EXPECTED_MELODY_REDIS)
+
+        redis = RedisConfig(
+            host=redis_data.host.expect(EXPECTED_MELODY_REDIS_HOST),
+            port=redis_data.port.expect(EXPECTED_MELODY_REDIS_PORT),
+        )
+
+        token_data = config_data.token.expect(EXPECTED_MELODY_TOKEN)
+        expires_data = token_data.expires.expect(EXPECTED_MELODY_TOKEN_EXPIRES)
+
+        token = TokenConfig(
+            size=token_data.size.expect(EXPECTED_MELODY_TOKEN_SIZE),
+            type=token_data.type.expect(EXPECTED_MELODY_TOKEN_TYPE),
+            expires=ExpiresConfig(
+                years=expires_data.years.expect(EXPECTED_MELODY_TOKEN_EXPIRES_YEARS),
+                months=expires_data.months.expect(EXPECTED_MELODY_TOKEN_EXPIRES_MONTHS),
+                weeks=expires_data.weeks.expect(EXPECTED_MELODY_TOKEN_EXPIRES_WEEKS),
+                days=expires_data.days.expect(EXPECTED_MELODY_TOKEN_EXPIRES_DAYS),
+                hours=expires_data.hours.expect(EXPECTED_MELODY_TOKEN_EXPIRES_HOURS),
+                minutes=expires_data.minutes.expect(EXPECTED_MELODY_TOKEN_EXPIRES_MINUTES),
+                seconds=expires_data.seconds.expect(EXPECTED_MELODY_TOKEN_EXPIRES_SECONDS),
+            ),
+        )
+
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
 
-        return cls(name=name, domain=domain, email=email, hash=hash, kit=kit, log=log)
+        return cls(
+            name=name,
+            domain=domain,
+            email=email,
+            hash=hash,
+            kit=kit,
+            log=log,
+            redis=redis,
+            token=token,
+        )
 
 
-DEFAULT_CONFIG = Config.unsafe_from_path(DEFAULT_PATH, ignore_sensitive=True)
+def get_default_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
+    return Config.unsafe_from_path(
+        DEFAULT_PATH, encoding=encoding, errors=errors, ignore_sensitive=True
+    )
 
 
-def ensure_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> None:
-    if not PATH.exists():
-        PATH.parent.mkdir(parents=True, exist_ok=True)
-
-        PATH.write_text(DEFAULT_PATH.read_text(encoding, errors), encoding, errors)
-
-
-ensure_config()
+DEFAULT_CONFIG = get_default_config()
 
 
 def get_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
-    return Config.from_path(PATH)
+    return Config.from_path(PATH, encoding=encoding, errors=errors)

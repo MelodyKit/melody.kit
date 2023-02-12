@@ -1,18 +1,22 @@
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-from melody.kit.core import app
+from melody.kit.core import app, config
 
 __all__ = ("redirect_email",)
 
 EMAIL = "{name}@{domain}"
+email = EMAIL.format
 
 EMAIL_TO = "mailto:"
-DOMAIN = "melodykit.app"
+
+
+def email_to(email: str) -> str:
+    return EMAIL_TO + email
 
 
 @app.get("/email/{name}")
 async def redirect_email(name: str) -> RedirectResponse:
     return RedirectResponse(
-        EMAIL_TO + EMAIL.format(name=name, domain=DOMAIN), status_code=status.HTTP_302_FOUND
+        email_to(email(name=name, domain=config.domain)), status_code=status.HTTP_302_FOUND
     )

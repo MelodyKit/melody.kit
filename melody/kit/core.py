@@ -2,19 +2,28 @@ from argon2 import PasswordHasher
 from fastapi.applications import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from pendulum import DateTime
+from redis.asyncio import Redis
 
 from melody.kit.config import get_config
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors import AnyError, Error, InternalError
 from melody.kit.typing import UUIDDict
+from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
 
-__all__ = ("config", "database", "hasher", "tokens", "app", "v1")
+__all__ = ("config", "database", "redis", "hasher", "app", "v1")
 
 database = Database()
 
 config = get_config()
+
+redis = Redis(  # type: ignore
+    host=config.redis.host,
+    port=config.redis.port,
+    encoding=DEFAULT_ENCODING,
+    encoding_errors=DEFAULT_ERRORS,
+    decode_responses=True,
+)
 
 hasher = PasswordHasher(
     time_cost=config.hash.time_cost,
@@ -22,7 +31,6 @@ hasher = PasswordHasher(
     parallelism=config.hash.parallelism,
 )
 
-tokens: UUIDDict[DateTime] = {}
 verification_tokens: UUIDDict[str] = {}
 
 app = FastAPI(openapi_url=None, redoc_url=None)

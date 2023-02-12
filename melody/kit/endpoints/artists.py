@@ -18,7 +18,7 @@ from melody.kit.models.track import track_into_data
 from melody.kit.tags import ALBUMS, ARTISTS, LINKS, TRACKS
 from melody.kit.uri import URI
 
-__all__ = ("get_artist", "get_artist_link")
+__all__ = ("get_artist", "get_artist_link", "get_artist_tracks", "get_artist_albums")
 
 CAN_NOT_FIND_ARTIST = "can not find the artist with ID `{}`"
 

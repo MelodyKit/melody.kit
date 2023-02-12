@@ -5,10 +5,9 @@ from async_extensions.blocking import run_blocking_in_thread
 from email_validator import EmailNotValidError, validate_email  # type: ignore
 from fastapi import Form
 from fastapi.requests import Request
-from jwt import DecodeError, ExpiredSignatureError
 
 from melody.kit.errors import AuthenticationError, ErrorCode, ValidationError
-from melody.kit.tokens import decode_token
+from melody.kit.tokens import fetch_token
 from melody.web.constants import TOKEN
 
 __all__ = ("cookie_token_dependency", "optional_cookie_token_dependency")
@@ -18,7 +17,7 @@ AUTHENTICATION_INVALID = "authentication is invalid"
 AUTHENTICATION_EXPIRED = "authentication has expired"
 
 
-def cookie_token_dependency(request: Request) -> UUID:
+async def cookie_token_dependency(request: Request) -> UUID:
     cookies = request.cookies
 
     token = cookies.get(TOKEN)
@@ -27,14 +26,14 @@ def cookie_token_dependency(request: Request) -> UUID:
         raise AuthenticationError(AUTHENTICATION_MISSING, ErrorCode.AUTHENTICATION_MISSING)
 
     try:
-        user_id = decode_token(token)
+        user_id = await fetch_token(token)
 
-    except (DecodeError, KeyError, ValueError):
+    except LookupError:
         raise AuthenticationError(
             AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID
         ) from None
 
-    except ExpiredSignatureError:
+    except TimeoutError:
         raise AuthenticationError(
             AUTHENTICATION_EXPIRED, ErrorCode.AUTHENTICATION_EXPIRED
         ) from None
@@ -42,9 +41,9 @@ def cookie_token_dependency(request: Request) -> UUID:
     return user_id
 
 
-def optional_cookie_token_dependency(request: Request) -> Optional[UUID]:
+async def optional_cookie_token_dependency(request: Request) -> Optional[UUID]:
     try:
-        return cookie_token_dependency(request)
+        return await cookie_token_dependency(request)
 
     except AuthenticationError:
         return None

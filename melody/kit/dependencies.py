@@ -5,10 +5,9 @@ from async_extensions.blocking import run_blocking_in_thread
 from email_validator import EmailNotValidError, validate_email  # type: ignore
 from fastapi import Body
 from fastapi.requests import Request
-from jwt import DecodeError, ExpiredSignatureError
 
 from melody.kit.errors import AuthenticationError, ErrorCode, ValidationError
-from melody.kit.tokens import decode_token
+from melody.kit.tokens import fetch_token
 from melody.shared.constants import SPACE
 
 __all__ = (
@@ -25,7 +24,7 @@ AUTHENTICATION_MISSING = "authentication is missing"
 AUTHENTICATION_EXPIRED = "authentication has expired"
 
 
-def token_dependency(request: Request) -> UUID:
+async def token_dependency(request: Request) -> UUID:
     header = request.headers.get(AUTHORIZATION)
 
     if header is None:
@@ -37,14 +36,14 @@ def token_dependency(request: Request) -> UUID:
         raise AuthenticationError(AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID)
 
     try:
-        user_id = decode_token(token)
+        user_id = await fetch_token(token)
 
-    except (DecodeError, KeyError, ValueError):
+    except LookupError:
         raise AuthenticationError(
             AUTHENTICATION_INVALID, ErrorCode.AUTHENTICATION_INVALID
         ) from None
 
-    except ExpiredSignatureError:
+    except TimeoutError:
         raise AuthenticationError(
             AUTHENTICATION_EXPIRED, ErrorCode.AUTHENTICATION_EXPIRED
         ) from None
@@ -52,9 +51,9 @@ def token_dependency(request: Request) -> UUID:
     return user_id
 
 
-def optional_token_dependency(request: Request) -> Optional[UUID]:
+async def optional_token_dependency(request: Request) -> Optional[UUID]:
     try:
-        return token_dependency(request)
+        return await token_dependency(request)
 
     except AuthenticationError:
         return None

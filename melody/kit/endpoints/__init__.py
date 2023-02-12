@@ -31,28 +31,22 @@ from melody.kit.endpoints.users import (
 )
 
 __all__ = (
-    # albums
-    "get_album",
-    "get_album_link",
-    "get_album_tracks",
+    # tracks
+    "get_track",
+    "get_track_link",
     # artists
     "get_artist",
     "get_artist_link",
     "get_artist_tracks",
     "get_artist_albums",
-    # authentication
-    "login",
-    "revoke",
-    "register",
-    "verify",
-    "reset",
+    # albums
+    "get_album",
+    "get_album_link",
+    "get_album_tracks",
     # playlists
     "get_playlist",
     "get_playlist_link",
     "get_playlist_tracks",
-    # tracks
-    "get_track",
-    "get_track_link",
     # users
     "get_user",
     "get_user_link",
@@ -73,4 +67,10 @@ __all__ = (
     "get_self_following",
     # statistics
     "get_statistics",
+    # authentication
+    "login",
+    "revoke",
+    "register",
+    "verify",
+    "reset",
 )

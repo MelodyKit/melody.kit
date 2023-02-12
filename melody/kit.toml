@@ -18,3 +18,20 @@ port = 1342
 
 [melody.log]
 level = "info"
+
+[melody.redis]
+host = "127.0.0.1"
+port = 6379
+
+[melody.token]
+size = 32
+type = "Bearer"
+
+[melody.token.expires]
+years = 0
+months = 0
+weeks = 0
+days = 0
+hours = 0
+minutes = 0
+seconds = 0
