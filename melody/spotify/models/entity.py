@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar
 
-from attrs import define
+from attrs import define, field
 from cattrs.gen import make_dict_unstructure_fn, override
 
 from melody.shared.converter import CONVERTER
@@ -24,19 +24,17 @@ class EntityData(BaseData):
     id: str
     type: str
     uri: str
-    name: str
     href: str
 
 
 @define()
 class Entity(Base):
-    id: str
-    type: EntityType
-    uri: URI
-    name: str
-    href: str
+    id: str = field()
+    type: EntityType = field()
+    uri: URI = field()
+    href: str = field()
 
-    client_unchecked: Optional[Client] = None
+    client_unchecked: Optional[Client] = field(default=None, kw_only=True)
 
     @property
     def client(self) -> Client:
@@ -78,6 +76,5 @@ if not TYPE_CHECKING:
 
 
 CONVERTER.register_unstructure_hook(
-    Entity,
-    make_dict_unstructure_fn(Entity, CONVERTER, client_unchecked=override(omit=True)),
+    Entity, make_dict_unstructure_fn(Entity, CONVERTER, client_unchecked=override(omit=True))
 )
