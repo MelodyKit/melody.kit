@@ -43,6 +43,11 @@ from melody.kit.models.statistics import (
     statistics_into_data,
 )
 from melody.kit.models.track import (
+    PartialTrack,
+    PartialTrackData,
+    partial_track_from_data,
+    partial_track_from_object,
+    partial_track_into_data,
     Track,
     TrackData,
     track_from_data,
@@ -93,6 +98,12 @@ __all__ = (
     "entity_from_object",
     "entity_from_data",
     "entity_into_data",
+    # partial track
+    "PartialTrack",
+    "PartialTrackData",
+    "partial_track_from_object",
+    "partial_track_from_data",
+    "partial_track_into_data",
     # track
     "Track",
     "TrackData",

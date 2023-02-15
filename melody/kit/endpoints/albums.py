@@ -7,7 +7,7 @@ from melody.kit.core import database, v1
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
 from melody.kit.models.album import AlbumData, AlbumTracksData, album_into_data
-from melody.kit.models.track import track_into_data
+from melody.kit.models.track import partial_track_into_data
 from melody.kit.tags import ALBUMS, LINKS, TRACKS
 from melody.kit.uri import URI
 
@@ -54,4 +54,4 @@ async def get_album_tracks(album_id: UUID) -> AlbumTracksData:
     if tracks is None:
         raise NotFound(CAN_NOT_FIND_ALBUM.format(album_id))
 
-    return iter(tracks).map(track_into_data).list()
+    return iter(tracks).map(partial_track_into_data).list()

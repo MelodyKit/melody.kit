@@ -11,7 +11,7 @@ from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_
 from melody.kit.models.base import Base, base_from_object
 from melody.kit.models.playlist import Playlist, PlaylistTracks, playlist_from_object
 from melody.kit.models.statistics import Statistics, statistics_from_object
-from melody.kit.models.track import Track, track_from_object
+from melody.kit.models.track import Track, partial_track_from_object, track_from_object
 from melody.kit.models.user import (
     User,
     UserAlbums,
@@ -133,7 +133,7 @@ class Database:
     async def query_album_tracks(self, album_id: UUID) -> Optional[AlbumTracks]:
         option = await self.client.query_single(ALBUM_TRACKS, album_id=album_id)  # type: ignore
 
-        return None if option is None else iter(option.tracks).map(track_from_object).list()
+        return None if option is None else iter(option.tracks).map(partial_track_from_object).list()
 
     async def delete_album(self, album_id: UUID) -> None:
         await self.client.query_single(DELETE_ALBUM, album_id=album_id)  # type: ignore
