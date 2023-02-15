@@ -4,17 +4,15 @@ from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
 
-from melody.kit.models.base import Base, BaseData
+from melody.kit.models.created_at import Created, CreatedAtData
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = ("Entity", "EntityData", "entity_from_object", "entity_from_data", "entity_into_data")
 
 
-class EntityData(BaseData):
+class EntityData(CreatedAtData):
     name: str
-
-    created_at: str
 
     spotify_id: Optional[str]
     apple_music_id: Optional[str]
@@ -25,7 +23,7 @@ E = TypeVar("E", bound="Entity")
 
 
 @define()
-class Entity(Base):
+class Entity(CreatedAt):
     name: str
 
     created_at: DateTime = field(factory=utc_now)

@@ -122,7 +122,7 @@ module default {
 
         property follower_count := count(.followers);
 
-        multi link streams := .<user[is Stream].track;
+        multi link streams := .<user[is Stream];
 
         property stream_count := count(.streams);
         property stream_duration_ms := sum(.streams.duration_ms);
