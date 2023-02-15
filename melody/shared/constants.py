@@ -16,6 +16,12 @@ __all__ = (
     "CONNECT",
     "OPTIONS",
     "TRACE",
+    # grant types
+    "CLIENT_CREDENTIALS",
+    "AUTHORIZATION_CODE",
+    "REFRESH_TOKEN",
+    # response types
+    "CODE",
     # names
     "NAME",
     "PYTHON",
@@ -49,6 +55,13 @@ TRACE = "TRACE"
 
 NAME = "MelodyKit"
 PYTHON = "Python"
+
+CLIENT_CREDENTIALS = "client_credentials"
+AUTHORIZATION_CODE = "authorization_code"
+
+REFRESH_TOKEN = "refresh_token"
+
+CODE = "code"
 
 # defaults
 

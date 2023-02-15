@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define
 from cattrs.gen import make_dict_structure_fn, make_dict_unstructure_fn, override
@@ -6,7 +6,6 @@ from cattrs.gen import make_dict_structure_fn, make_dict_unstructure_fn, overrid
 from melody.shared.converter import CONVERTER
 from melody.spotify.models.album import Album, AlbumData
 from melody.spotify.models.artist import Artist, ArtistData
-from melody.spotify.models.copyright import Copyright, CopyrightData
 from melody.spotify.models.external_ids import ExternalIDs, ExternalIDsData
 from melody.spotify.models.external_urls import ExternalURLs, ExternalURLsData
 from melody.spotify.models.linked_from import LinkedFrom, LinkedFromData
@@ -67,6 +66,24 @@ class Track(Named):
 
     def is_local(self) -> bool:
         return self.local
+
+
+@overload
+def track_from_data(data: TrackData) -> Track:
+    ...
+
+
+@overload
+def track_from_data(data: TrackData, track_type: Type[T]) -> T:
+    ...
+
+
+def track_from_data(data: TrackData, track_type: Type[Track] = Track) -> Track:
+    return track_type.from_data(data)
+
+
+def track_into_data(track: Track) -> TrackData:
+    return track.into_data()
 
 
 IS_PLAYABLE = "is_playable"
