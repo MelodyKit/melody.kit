@@ -229,6 +229,8 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
 
     message[FROM] = from_format(name=config.name, email=config.email.support)
 
+    message[SUBJECT] = RESET
+
     message[TO] = email
 
     message.set_content(reset_content(domain=config.domain, name=TOKEN, token=token))
