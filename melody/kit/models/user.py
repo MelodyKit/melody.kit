@@ -7,6 +7,7 @@ from pendulum import DateTime
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.models.entity import Entity, EntityData
+from melody.kit.models.user_stream import UserStream, UserStreamData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
@@ -152,5 +153,5 @@ UserFollowersData = List[UserData]
 UserFollowing = List[User]
 UserFollowingData = List[UserData]
 
-UserStreams = List[Track]
-UserStreamsData = List[TrackData]
+UserStreams = List[UserStream]
+UserStreamsData = List[UserStreamData]

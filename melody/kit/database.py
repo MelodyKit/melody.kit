@@ -25,6 +25,7 @@ from melody.kit.models.user import (
     user_from_object,
 )
 from melody.kit.models.user_info import UserInfo, user_info_from_object
+from melody.kit.models.user_stream import user_stream_from_object
 
 __all__ = ("Database",)
 
@@ -180,7 +181,7 @@ class Database:
     async def query_user_streams(self, user_id: UUID) -> Optional[UserStreams]:
         option = await self.client.query_single(USER_STREAMS, user_id=user_id)  # type: ignore
 
-        return None if option is None else iter(option.streams).map(track_from_object).list()
+        return None if option is None else iter(option.streams).map(user_stream_from_object).list()
 
     async def query_user_friends(self, user_id: UUID) -> Optional[UserFriends]:
         option = await self.client.query_single(USER_FRIENDS, user_id=user_id)  # type: ignore
