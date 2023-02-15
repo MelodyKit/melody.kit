@@ -40,16 +40,17 @@ AUTHENTICATION_MISSING = "authentication is missing"
 AUTHENTICATION_NOT_FOUND = "authentication not found"
 
 
-async def bound_token_dependency(request: Request) -> BoundToken:
-    header = request.headers.get(AUTHORIZATION)
+async def bound_token_dependency(request: Request, token: Optional[str] = None) -> BoundToken:
+    if token is None:
+        header = request.headers.get(AUTHORIZATION)
 
-    if header is None:
-        raise AuthenticationMissing(AUTHENTICATION_MISSING)
+        if header is None:
+            raise AuthenticationMissing(AUTHENTICATION_MISSING)
 
-    _, _, token = header.partition(SPACE)
+        _, _, token = header.partition(SPACE)
 
-    if not token:
-        raise AuthenticationInvalid(AUTHENTICATION_INVALID)
+        if not token:
+            raise AuthenticationInvalid(AUTHENTICATION_INVALID)
 
     user_id = await fetch_user_id_by(token)
 
@@ -59,15 +60,17 @@ async def bound_token_dependency(request: Request) -> BoundToken:
     return BoundToken(token, user_id)
 
 
-async def token_dependency(request: Request) -> UUID:
-    bound_token = await bound_token_dependency(request)
+async def token_dependency(request: Request, token: Optional[str] = None) -> UUID:
+    bound_token = await bound_token_dependency(request, token)
 
     return bound_token.user_id
 
 
-async def optional_token_dependency(request: Request) -> Optional[UUID]:
+async def optional_token_dependency(
+    request: Request, token: Optional[str] = None
+) -> Optional[UUID]:
     try:
-        return await token_dependency(request)
+        return await token_dependency(request, token)
 
     except AuthenticationError:
         return None

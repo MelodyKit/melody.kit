@@ -1,3 +1,5 @@
+from typing_extensions import Literal
+
 __all__ = (
     # empty
     "EMPTY",
@@ -16,6 +18,8 @@ __all__ = (
     "CONNECT",
     "OPTIONS",
     "TRACE",
+    # token
+    "TOKEN",
     # grant types
     "CLIENT_CREDENTIALS",
     "AUTHORIZATION_CODE",
@@ -55,6 +59,8 @@ TRACE = "TRACE"
 
 NAME = "MelodyKit"
 PYTHON = "Python"
+
+TOKEN: Literal["token"] = "token"
 
 CLIENT_CREDENTIALS = "client_credentials"
 AUTHORIZATION_CODE = "authorization_code"

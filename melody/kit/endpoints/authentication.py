@@ -25,6 +25,7 @@ from melody.kit.tokens import (
     token_factory,
     token_into_data,
 )
+from melody.shared.constants import TOKEN
 
 __all__ = ("login", "logout", "revoke", "register", "verify", "reset")
 
@@ -94,13 +95,15 @@ TO = "To"
 SUBJECT = "Subject"
 
 FROM_FORMAT = "{name} <{email}>"
+from_format = FROM_FORMAT.format
 
 VERIFICATION = "Please verify your account"
-CONTENT = """
+VERIFICATION_CONTENT = """
 Please verify your account by clicking the link below:
 
 https://{domain}/verify/{user_id}/{verification_token}
 """.strip()
+verification_content = VERIFICATION_CONTENT.format
 
 
 @v1.post(
@@ -127,14 +130,14 @@ async def register(
 
         message = EmailMessage()
 
-        message[FROM] = FROM_FORMAT.format(name=config.name, email=config.email.support)
+        message[FROM] = from_format(name=config.name, email=config.email.support)
 
         message[TO] = email
 
         message[SUBJECT] = VERIFICATION
 
         message.set_content(
-            CONTENT.format(
+            verification_content(
                 domain=config.domain, user_id=user_id, verification_token=verification_token
             )
         )
@@ -195,3 +198,48 @@ async def reset(user_id: UUID = Depends(token_dependency), password: str = Body(
     password_hash = hasher.hash(password)
 
     await database.update_user_password_hash(user_id, password_hash)
+
+
+CAN_NOT_FIND_USER_BY_EMAIL = "can not find the user with the email `{}`"
+
+
+RESET = "Password reset"
+RESET_CONTENT = """
+Follow the link below in order to reset your password:
+
+https://{domain}/reset?{name}={token}
+""".strip()
+reset_content = RESET_CONTENT.format
+
+
+@v1.post(
+    "/forgot",
+    tags=[AUTHENTICATION],
+    summary="Allows the user to reset their password via email.",
+)
+async def forgot(email: str = Depends(email_dependency)) -> None:
+    user_info = await database.query_user_info_by_email(email)
+
+    if user_info is None:
+        raise NotFound(CAN_NOT_FIND_USER_BY_EMAIL.format(email))
+
+    token = await generate_token(user_info.id)
+
+    message = EmailMessage()
+
+    message[FROM] = from_format(name=config.name, email=config.email.support)
+
+    message[TO] = email
+
+    message.set_content(reset_content(domain=config.domain, name=TOKEN, token=token))
+
+    client = SMTP(
+        config.email.host,
+        config.email.port,
+        config.email.name,
+        config.email.password,
+        start_tls=True,
+    )
+
+    async with client:
+        await client.send_message(message)

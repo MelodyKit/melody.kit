@@ -13,7 +13,7 @@ from melody.kit.endpoints.authentication import revoke as kit_revoke
 from melody.kit.endpoints.authentication import verify as kit_verify
 from melody.kit.errors import Unauthorized
 from melody.kit.tokens import Token
-from melody.web.constants import TOKEN
+from melody.shared.constants import TOKEN
 from melody.web.core import environment
 from melody.web.dependencies import (
     bound_cookie_token_dependency,
@@ -115,7 +115,9 @@ RESET_TEMPLATE = environment.get_template("reset.html")
 
 
 @app.get("/reset")
-async def get_reset(user_id: UUID = Depends(cookie_token_dependency)) -> HTMLResponse:
+async def get_reset(
+    bound_token: BoundToken = Depends(bound_cookie_token_dependency),
+) -> HTMLResponse:
     return HTMLResponse(await RESET_TEMPLATE.render_async())
 
 

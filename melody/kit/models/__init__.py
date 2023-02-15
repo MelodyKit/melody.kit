@@ -45,11 +45,11 @@ from melody.kit.models.statistics import (
 from melody.kit.models.track import (
     PartialTrack,
     PartialTrackData,
+    Track,
+    TrackData,
     partial_track_from_data,
     partial_track_from_object,
     partial_track_into_data,
-    Track,
-    TrackData,
     track_from_data,
     track_from_object,
     track_into_data,

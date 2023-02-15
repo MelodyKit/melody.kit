@@ -14,7 +14,7 @@ from melody.kit.errors import (
     ValidationError,
 )
 from melody.kit.tokens import fetch_user_id_by
-from melody.web.constants import TOKEN
+from melody.shared.constants import TOKEN
 
 __all__ = (
     "bound_cookie_token_dependency",
@@ -29,13 +29,16 @@ AUTHENTICATION_INVALID = "authentication is invalid"
 AUTHENTICATION_NOT_FOUND = "authentication not found"
 
 
-async def bound_cookie_token_dependency(request: Request) -> BoundToken:
-    cookies = request.cookies
-
-    token = cookies.get(TOKEN)
-
+async def bound_cookie_token_dependency(
+    request: Request, token: Optional[str] = None
+) -> BoundToken:
     if token is None:
-        raise AuthenticationMissing(AUTHENTICATION_MISSING)
+        cookies = request.cookies
+
+        token = cookies.get(TOKEN)
+
+        if token is None:
+            raise AuthenticationMissing(AUTHENTICATION_MISSING)
 
     user_id = await fetch_user_id_by(token)
 
@@ -45,15 +48,17 @@ async def bound_cookie_token_dependency(request: Request) -> BoundToken:
     return BoundToken(token, user_id)
 
 
-async def cookie_token_dependency(request: Request) -> UUID:
-    bound_token = await bound_cookie_token_dependency(request)
+async def cookie_token_dependency(request: Request, token: Optional[str] = None) -> UUID:
+    bound_token = await bound_cookie_token_dependency(request, token)
 
     return bound_token.user_id
 
 
-async def optional_cookie_token_dependency(request: Request) -> Optional[UUID]:
+async def optional_cookie_token_dependency(
+    request: Request, token: Optional[str] = None
+) -> Optional[UUID]:
     try:
-        return await cookie_token_dependency(request)
+        return await cookie_token_dependency(request, token)
 
     except AuthenticationError:
         return None

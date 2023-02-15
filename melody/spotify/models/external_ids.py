@@ -40,5 +40,5 @@ CONVERTER.register_unstructure_hook(
         isrc=override(omit_if_default=True),
         ean=override(omit_if_default=True),
         upc=override(omit_if_default=True),
-    )
+    ),
 )

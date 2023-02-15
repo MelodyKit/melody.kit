@@ -70,7 +70,7 @@ CONVERTER.register_unstructure_hook(
         type=override(rename=TOKEN_TYPE),
         expires_seconds=override(rename=EXPIRES_IN),
         created_at=override(omit=True),
-    )
+    ),
 )
 
 CONVERTER.register_structure_hook(
@@ -81,5 +81,5 @@ CONVERTER.register_structure_hook(
         token=override(rename=ACCESS_TOKEN),
         type=override(rename=TOKEN_TYPE),
         expires_seconds=override(rename=EXPIRES_IN),
-    )
+    ),
 )
