@@ -2,10 +2,11 @@ from typing import Type, TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
+from pendulum import DateTime
 
+from melody.kit.constants import DEFAULT_DURATION
 from melody.kit.models.base_stream import BaseStream, BaseStreamData
 from melody.kit.models.track import Track, TrackData, track_from_object
-from melody.shared.constants import DEFAULT_DURATION
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
@@ -17,6 +18,7 @@ __all__ = (
     "user_stream_into_data",
 )
 
+
 class UserStreamData(BaseStreamData):
     track: TrackData
 
@@ -26,7 +28,7 @@ U = TypeVar("U", bound="UserStream")
 
 @define()
 class UserStream(BaseStream):
-    track: Track
+    track: Track = field()
     created_at: DateTime = field(factory=utc_now)
     duration_ms: int = field(default=DEFAULT_DURATION)
 
@@ -44,7 +46,7 @@ class UserStream(BaseStream):
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> UserStreamData:
-        return CONVERTER.unstructure(self)
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
 @overload

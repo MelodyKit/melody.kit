@@ -24,6 +24,7 @@ from melody.kit.models.user import (
     UserTracksData,
     user_into_data,
 )
+from melody.kit.models.user_stream import user_stream_into_data
 from melody.kit.tags import ALBUMS, ARTISTS, LINKS, PLAYLISTS, SELF, TRACKS, USERS
 from melody.kit.uri import URI
 
@@ -137,7 +138,7 @@ async def get_self_streams(user_id: UUID = Depends(token_dependency)) -> UserStr
     if streams is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(streams).map(track_into_data).list()
+    return iter(streams).map(user_stream_into_data).list()
 
 
 @v1.get(

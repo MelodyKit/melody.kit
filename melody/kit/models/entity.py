@@ -4,7 +4,7 @@ from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
 
-from melody.kit.models.created_at import Created, CreatedAtData
+from melody.kit.models.created_at import CreatedAt, CreatedAtData
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 

@@ -81,7 +81,7 @@ CONVERTER.register_unstructure_hook(
         client_unchecked=override(omit=True),
         playable=override(rename=IS_PLAYABLE),
         local=override(rename=IS_LOCAL),
-    )
+    ),
 )
 
 CONVERTER.register_structure_hook(
@@ -91,5 +91,5 @@ CONVERTER.register_structure_hook(
         CONVERTER,
         playable=override(rename=IS_PLAYABLE),
         local=override(rename=IS_LOCAL),
-    )
+    ),
 )

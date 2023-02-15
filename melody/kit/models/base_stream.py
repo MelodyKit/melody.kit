@@ -3,10 +3,10 @@ from typing import Type, TypeVar, overload
 from attrs import define, field
 from edgedb import Object  # type: ignore
 
+from melody.kit.constants import DEFAULT_DURATION
 from melody.kit.models.created_at import CreatedAt, CreatedAtData
-from melody.shared.constants import DEFAULT_DURATION
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time, utc_now
+from melody.shared.date_time import convert_standard_date_time
 
 __all__ = (
     "BaseStream",
@@ -15,6 +15,7 @@ __all__ = (
     "base_stream_from_data",
     "base_stream_into_data",
 )
+
 
 class BaseStreamData(CreatedAtData):
     duration_ms: int

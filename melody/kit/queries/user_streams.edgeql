@@ -1,5 +1,7 @@
 select User {
     streams: {
+        id,
+        created_at,
         duration_ms,
         track: {
             id,

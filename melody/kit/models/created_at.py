@@ -24,6 +24,7 @@ class CreatedAtData(BaseData):
 C = TypeVar("C", bound="CreatedAt")
 
 
+@define()
 class CreatedAt(Base):
     created_at: DateTime = field(factory=utc_now)
 
@@ -36,7 +37,7 @@ class CreatedAt(Base):
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> CreatedAtData:
-        return CONVERTER.unstructure(self)
+        return CONVERTER.unstructure(self)  # type: ignore
 
 
 @overload
