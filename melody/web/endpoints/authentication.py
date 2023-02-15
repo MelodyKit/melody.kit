@@ -118,7 +118,11 @@ RESET_TEMPLATE = environment.get_template("reset.html")
 async def get_reset(
     bound_token: BoundToken = Depends(bound_cookie_token_dependency),
 ) -> HTMLResponse:
-    return HTMLResponse(await RESET_TEMPLATE.render_async())
+    response = HTMLResponse(await RESET_TEMPLATE.render_async())
+
+    response.set_cookie(TOKEN, bound_token.token)
+
+    return response
 
 
 PASSWORD_MISMATCH = "password mismatch"
