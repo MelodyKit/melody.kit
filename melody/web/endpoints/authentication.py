@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from melody.kit.core import app
 from melody.kit.dependencies import BoundToken
+from melody.kit.endpoints.authentication import forgot as kit_forgot
 from melody.kit.endpoints.authentication import login as kit_login
 from melody.kit.endpoints.authentication import logout as kit_logout
 from melody.kit.endpoints.authentication import register as kit_register
@@ -107,6 +108,21 @@ async def register(
 @app.get("/verify/{user_id}/{verification_token}")
 async def verify(user_id: UUID, verification_token: str) -> RedirectResponse:
     await kit_verify(user_id, verification_token)
+
+    return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+
+FORGOT_TEMPLATE = environment.get_template("forgot.html")
+
+
+@app.get("/forgot")
+async def get_forgot() -> HTMLResponse:
+    return HTMLResponse(await FORGOT_TEMPLATE.render_async())
+
+
+@app.post("/forgot")
+async def forgot(email: str = Depends(form_email_dependency)) -> RedirectResponse:
+    await kit_forgot(email)
 
     return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
 
