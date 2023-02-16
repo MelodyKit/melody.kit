@@ -27,10 +27,15 @@ from melody.kit.models.entity import (
     entity_into_data,
 )
 from melody.kit.models.playlist import (
+    PartialPlaylist,
+    PartialPlaylistData,
     Playlist,
     PlaylistData,
     PlaylistTracks,
     PlaylistTracksData,
+    partial_playlist_from_data,
+    partial_playlist_from_object,
+    partial_playlist_into_data,
     playlist_from_data,
     playlist_from_object,
     playlist_into_data,
@@ -128,6 +133,12 @@ __all__ = (
     "album_from_object",
     "album_from_data",
     "album_into_data",
+    # partial playlist
+    "PartialPlaylist",
+    "PartialPlaylistData",
+    "partial_playlist_from_object",
+    "partial_playlist_from_data",
+    "partial_playlist_into_data",
     # playlist
     "Playlist",
     "PlaylistData",

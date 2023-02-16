@@ -15,6 +15,11 @@ from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
+    "PartialPlaylist",
+    "PartialPlaylistData",
+    "partial_playlist_from_object",
+    "partial_playlist_from_data",
+    "partial_playlist_into_data",
     "Playlist",
     "PlaylistData",
     "PlaylistTracks",
@@ -25,10 +30,8 @@ __all__ = (
 )
 
 
-class PlaylistData(EntityData):
+class PartialPlaylistData(EntityData):
     uri: str
-
-    user: UserData
 
     description: str
 
@@ -36,6 +39,94 @@ class PlaylistData(EntityData):
 
     track_count: int
     privacy_type: str
+
+
+class PlaylistData(PartialPlaylistData):
+    user: UserData
+
+
+Q = TypeVar("Q", bound="PartialPlaylist")
+
+
+@define()
+class PartialPlaylist(Entity):
+    description: str = field(default=EMPTY)
+
+    duration_ms: int = field(default=DEFAULT_DURATION)
+
+    track_count: int = field(default=DEFAULT_COUNT)
+
+    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+
+    created_at: DateTime = field(factory=utc_now)
+
+    spotify_id: Optional[str] = field(default=None)
+    apple_music_id: Optional[str] = field(default=None)
+    yandex_music_id: Optional[str] = field(default=None)
+
+    uri: URI = field()
+
+    @uri.default
+    def default_uri(self) -> URI:
+        return URI(type=EntityType.PLAYLIST, id=self.id)
+
+    @classmethod
+    def from_object(cls: Type[Q], object: Object) -> Q:  # type: ignore
+        return cls(
+            id=object.id,
+            name=object.name,
+            description=object.description,
+            duration_ms=object.duration_ms,
+            track_count=object.track_count,
+            privacy_type=PrivacyType(object.privacy_type.value),
+            created_at=convert_standard_date_time(object.created_at),
+            spotify_id=object.spotify_id,
+            apple_music_id=object.apple_music_id,
+            yandex_music_id=object.yandex_music_id,
+        )
+
+    @classmethod
+    def from_data(cls: Type[Q], data: PartialPlaylistData) -> Q:  # type: ignore
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> PartialPlaylistData:
+        return CONVERTER.unstructure(self)  # type: ignore
+
+
+@overload
+def partial_playlist_from_object(object: Object) -> PartialPlaylist:
+    ...
+
+
+@overload
+def partial_playlist_from_object(object: Object, partial_playlist_type: Type[Q]) -> Q:
+    ...
+
+
+def partial_playlist_from_object(
+    object: Object, partial_playlist_type: Type[PartialPlaylist] = PartialPlaylist
+) -> PartialPlaylist:
+    return partial_playlist_type.from_object(object)
+
+
+@overload
+def partial_playlist_from_data(data: PartialPlaylistData) -> PartialPlaylist:
+    ...
+
+
+@overload
+def partial_playlist_from_data(data: PartialPlaylistData, playlist_type: Type[Q]) -> Q:
+    ...
+
+
+def partial_playlist_from_data(
+    data: PartialPlaylistData, playlist_type: Type[PartialPlaylist] = PartialPlaylist
+) -> PartialPlaylist:
+    return playlist_type.from_data(data)
+
+
+def partial_playlist_into_data(playlist: PartialPlaylist) -> PartialPlaylistData:
+    return playlist.into_data()
 
 
 P = TypeVar("P", bound="Playlist")

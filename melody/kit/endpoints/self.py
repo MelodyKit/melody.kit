@@ -10,7 +10,7 @@ from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
-from melody.kit.models.playlist import playlist_into_data
+from melody.kit.models.playlist import partial_playlist_into_data
 from melody.kit.models.track import track_into_data
 from melody.kit.models.user import (
     UserAlbumsData,
@@ -124,7 +124,7 @@ async def get_self_playlists(user_id: UUID = Depends(token_dependency)) -> UserP
     if playlists is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(playlists).map(playlist_into_data).list()
+    return iter(playlists).map(partial_playlist_into_data).list()
 
 
 @v1.get(

@@ -129,7 +129,7 @@ def user_into_data(user: User) -> UserData:
 
 from melody.kit.models.album import Album, AlbumData
 from melody.kit.models.artist import Artist, ArtistData
-from melody.kit.models.playlist import Playlist, PlaylistData
+from melody.kit.models.playlist import PartialPlaylist, PartialPlaylistData
 from melody.kit.models.track import Track, TrackData
 
 UserTracks = List[Track]
@@ -138,8 +138,8 @@ UserTracksData = List[TrackData]
 UserAlbums = List[Album]
 UserAlbumsData = List[AlbumData]
 
-UserPlaylists = List[Playlist]
-UserPlaylistsData = List[PlaylistData]
+UserPlaylists = List[PartialPlaylist]
+UserPlaylistsData = List[PartialPlaylistData]
 
 UserArtists = List[Artist]
 UserArtistsData = List[ArtistData]

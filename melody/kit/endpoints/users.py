@@ -11,7 +11,7 @@ from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
-from melody.kit.models.playlist import Playlist, playlist_into_data
+from melody.kit.models.playlist import PartialPlaylist, partial_playlist_into_data
 from melody.kit.models.track import track_into_data
 from melody.kit.models.user import (
     User,
@@ -166,16 +166,16 @@ async def get_user_albums(
     raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
 
 
-async def create_playlist_predicate(
+async def create_partial_playlist_predicate(
     user_id: UUID, user_id_option: Optional[UUID]
-) -> Predicate[Playlist]:
+) -> Predicate[PartialPlaylist]:
     if user_id_option is None:
         friends = False
 
     else:
         friends = await database.check_friends(user_id, user_id_option)
 
-    def predicate(playlist: Playlist) -> bool:
+    def predicate(playlist: PartialPlaylist) -> bool:
         privacy_type = playlist.privacy_type
 
         if privacy_type.is_private():
@@ -214,8 +214,8 @@ async def get_user_playlists(
 
         return (
             iter(playlists)
-            .filter(await create_playlist_predicate(user_id, user_id_option))
-            .map(playlist_into_data)
+            .filter(await create_partial_playlist_predicate(user_id, user_id_option))
+            .map(partial_playlist_into_data)
             .list()
         )
 

@@ -2,18 +2,6 @@ select User {
     playlists: {
         id,
         name,
-        user: {
-            id,
-            name,
-            follower_count,
-            stream_count,
-            stream_duration_ms,
-            privacy_type,
-            created_at,
-            spotify_id,
-            apple_music_id,
-            yandex_music_id
-        },
         description,
         duration_ms,
         track_count,

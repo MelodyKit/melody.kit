@@ -9,7 +9,12 @@ from melody.kit.constants import KIT_ROOT
 from melody.kit.models.album import Album, AlbumTracks, album_from_object
 from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_from_object
 from melody.kit.models.base import Base, base_from_object
-from melody.kit.models.playlist import Playlist, PlaylistTracks, playlist_from_object
+from melody.kit.models.playlist import (
+    Playlist,
+    PlaylistTracks,
+    partial_playlist_from_object,
+    playlist_from_object,
+)
 from melody.kit.models.statistics import Statistics, statistics_from_object
 from melody.kit.models.track import Track, partial_track_from_object, track_from_object
 from melody.kit.models.user import (
@@ -176,7 +181,11 @@ class Database:
     async def query_user_playlists(self, user_id: UUID) -> Optional[UserPlaylists]:
         option = await self.client.query_single(USER_PLAYLISTS, user_id=user_id)  # type: ignore
 
-        return None if option is None else iter(option.playlists).map(playlist_from_object).list()
+        return (
+            None
+            if option is None
+            else iter(option.playlists).map(partial_playlist_from_object).list()
+        )
 
     async def query_user_streams(self, user_id: UUID) -> Optional[UserStreams]:
         option = await self.client.query_single(USER_STREAMS, user_id=user_id)  # type: ignore
