@@ -97,6 +97,7 @@ expected = EXPECTED.format
 EXPECTED_MELODY = expected("melody")
 EXPECTED_MELODY_NAME = expected("melody.name")
 EXPECTED_MELODY_DOMAIN = expected("melody.domain")
+EXPECTED_MELODY_OPEN = expected("melody.open")
 EXPECTED_MELODY_EMAIL = expected("melody.email")
 EXPECTED_MELODY_EMAIL_HOST = expected("melody.email.host")
 EXPECTED_MELODY_EMAIL_PORT = expected("melody.email.port")
@@ -135,6 +136,7 @@ C = TypeVar("C", bound="Config")
 class Config:
     name: str
     domain: str
+    open: str
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
@@ -226,10 +228,12 @@ class Config:
 
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
+        open = config_data.open.unwrap_or(default_config.open)
 
         return cls(
             name=name,
             domain=domain,
+            open=open,
             email=email,
             hash=hash,
             kit=kit,
@@ -330,10 +334,12 @@ class Config:
 
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
+        open = config_data.open.expect(EXPECTED_MELODY_OPEN)
 
         return cls(
             name=name,
             domain=domain,
+            open=open,
             email=email,
             hash=hash,
             kit=kit,

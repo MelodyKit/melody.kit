@@ -1,6 +1,7 @@
 [melody]
 name = "MelodyKit"
 domain = "melodykit.app"
+open = "open"
 
 [melody.email]
 host = "smtp.gmail.com"

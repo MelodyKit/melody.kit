@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import Depends, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from melody.kit.core import app
+from melody.kit.core import app, config
 from melody.kit.dependencies import BoundToken
 from melody.kit.endpoints.authentication import forgot as kit_forgot
 from melody.kit.endpoints.authentication import login as kit_login
@@ -47,7 +47,7 @@ async def get_login() -> HTMLResponse:
 async def login(
     email: str = Depends(form_email_dependency), password: str = Form()
 ) -> RedirectResponse:
-    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+    response = RedirectResponse(f"/{config.open}", status_code=status.HTTP_302_FOUND)
 
     token_data = await kit_login(email, password)
 
