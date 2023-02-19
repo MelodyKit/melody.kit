@@ -57,7 +57,7 @@ async def login(
 
     expires = None if expires_at is None else expires_at.int_timestamp
 
-    response.set_cookie(TOKEN, token.token, expires=expires)
+    response.set_cookie(TOKEN, token.token, expires=expires, domain=config.domain)
 
     return response
 
@@ -136,7 +136,7 @@ async def get_reset(
 ) -> HTMLResponse:
     response = HTMLResponse(await RESET_TEMPLATE.render_async())
 
-    response.set_cookie(TOKEN, bound_token.token)
+    response.set_cookie(TOKEN, bound_token.token, domain=config.domain)
 
     return response
 
