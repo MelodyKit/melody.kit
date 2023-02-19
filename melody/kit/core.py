@@ -1,5 +1,6 @@
 from argon2 import PasswordHasher
 from fastapi.applications import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
@@ -36,6 +37,21 @@ verification_tokens: UUIDDict[str] = {}
 app = FastAPI(openapi_url=None, redoc_url=None)
 
 INTERNAL_SERVER_ERROR = "internal server error"
+
+ORIGIN = f"*.{config.domain}"
+
+
+def register_cors_middleware(app: FastAPI) -> None:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[ORIGIN],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+register_cors_middleware(app)
 
 
 def register_error_handlers(app: FastAPI) -> None:
