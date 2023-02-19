@@ -38,7 +38,7 @@ app = FastAPI(openapi_url=None, redoc_url=None)
 
 INTERNAL_SERVER_ERROR = "internal server error"
 
-ORIGIN = f"*.{config.domain}"
+ORIGIN = f"{config.open}.{config.domain}"
 
 
 def register_cors_middleware(app: FastAPI) -> None:
