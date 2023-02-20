@@ -21,15 +21,10 @@ HOME = Path.home()
 CACHE_NAME = ".cache"
 MELODY = "melody"
 LINK = "link"
-KIT = "kit"
 
 LINK_CACHE = HOME / CACHE_NAME / MELODY / LINK
 
 LINK_CACHE.mkdir(parents=True, exist_ok=True)
-
-KIT_CACHE = HOME / CACHE_NAME / MELODY / KIT
-
-KIT_CACHE.mkdir(parents=True, exist_ok=True)
 
 IMAGE_NAME = "{type}.{id}.png"
 image_name = IMAGE_NAME.format
@@ -88,10 +83,6 @@ class URI:
     @property
     def link_path(self) -> Path:
         return LINK_CACHE / self.image_name
-
-    @property
-    def kit_path(self) -> Path:
-        return KIT_CACHE / self.image_name
 
     async def create_link(self) -> Path:
         return await run_blocking_in_thread(self.create_link_sync)
