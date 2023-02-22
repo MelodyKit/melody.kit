@@ -57,6 +57,8 @@ python-multipart = ">= 0.0.5"
 # melody.shared
 cattrs = ">= 22.2.0"
 httpx = ">= 0.23.3"
+# melody.bot
+"discord.py" = ">= 2.1.1"
 
 [tool.poetry.dependencies.aiosmtplib]  # melody.kit
 version = ">= 2.0.1"
