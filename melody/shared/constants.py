@@ -29,6 +29,10 @@ __all__ = (
     # names
     "NAME",
     "PYTHON",
+    # colors
+    "MELODY_PURPLE",
+    "MELODY_BLUE",
+    "MELODY_COLORS",
     # defaults
     "DEFAULT_RETRIES",
     "DEFAULT_ENCODING",
@@ -68,6 +72,11 @@ AUTHORIZATION_CODE = "authorization_code"
 REFRESH_TOKEN = "refresh_token"
 
 CODE = "code"
+
+MELODY_PURPLE = 0xCC55FF
+MELODY_BLUE = 0x55CCFF
+
+MELODY_COLORS = (MELODY_PURPLE, MELODY_BLUE)
 
 # defaults
 

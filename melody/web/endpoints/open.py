@@ -16,7 +16,7 @@ open = OPEN.format
 
 @app.get(f"/{config.open}")
 async def redirect_open(
-    user_id: Optional[UUID] = Depends(optional_cookie_token_dependency)
+    user_id: Optional[UUID] = Depends(optional_cookie_token_dependency),
 ) -> RedirectResponse:
     if user_id is None:
         return RedirectResponse("/login", status_code=status.HTTP_302_FOUND)

@@ -90,6 +90,11 @@ class TokenConfig:
     expires: ExpiresConfig
 
 
+@define()
+class BotConfig:
+    token: str
+
+
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
 
@@ -128,6 +133,8 @@ EXPECTED_MELODY_TOKEN_EXPIRES_DAYS = expected("melody.token.expires.days")
 EXPECTED_MELODY_TOKEN_EXPIRES_HOURS = expected("melody.token.expires.hours")
 EXPECTED_MELODY_TOKEN_EXPIRES_MINUTES = expected("melody.token.expires.minutes")
 EXPECTED_MELODY_TOKEN_EXPIRES_SECONDS = expected("melody.token.expires.seconds")
+EXPECTED_MELODY_BOT = expected("melody.bot")
+EXPECTED_MELODY_BOT_TOKEN = expected("melody.bot.token")
 
 C = TypeVar("C", bound="Config")
 
@@ -143,6 +150,7 @@ class Config:
     log: LogConfig
     redis: RedisConfig
     token: TokenConfig
+    bot: BotConfig
 
     @classmethod
     def from_string(cls: Type[C], string: str) -> C:
@@ -226,6 +234,11 @@ class Config:
             ),
         )
 
+        bot_data = config_data.bot.unwrap_or_else(AnyConfigData)
+        # bot_config = default_config.bot
+
+        bot = BotConfig(token=bot_data.token.expect(EXPECTED_MELODY_BOT_TOKEN))
+
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
         open = config_data.open.unwrap_or(default_config.open)
@@ -240,6 +253,7 @@ class Config:
             log=log,
             redis=redis,
             token=token,
+            bot=bot,
         )
 
     @classmethod
@@ -332,6 +346,16 @@ class Config:
             ),
         )
 
+        bot_data = config_data.bot.expect(EXPECTED_MELODY_BOT)
+
+        bot = BotConfig(
+            token=(
+                bot_data.token.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else bot_data.token.expect(EXPECTED_MELODY_BOT_TOKEN)
+            ),
+        )
+
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
         open = config_data.open.expect(EXPECTED_MELODY_OPEN)
@@ -346,6 +370,7 @@ class Config:
             log=log,
             redis=redis,
             token=token,
+            bot=bot,
         )
 
 
