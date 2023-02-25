@@ -17,7 +17,7 @@ This project consists of 8 parts:
 [melody.web]: https://github.com/MelodyKit/melody.web/tree/main/melody/web
 [melody.shared]: https://github.com/MelodyKit/melody.web/tree/main/melody/shared
 [melody.bot]: https://github.com/MelodyKit/melody.web/tree/main/melody/bot
-[melody.match]: https://github.com/MelodyKit/melody.web/tree/main/melody/kit
+[melody.match]: https://github.com/MelodyKit/melody.web/tree/main/melody/match
 [melody.apple]: https://github.com/MelodyKit/melody.web/tree/main/melody/apple
 [melody.spotify]: https://github.com/MelodyKit/melody.web/tree/main/melody/spotify
 [melody.yandex]: https://github.com/MelodyKit/melody.web/tree/main/melody/yandex
