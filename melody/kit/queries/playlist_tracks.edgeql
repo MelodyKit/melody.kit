@@ -45,9 +45,10 @@ select Playlist {
         stream_count,
         stream_duration_ms,
         genres,
+        @position,
         created_at,
         spotify_id,
         apple_music_id,
         yandex_music_id
-    }
+    } order by @linked_at desc
 } filter .id = <uuid>$playlist_id;

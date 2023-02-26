@@ -1,6 +1,7 @@
+from typing import List
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Body, Depends
 from fastapi.responses import FileResponse
 from iters import iter
 
@@ -85,6 +86,28 @@ async def get_self_tracks(user_id: UUID = Depends(token_dependency)) -> UserTrac
     return iter(tracks).map(track_into_data).list()
 
 
+@v1.put(
+    "/me/tracks",
+    tags=[SELF, TRACKS],
+    summary="Save self user tracks.",
+)
+async def put_self_tracks(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    ...
+
+
+@v1.delete(
+    "/me/tracks",
+    tags=[SELF, TRACKS],
+    summary="Delete self user tracks.",
+)
+async def delete_self_tracks(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    ...
+
+
 @v1.get(
     "/me/artists",
     tags=[SELF, ARTISTS],
@@ -99,6 +122,28 @@ async def get_self_artists(user_id: UUID = Depends(token_dependency)) -> UserArt
     return iter(artists).map(artist_into_data).list()
 
 
+@v1.put(
+    "/me/artists",
+    tags=[SELF, ARTISTS],
+    summary="Save self user artists.",
+)
+async def put_self_artists(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    ...
+
+
+@v1.delete(
+    "/me/artists",
+    tags=[SELF, ARTISTS],
+    summary="Delete self user artists.",
+)
+async def delete_self_artists(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    ...
+
+
 @v1.get(
     "/me/albums",
     tags=[SELF, ALBUMS],
@@ -111,6 +156,28 @@ async def get_self_albums(user_id: UUID = Depends(token_dependency)) -> UserAlbu
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     return iter(albums).map(album_into_data).list()
+
+
+@v1.put(
+    "/me/albums",
+    tags=[SELF, ALBUMS],
+    summary="Save self user albums.",
+)
+async def put_self_albums(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    ...
+
+
+@v1.delete(
+    "/me/albums",
+    tags=[SELF, ALBUMS],
+    summary="Delete self user albums.",
+)
+async def delete_self_albums(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    ...
 
 
 @v1.get(

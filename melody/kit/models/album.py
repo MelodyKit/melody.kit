@@ -87,6 +87,7 @@ class Album(Entity):
             release_date=convert_standard_date(object.release_date),
             duration_ms=object.duration_ms,
             track_count=object.track_count,
+            label=object.label,
             genres=object.genres,
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,

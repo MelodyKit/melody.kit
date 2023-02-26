@@ -7,7 +7,7 @@ from edgedb import Object  # type: ignore
 from iters import iter
 from pendulum import DateTime
 
-from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION, DEFAULT_EXPLICIT
+from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION, DEFAULT_EXPLICIT, DEFAULT_POSITION
 from melody.kit.enums import EntityType
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
@@ -25,6 +25,11 @@ __all__ = (
     "track_from_object",
     "track_from_data",
     "track_into_data",
+    "PositionTrack",
+    "PositionTrackData",
+    "position_track_from_object",
+    "position_track_from_data",
+    "position_track_into_data",
 )
 
 
@@ -221,6 +226,82 @@ def track_from_data(data: TrackData, track_type: Type[Track] = Track) -> Track:
 
 def track_into_data(track: Track) -> TrackData:
     return track.into_data()
+
+
+class PositionTrackData(TrackData):
+    position: int
+
+
+AT_POSITION = "@position"
+
+PT = TypeVar("PT", bound="PositionTrack")
+
+
+@define()
+class PositionTrack(Track):
+    position: int = DEFAULT_POSITION
+
+    @classmethod
+    def from_object(cls: Type[PT], object: Object) -> PT:  # type: ignore
+        return cls(
+            id=object.id,
+            name=object.name,
+            album=album_from_object(object.album),
+            artists=iter(object.artists).map(artist_from_object).list(),
+            explicit=object.explicit,
+            duration_ms=object.duration_ms,
+            stream_count=object.stream_count,
+            stream_duration_ms=object.stream_duration_ms,
+            genres=object.genres,
+            position=object[AT_POSITION],
+            created_at=convert_standard_date_time(object.created_at),
+            spotify_id=object.spotify_id,
+            apple_music_id=object.apple_music_id,
+            yandex_music_id=object.yandex_music_id,
+        )
+
+    @classmethod
+    def from_data(cls: Type[PT], data: PositionTrackData) -> PT:  # type: ignore
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> PositionTrackData:
+        return CONVERTER.unstructure(self)  # type: ignore
+
+
+@overload
+def position_track_from_object(object: Object) -> PositionTrack:
+    ...
+
+
+@overload
+def position_track_from_object(object: Object, position_track_type: Type[PT]) -> PT:
+    ...
+
+
+def position_track_from_object(
+    object: Object, position_track_type: Type[PositionTrack] = PositionTrack
+) -> PositionTrack:
+    return position_track_type.from_object(object)
+
+
+@overload
+def position_track_from_data(data: PositionTrackData) -> PositionTrack:
+    ...
+
+
+@overload
+def position_track_from_data(data: PositionTrackData, position_track_type: Type[PT]) -> PT:
+    ...
+
+
+def position_track_from_data(
+    data: PositionTrackData, position_track_type: Type[PositionTrack] = PositionTrack
+) -> PositionTrack:
+    return position_track_type.from_data(data)
+
+
+def position_track_into_data(position_track: PositionTrack) -> PositionTrackData:
+    return position_track.into_data()
 
 
 from melody.kit.models.album import Album, AlbumData, album_from_object

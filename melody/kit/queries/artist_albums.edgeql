@@ -24,5 +24,5 @@ select Artist {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    }
+    } order by .release_date desc
 } filter .id = <uuid>$artist_id;

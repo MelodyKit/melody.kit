@@ -49,5 +49,5 @@ select User {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    }
+    } order by @linked_at desc
 } filter .id = <uuid>$user_id;

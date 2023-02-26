@@ -13,6 +13,23 @@ module default {
         constraint min_value(0);
     }
 
+    scalar type position extending int64 {
+        constraint min_value(0);
+    }
+
+    abstract link with_position {
+        property position -> position {
+            default := 0;
+        };
+    }
+
+    abstract link with_linked_at {
+        property linked_at -> datetime {
+            default := datetime_of_statement();
+            readonly := true;
+        };
+    }
+
     abstract type Entity extending CreatedAt {
         required property name -> str;
 
@@ -60,7 +77,7 @@ module default {
 
     type Album extending Entity, Genres {
         required multi link artists -> Artist;
-        required multi link tracks -> Track;
+        required multi link tracks extending with_position -> Track;
 
         required property album_type -> AlbumType {
             default := AlbumType.album;
@@ -80,7 +97,7 @@ module default {
             on target delete delete source;
         };
 
-        multi link tracks -> Track;
+        multi link tracks extending with_linked_at, with_position -> Track;
 
         required property description -> str {
             default := "";
@@ -108,17 +125,17 @@ module default {
     }
 
     type User extending Entity {
-        multi link tracks -> Track;
-        multi link albums -> Album;
-        multi link artists -> Artist;
+        multi link tracks extending with_linked_at -> Track;
+        multi link albums extending with_linked_at -> Album;
+        multi link artists extending with_linked_at -> Artist;
 
         multi link playlists := .<user[is Playlist];
 
-        multi link friends -> User;
+        multi link friends extending with_linked_at -> User;
 
-        multi link followers -> User;
+        multi link following extending with_linked_at -> User;
 
-        multi link following := .<followers[is User];
+        multi link followers := .<following[is User];
 
         property follower_count := count(.followers);
 

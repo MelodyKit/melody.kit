@@ -54,5 +54,5 @@ select User {
             apple_music_id,
             yandex_music_id
         }
-    }
+    } order by .created_at desc
 } filter .id = <uuid>$user_id;

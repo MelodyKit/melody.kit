@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from attrs import define, field
@@ -16,7 +16,12 @@ from melody.kit.models.playlist import (
     playlist_from_object,
 )
 from melody.kit.models.statistics import Statistics, statistics_from_object
-from melody.kit.models.track import Track, partial_track_from_object, track_from_object
+from melody.kit.models.track import (
+    Track,
+    partial_track_from_object,
+    position_track_from_object,
+    track_from_object,
+)
 from melody.kit.models.user import (
     User,
     UserAlbums,
@@ -153,7 +158,9 @@ class Database:
             PLAYLIST_TRACKS, playlist_id=playlist_id
         )
 
-        return None if option is None else iter(option.tracks).map(track_from_object).list()
+        return (
+            None if option is None else iter(option.tracks).map(position_track_from_object).list()
+        )
 
     async def delete_playlist(self, playlist_id: UUID) -> None:
         await self.client.query_single(DELETE_PLAYLIST, playlist_id=playlist_id)  # type: ignore

@@ -15,7 +15,7 @@ from melody.kit.models.playlist import (
     PlaylistTracksData,
     playlist_into_data,
 )
-from melody.kit.models.track import track_into_data
+from melody.kit.models.track import position_track_into_data
 from melody.kit.tags import LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
 
@@ -103,6 +103,6 @@ async def get_playlist_tracks(
         if tracks is None:
             raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
-        return iter(tracks).map(track_into_data).list()
+        return iter(tracks).map(position_track_into_data).list()
 
     raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))

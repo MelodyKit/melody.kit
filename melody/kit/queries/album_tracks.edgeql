@@ -2,32 +2,6 @@ select Album {
     tracks: {
         id,
         name,
-        album: {
-            id,
-            name,
-            artists: {
-                id,
-                name,
-                follower_count,
-                stream_count,
-                stream_duration_ms,
-                genres,
-                created_at,
-                spotify_id,
-                apple_music_id,
-                yandex_music_id
-            },
-            album_type,
-            release_date,
-            duration_ms,
-            track_count,
-            label,
-            genres,
-            created_at,
-            spotify_id,
-            apple_music_id,
-            yandex_music_id
-        },
         artists: {
             id,
             name,
@@ -49,5 +23,5 @@ select Album {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    }
+    } order by @position
 } filter .id = <uuid>$album_id;
