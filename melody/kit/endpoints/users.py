@@ -77,7 +77,9 @@ async def check_accessible(user: User, user_id_option: Optional[UUID]) -> bool:
         return False
 
     if user_privacy_type.is_friends():
-        return user_id_option is not None and await database.check_friends(user_id, user_id_option)
+        return user_id_option is not None and await database.check_user_friends(
+            user_id, user_id_option
+        )
 
     return True
 
@@ -173,7 +175,7 @@ async def create_partial_playlist_predicate(
         friends = False
 
     else:
-        friends = await database.check_friends(user_id, user_id_option)
+        friends = await database.check_user_friends(user_id, user_id_option)
 
     def predicate(playlist: PartialPlaylist) -> bool:
         privacy_type = playlist.privacy_type

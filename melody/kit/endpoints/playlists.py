@@ -43,7 +43,7 @@ async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -
         return False
 
     if friends:
-        return user_id_option is not None and await database.check_friends(
+        return user_id_option is not None and await database.check_user_friends(
             playlist_user_id, user_id_option
         )
 
