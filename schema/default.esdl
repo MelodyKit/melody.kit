@@ -131,11 +131,11 @@ module default {
 
         multi link playlists := .<user[is Playlist];
 
-        multi link friends extending with_linked_at -> User;
-
         multi link following extending with_linked_at -> User;
 
         multi link followers := .<following[is User];
+
+        # multi link friends := ...;
 
         property follower_count := count(.followers);
 

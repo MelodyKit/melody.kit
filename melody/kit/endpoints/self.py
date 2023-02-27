@@ -100,7 +100,7 @@ async def put_self_tracks(
 @v1.delete(
     "/me/tracks",
     tags=[SELF, TRACKS],
-    summary="Delete self user tracks.",
+    summary="Remove self user tracks.",
 )
 async def delete_self_tracks(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -136,7 +136,7 @@ async def put_self_artists(
 @v1.delete(
     "/me/artists",
     tags=[SELF, ARTISTS],
-    summary="Delete self user artists.",
+    summary="Remove self user artists.",
 )
 async def delete_self_artists(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -172,7 +172,7 @@ async def put_self_albums(
 @v1.delete(
     "/me/albums",
     tags=[SELF, ALBUMS],
-    summary="Delete self user albums.",
+    summary="Remove self user albums.",
 )
 async def delete_self_albums(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
