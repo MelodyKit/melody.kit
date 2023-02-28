@@ -142,7 +142,7 @@ async def fetch_user_id_by(token: str) -> Optional[UUID]:
     option = await redis.get(token_key(token))
 
     if option is None:
-        raise LookupError(can_not_find_token(token))
+        return None
 
     user_id = UUID(option)
 
