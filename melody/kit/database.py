@@ -92,8 +92,17 @@ UPDATE_USER_VERIFIED = load_query("users/update_verified")
 DELETE_USER = load_query("users/delete")
 
 QUERY_USER_TRACKS = load_query("users/tracks/query")
+SAVE_USER_TRACKS = load_query("users/tracks/save")
+REMOVE_USER_TRACKS = load_query("users/tracks/remove")
+
 QUERY_USER_ARTISTS = load_query("users/artists/query")
+SAVE_USER_ARTISTS = load_query("users/artists/save")
+REMOVE_USER_ARTISTS = load_query("users/artists/remove")
+
 QUERY_USER_ALBUMS = load_query("users/albums/query")
+SAVE_USER_ALBUMS = load_query("users/albums/save")
+REMOVE_USER_ALBUMS = load_query("users/albums/remove")
+
 QUERY_USER_PLAYLISTS = load_query("users/playlists/query")
 
 QUERY_USER_STREAMS = load_query("users/streams/query")
@@ -209,15 +218,35 @@ class Database:
 
         return None if option is None else iter(option.tracks).map(track_from_object).list()
 
+    async def save_user_tracks(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(SAVE_USER_TRACKS, user_id=user_id, ids=ids)  # type: ignore
+
+    async def remove_user_tracks(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(REMOVE_USER_TRACKS, user_id=user_id, ids=ids)  # type: ignore
+
     async def query_user_artists(self, user_id: UUID) -> Optional[UserArtists]:
         option = await self.client.query_single(QUERY_USER_ARTISTS, user_id=user_id)  # type: ignore
 
         return None if option is None else iter(option.artists).map(artist_from_object).list()
 
+    async def save_user_artists(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(SAVE_USER_ARTISTS, user_id=user_id, ids=ids)  # type: ignore
+
+    async def remove_user_artists(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(  # type: ignore
+            REMOVE_USER_ARTISTS, user_id=user_id, ids=ids
+        )
+
     async def query_user_albums(self, user_id: UUID) -> Optional[UserAlbums]:
         option = await self.client.query_single(QUERY_USER_ALBUMS, user_id=user_id)  # type: ignore
 
         return None if option is None else iter(option.albums).map(album_from_object).list()
+
+    async def save_user_albums(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(SAVE_USER_ALBUMS, user_id=user_id, ids=ids)  # type: ignore
+
+    async def remove_user_albums(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(REMOVE_USER_ALBUMS, user_id=user_id, ids=ids)  # type: ignore
 
     async def query_user_playlists(self, user_id: UUID) -> Optional[UserPlaylists]:
         option = await self.client.query_single(  # type: ignore

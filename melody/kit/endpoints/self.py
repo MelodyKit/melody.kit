@@ -91,10 +91,10 @@ async def get_self_tracks(user_id: UUID = Depends(token_dependency)) -> UserTrac
     tags=[SELF, TRACKS],
     summary="Save self user tracks.",
 )
-async def put_self_tracks(
+async def save_self_tracks(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
-    ...
+    await database.save_user_tracks(user_id=user_id, ids=ids)
 
 
 @v1.delete(
@@ -102,10 +102,10 @@ async def put_self_tracks(
     tags=[SELF, TRACKS],
     summary="Remove self user tracks.",
 )
-async def delete_self_tracks(
+async def remove_self_tracks(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
-    ...
+    await database.remove_user_tracks(user_id=user_id, ids=ids)
 
 
 @v1.get(
@@ -127,10 +127,10 @@ async def get_self_artists(user_id: UUID = Depends(token_dependency)) -> UserArt
     tags=[SELF, ARTISTS],
     summary="Save self user artists.",
 )
-async def put_self_artists(
+async def save_self_artists(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
-    ...
+    await database.save_user_artists(user_id=user_id, ids=ids)
 
 
 @v1.delete(
@@ -138,10 +138,10 @@ async def put_self_artists(
     tags=[SELF, ARTISTS],
     summary="Remove self user artists.",
 )
-async def delete_self_artists(
+async def remove_self_artists(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
-    ...
+    await database.remove_user_artists(user_id=user_id, ids=ids)
 
 
 @v1.get(
@@ -163,10 +163,10 @@ async def get_self_albums(user_id: UUID = Depends(token_dependency)) -> UserAlbu
     tags=[SELF, ALBUMS],
     summary="Save self user albums.",
 )
-async def put_self_albums(
+async def save_self_albums(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
-    ...
+    await database.save_user_albums(user_id=user_id, ids=ids)
 
 
 @v1.delete(
@@ -174,10 +174,10 @@ async def put_self_albums(
     tags=[SELF, ALBUMS],
     summary="Remove self user albums.",
 )
-async def delete_self_albums(
+async def remove_self_albums(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
-    ...
+    await database.remove_user_albums(user_id=user_id, ids=ids)
 
 
 @v1.get(
