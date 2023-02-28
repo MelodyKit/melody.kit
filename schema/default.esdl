@@ -135,7 +135,7 @@ module default {
 
         multi link followers := .<following[is User];
 
-        # multi link friends := ...;
+        multi link friends := (select .following filter .following in .followers);
 
         property follower_count := count(.followers);
 
