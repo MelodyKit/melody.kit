@@ -40,11 +40,14 @@ INTERNAL_SERVER_ERROR = "internal server error"
 
 ORIGIN = f"https://{config.open}.{config.domain}"
 
+TAURI_ORIGIN = "tauri://localhost"
+OTHER_TAURI_ORIGIN = "https://tauri.localhost"
+
 
 def register_cors_middleware(app: FastAPI) -> None:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[ORIGIN],
+        allow_origins=[ORIGIN, TAURI_ORIGIN, OTHER_TAURI_ORIGIN],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
