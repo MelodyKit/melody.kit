@@ -18,6 +18,11 @@ __all__ = (
     "CONNECT",
     "OPTIONS",
     "TRACE",
+    # images
+    "IMAGE_CONTENT_TYPE",
+    "IMAGE_TYPE",
+    # modes
+    "WRITE_BINARY",
     # token
     "TOKEN",
     # grant types
@@ -63,6 +68,11 @@ TRACE = "TRACE"
 
 NAME = "MelodyKit"
 PYTHON = "Python"
+
+IMAGE_CONTENT_TYPE = "image/png"
+IMAGE_TYPE = "png"
+
+WRITE_BINARY: Literal["wb"] = "wb"
 
 TOKEN: Literal["token"] = "token"
 

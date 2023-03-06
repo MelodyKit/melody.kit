@@ -5,10 +5,13 @@ __all__ = (
     "ALBUMS",
     "PLAYLISTS",
     "USERS",
+    # self
+    "SELF",
     # others
     "AUTHENTICATION",
     "STATISTICS",
     "LINKS",
+    "IMAGES",
 )
 
 TRACKS = "tracks"
@@ -22,3 +25,4 @@ SELF = "self"
 AUTHENTICATION = "authentication"
 STATISTICS = "statistics"
 LINKS = "links"
+IMAGES = "images"

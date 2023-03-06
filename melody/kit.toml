@@ -2,6 +2,7 @@
 name = "MelodyKit"
 domain = "melodykit.app"
 open = "open"
+images = "~/.melody/kit/images"
 
 [melody.email]
 host = "smtp.gmail.com"

@@ -5,7 +5,7 @@ from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters import iter
 
-from melody.kit.core import database, v1
+from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_token_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
@@ -21,7 +21,7 @@ from melody.kit.models.user import (
     UserPlaylistsData,
     UserTracksData,
 )
-from melody.kit.tags import ALBUMS, ARTISTS, LINKS, PLAYLISTS, TRACKS, USERS
+from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
 from melody.shared.typing import Predicate
 
@@ -35,6 +35,7 @@ __all__ = (
 )
 
 CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
+CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
 
 
 @v1.get(
@@ -70,7 +71,14 @@ async def get_user_link(user_id: UUID) -> FileResponse:
     summary="Fetches the user image with the given ID.",
 )
 async def get_user_image(user_id: UUID) -> FileResponse:
-    ...
+    uri = URI(type=EntityType.USER, id=user_id)
+
+    path = uri.image_path_for(config.images)
+
+    if not path.exists():
+        raise NotFound(CAN_NOT_FIND_USER_IMAGE.format(user_id))
+
+    return FileResponse(path)
 
 
 async def check_accessible(user: User, user_id_option: Optional[UUID]) -> bool:

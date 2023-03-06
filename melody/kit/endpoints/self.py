@@ -1,14 +1,15 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import Body, Depends
+from async_extensions.file import open_file
+from fastapi import Body, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from iters import iter
 
-from melody.kit.core import database, v1
+from melody.kit.core import config, database, v1
 from melody.kit.dependencies import token_dependency
 from melody.kit.enums import EntityType
-from melody.kit.errors import NotFound
+from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
 from melody.kit.models.playlist import partial_playlist_into_data
@@ -26,8 +27,9 @@ from melody.kit.models.user import (
     user_into_data,
 )
 from melody.kit.models.user_stream import user_stream_into_data
-from melody.kit.tags import ALBUMS, ARTISTS, LINKS, PLAYLISTS, SELF, TRACKS, USERS
+from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, TRACKS, USERS
 from melody.kit.uri import URI
+from melody.shared.constants import IMAGE_CONTENT_TYPE, IMAGE_TYPE, WRITE_BINARY
 
 __all__ = (
     "get_self",
@@ -43,6 +45,7 @@ __all__ = (
 )
 
 CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
+CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
 
 
 @v1.get(
@@ -70,6 +73,45 @@ async def get_self_link(user_id: UUID = Depends(token_dependency)) -> FileRespon
     path = await uri.create_link()
 
     return FileResponse(path)
+
+
+@v1.get(
+    "/me/image",
+    tags=[SELF, IMAGES],
+    summary="Fetch self user image.",
+)
+async def get_self_image(user_id: UUID = Depends(token_dependency)) -> FileResponse:
+    uri = URI(type=EntityType.USER, id=user_id)
+
+    path = uri.image_path_for(config.images)
+
+    if not path.exists():
+        raise NotFound(CAN_NOT_FIND_USER_IMAGE.format(user_id))
+
+    return FileResponse(path)
+
+
+EXPECTED_IMAGE_TYPE = f"expected `{IMAGE_TYPE}` image type"
+
+
+@v1.put(
+    "/me/image",
+    tags=[SELF, IMAGES],
+    summary="Replaces self user image.",
+)
+async def replace_self_image(
+    playlist_id: UUID, image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
+) -> None:
+    if image.content_type != IMAGE_CONTENT_TYPE:
+        raise ValidationError(EXPECTED_IMAGE_TYPE)
+
+    uri = URI(type=EntityType.USER, id=playlist_id)
+
+    path = uri.image_path_for(config.images)
+
+    file = await open_file(path, WRITE_BINARY)
+
+    await file.write(await image.read())
 
 
 @v1.get(

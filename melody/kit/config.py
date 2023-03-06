@@ -103,6 +103,7 @@ EXPECTED_MELODY = expected("melody")
 EXPECTED_MELODY_NAME = expected("melody.name")
 EXPECTED_MELODY_DOMAIN = expected("melody.domain")
 EXPECTED_MELODY_OPEN = expected("melody.open")
+EXPECTED_MELODY_IMAGES = expected("melody.images")
 EXPECTED_MELODY_EMAIL = expected("melody.email")
 EXPECTED_MELODY_EMAIL_HOST = expected("melody.email.host")
 EXPECTED_MELODY_EMAIL_PORT = expected("melody.email.port")
@@ -144,6 +145,7 @@ class Config:
     name: str
     domain: str
     open: str
+    images: Path
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
@@ -151,6 +153,15 @@ class Config:
     redis: RedisConfig
     token: TokenConfig
     bot: BotConfig
+
+    def ensure_images(self: C) -> C:
+        images = self.images.expanduser()
+
+        images.mkdir(parents=True, exist_ok=True)
+
+        self.images = images
+
+        return self
 
     @classmethod
     def from_string(cls: Type[C], string: str) -> C:
@@ -242,11 +253,13 @@ class Config:
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
         open = config_data.open.unwrap_or(default_config.open)
+        images = config_data.images.map_or(default_config.images, Path)
 
         return cls(
             name=name,
             domain=domain,
             open=open,
+            images=images,
             email=email,
             hash=hash,
             kit=kit,
@@ -359,11 +372,13 @@ class Config:
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
         open = config_data.open.expect(EXPECTED_MELODY_OPEN)
+        images = config_data.images.map(Path).expect(EXPECTED_MELODY_IMAGES)
 
         return cls(
             name=name,
             domain=domain,
             open=open,
+            images=images,
             email=email,
             hash=hash,
             kit=kit,
@@ -377,11 +392,11 @@ class Config:
 def get_default_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
     return Config.unsafe_from_path(
         DEFAULT_PATH, encoding=encoding, errors=errors, ignore_sensitive=True
-    )
+    ).ensure_images()
 
 
 DEFAULT_CONFIG = get_default_config()
 
 
 def get_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
-    return Config.from_path(PATH, encoding=encoding, errors=errors)
+    return Config.from_path(PATH, encoding=encoding, errors=errors).ensure_images()

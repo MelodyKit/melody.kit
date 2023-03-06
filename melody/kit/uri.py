@@ -82,7 +82,10 @@ class URI:
 
     @property
     def link_path(self) -> Path:
-        return LINK_CACHE / self.image_name
+        return self.image_path_for(LINK_CACHE)
+
+    def image_path_for(self, images: Path) -> Path:
+        return images / self.image_name
 
     async def create_link(self) -> Path:
         return await run_blocking_in_thread(self.create_link_sync)
