@@ -1,13 +1,13 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Body, Depends
 from fastapi.responses import FileResponse
 from iters import iter
 
 from melody.kit.core import database, v1
-from melody.kit.dependencies import optional_token_dependency
-from melody.kit.enums import EntityType
+from melody.kit.dependencies import optional_token_dependency, token_dependency
+from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.playlist import (
     Playlist,
@@ -70,6 +70,34 @@ async def get_playlist(
     raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
 
+@v1.put(
+    "/playlists/{playlist_id}",
+    tags=[PLAYLISTS],
+    summary="Updates the playlist with the given ID.",
+)
+async def update_playlist(
+    playlist_id: UUID,
+    user_id: UUID = Depends(token_dependency),
+    name: Optional[str] = Body(default=None),
+    description: Optional[str] = Body(default=None),
+    privacy_type: Optional[PrivacyType] = Body(default=None),
+) -> None:
+    ...
+
+
+@v1.delete(
+    "/playlists/{playlist_id}"
+    tags=[PLAYLISTS],
+    summary="Deletes the playlist with the given ID.",
+)
+async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
+    if await database.check_playlist(playlist_id, user_id):
+        await database.delete_playlist(playlist_id)
+
+    else:
+        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+
+
 @v1.get(
     "/playlists/{playlist_id}/link",
     tags=[PLAYLISTS, LINKS],
@@ -81,6 +109,15 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     path = await uri.create_link()
 
     return FileResponse(path)
+
+
+@v1.get(
+    "/playlists/{playlist_id}/image",
+    tags=[PLAYLISTS, IMAGES],
+    summary="Fetches the playlist image with the given ID.",
+)
+async def get_playlist_image(playlist_id: UUID) -> FileResponse:
+    ...
 
 
 @v1.get(

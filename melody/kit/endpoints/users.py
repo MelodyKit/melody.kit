@@ -64,6 +64,15 @@ async def get_user_link(user_id: UUID) -> FileResponse:
     return FileResponse(path)
 
 
+@v1.get(
+    "/users/{user_id}/image",
+    tags=[USERS, IMAGES],
+    summary="Fetches the user image with the given ID.",
+)
+async def get_user_image(user_id: UUID) -> FileResponse:
+    ...
+
+
 async def check_accessible(user: User, user_id_option: Optional[UUID]) -> bool:
     user_id = user.id
 

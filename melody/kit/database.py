@@ -79,6 +79,7 @@ QUERY_ALBUM_TRACKS = load_query("albums/tracks/query")
 
 QUERY_PLAYLIST = load_query("playlists/query")
 DELETE_PLAYLIST = load_query("playlists/delete")
+CHECK_PLAYLIST = load_query("playlists/check")
 
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
@@ -176,6 +177,16 @@ class Database:
 
         return None if option is None else playlist_from_object(option)
 
+    async def delete_playlist(self, playlist_id: UUID) -> None:
+        await self.client.query_single(DELETE_PLAYLIST, playlist_id=playlist_id)  # type: ignore
+
+    async def check_playlist(self, playlist_id: UUID, user_id: UUID) -> bool:
+        option = await self.client.query_single(  # type: ignore
+            CHECK_PLAYLIST, playlist_id=playlist_id, user_id=user_id
+        )
+
+        return option is not None
+
     async def query_playlist_tracks(self, playlist_id: UUID) -> Optional[PlaylistTracks]:
         option = await self.client.query_single(  # type: ignore
             QUERY_PLAYLIST_TRACKS, playlist_id=playlist_id
@@ -184,9 +195,6 @@ class Database:
         return (
             None if option is None else iter(option.tracks).map(position_track_from_object).list()
         )
-
-    async def delete_playlist(self, playlist_id: UUID) -> None:
-        await self.client.query_single(DELETE_PLAYLIST, playlist_id=playlist_id)  # type: ignore
 
     async def query_user(self, user_id: UUID) -> Optional[User]:
         option = await self.client.query_single(QUERY_USER, user_id=user_id)  # type: ignore
