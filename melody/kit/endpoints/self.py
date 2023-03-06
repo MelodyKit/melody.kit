@@ -100,12 +100,12 @@ EXPECTED_IMAGE_TYPE = f"expected `{IMAGE_TYPE}` image type"
     summary="Replaces self user image.",
 )
 async def replace_self_image(
-    playlist_id: UUID, image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
+    image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
 ) -> None:
     if image.content_type != IMAGE_CONTENT_TYPE:
         raise ValidationError(EXPECTED_IMAGE_TYPE)
 
-    uri = URI(type=EntityType.USER, id=playlist_id)
+    uri = URI(type=EntityType.USER, id=user_id)
 
     path = uri.image_path_for(config.images)
 
