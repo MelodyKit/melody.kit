@@ -85,7 +85,26 @@ async def update_playlist(
     description: Optional[str] = Body(default=None),
     privacy_type: Optional[PrivacyType] = Body(default=None),
 ) -> None:
-    ...
+    if name is None and description is None and privacy_type is None:
+        return  # there is nothing to update
+
+    playlist = await database.query_playlist(playlist_id=playlist_id)
+
+    if playlist is None:
+        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+
+    if name is None:
+        name = playlist.name
+
+    if description is None:
+        description = playlist.description
+
+    if privacy_type is None:
+        privacy_type = playlist.privacy_type
+
+    await database.update_playlist(
+        playlist_id=playlist_id, name=name, description=description, privacy_type=privacy_type
+    )
 
 
 @v1.delete(

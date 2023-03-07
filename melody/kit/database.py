@@ -6,6 +6,7 @@ from edgedb import AsyncIOClient, create_async_client  # type: ignore
 from iters import iter
 
 from melody.kit.constants import KIT_ROOT
+from melody.kit.enums import PrivacyType
 from melody.kit.models.album import Album, AlbumTracks, album_from_object
 from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_from_object
 from melody.kit.models.base import Base, base_from_object
@@ -80,6 +81,7 @@ QUERY_ALBUM_TRACKS = load_query("albums/tracks/query")
 QUERY_PLAYLIST = load_query("playlists/query")
 DELETE_PLAYLIST = load_query("playlists/delete")
 CHECK_PLAYLIST = load_query("playlists/check")
+UPDATE_PLAYLIST = load_query("playlists/update")
 
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
@@ -186,6 +188,17 @@ class Database:
         )
 
         return option is not None
+
+    async def update_playlist(
+        self, playlist_id: UUID, name: str, description: str, privacy_type: PrivacyType
+    ) -> None:
+        await self.client.query_single(  # type: ignore
+            UPDATE_PLAYLIST,
+            playlist_id=playlist_id,
+            name=name,
+            description=description,
+            privacy_type=privacy_type.value,
+        )
 
     async def query_playlist_tracks(self, playlist_id: UUID) -> Optional[PlaylistTracks]:
         option = await self.client.query_single(  # type: ignore
