@@ -10,6 +10,7 @@ from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_token_dependency, token_dependency
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
+from melody.kit.models.base import BaseData, base_into_data
 from melody.kit.models.playlist import (
     Playlist,
     PlaylistData,
@@ -19,9 +20,18 @@ from melody.kit.models.playlist import (
 from melody.kit.models.track import position_track_into_data
 from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
-from melody.shared.constants import IMAGE_CONTENT_TYPE, IMAGE_TYPE, WRITE_BINARY
+from melody.shared.constants import EMPTY, IMAGE_CONTENT_TYPE, IMAGE_TYPE, WRITE_BINARY
 
-__all__ = ("get_playlist", "get_playlist_link", "get_playlist_tracks")
+__all__ = (
+    "create_playlist",
+    "get_playlist",
+    "update_playlist",
+    "delete_playlist",
+    "get_playlist_link",
+    "get_playlist_image",
+    "replace_playlist_image",
+    "get_playlist_tracks",
+)
 
 CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
 CAN_NOT_FIND_PLAYLIST_IMAGE = "can not find the image for the playlist with ID `{}`"
@@ -51,6 +61,20 @@ async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -
         )
 
     return True
+
+
+@v1.post("/playlists")
+async def create_playlist(
+    name: str = Body(),
+    description: str = Body(default=EMPTY),
+    privacy_type: PrivacyType = Body(default=PrivacyType.DEFAULT),
+    user_id: UUID = Depends(token_dependency),
+) -> BaseData:
+    base = await database.insert_playlist(
+        name=name, description=description, privacy_type=privacy_type, user_id=user_id
+    )
+
+    return base_into_data(base)
 
 
 @v1.get(
@@ -92,6 +116,9 @@ async def update_playlist(
 
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+
+    if playlist.user.id != user_id:
+        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
     if name is None:
         name = playlist.name

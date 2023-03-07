@@ -78,6 +78,7 @@ QUERY_ALBUM_TRACKS = load_query("albums/tracks/query")
 
 # playlists
 
+INSERT_PLAYLIST = load_query("playlists/insert")
 QUERY_PLAYLIST = load_query("playlists/query")
 DELETE_PLAYLIST = load_query("playlists/delete")
 CHECK_PLAYLIST = load_query("playlists/check")
@@ -171,6 +172,23 @@ class Database:
 
     async def delete_album(self, album_id: UUID) -> None:
         await self.client.query_single(DELETE_ALBUM, album_id=album_id)  # type: ignore
+
+    async def insert_playlist(
+        self,
+        name: str,
+        description: str,
+        privacy_type: PrivacyType,
+        user_id: UUID,
+    ) -> Base:
+        object = await self.client.query_single(  # type: ignore
+            INSERT_PLAYLIST,
+            name=name,
+            description=description,
+            privacy_type=privacy_type.value,
+            user_id=user_id,
+        )
+
+        return base_from_object(object)
 
     async def query_playlist(self, playlist_id: UUID) -> Optional[Playlist]:
         option = await self.client.query_single(  # type: ignore

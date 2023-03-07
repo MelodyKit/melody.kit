@@ -28,6 +28,7 @@ from melody.shared.typing import Predicate
 __all__ = (
     "get_user",
     "get_user_link",
+    "get_user_image",
     "get_user_tracks",
     "get_user_artists",
     "get_user_albums",

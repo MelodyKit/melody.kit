@@ -27,7 +27,7 @@ from melody.kit.tokens import (
 )
 from melody.shared.constants import TOKEN
 
-__all__ = ("login", "logout", "revoke", "register", "verify", "reset")
+__all__ = ("login", "logout", "revoke", "register", "verify", "reset", "forgot")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
