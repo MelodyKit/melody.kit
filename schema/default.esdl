@@ -97,6 +97,10 @@ module default {
             on target delete delete source;
         };
 
+        multi link followers extending with_linked_at -> User;
+
+        property follower_count = count(.followers);
+
         multi link tracks extending with_linked_at, with_position -> Track;
 
         required property description -> str {
@@ -138,6 +142,8 @@ module default {
         multi link friends := (select .following filter .following in .followers);
 
         property follower_count := count(.followers);
+
+        multi link following_playlists := .<followers[is Playlist];
 
         multi link streams := .<user[is Stream];
 
