@@ -13,6 +13,7 @@ select Playlist {
         apple_music_id,
         yandex_music_id
     },
+    follower_count,
     description,
     duration_ms,
     track_count,

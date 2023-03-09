@@ -99,7 +99,7 @@ module default {
 
         multi link followers extending with_linked_at -> User;
 
-        property follower_count = count(.followers);
+        property follower_count := count(.followers);
 
         multi link tracks extending with_linked_at, with_position -> Track;
 

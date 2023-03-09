@@ -33,6 +33,8 @@ __all__ = (
 class PartialPlaylistData(EntityData):
     uri: str
 
+    follower_count: int
+
     description: str
 
     duration_ms: int
@@ -41,15 +43,13 @@ class PartialPlaylistData(EntityData):
     privacy_type: str
 
 
-class PlaylistData(PartialPlaylistData):
-    user: UserData
-
-
 Q = TypeVar("Q", bound="PartialPlaylist")
 
 
 @define()
 class PartialPlaylist(Entity):
+    follower_count: int = field(default=DEFAULT_COUNT)
+
     description: str = field(default=EMPTY)
 
     duration_ms: int = field(default=DEFAULT_DURATION)
@@ -75,6 +75,7 @@ class PartialPlaylist(Entity):
         return cls(
             id=object.id,
             name=object.name,
+            follower_count=object.follower_count,
             description=object.description,
             duration_ms=object.duration_ms,
             track_count=object.track_count,
@@ -129,12 +130,18 @@ def partial_playlist_into_data(playlist: PartialPlaylist) -> PartialPlaylistData
     return playlist.into_data()
 
 
+class PlaylistData(PartialPlaylistData):
+    user: UserData
+
+
 P = TypeVar("P", bound="Playlist")
 
 
 @define()
-class Playlist(Entity):
+class Playlist(PartialPlaylist):
     user: User = field()
+
+    follower_count: int = field(default=DEFAULT_COUNT)
 
     description: str = field(default=EMPTY)
 
@@ -162,6 +169,7 @@ class Playlist(Entity):
             id=object.id,
             name=object.name,
             user=user_from_object(object.user),
+            follower_count=object.follower_count,
             description=object.description,
             duration_ms=object.duration_ms,
             track_count=object.track_count,

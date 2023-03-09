@@ -2,6 +2,7 @@ select User {
     playlists: {
         id,
         name,
+        follower_count,
         description,
         duration_ms,
         track_count,
