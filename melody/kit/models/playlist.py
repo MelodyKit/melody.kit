@@ -223,5 +223,8 @@ def playlist_into_data(playlist: Playlist) -> PlaylistData:
 from melody.kit.models.track import PositionTrack, PositionTrackData
 from melody.kit.models.user import User, UserData, user_from_object
 
+PlaylistFollowers = List[User]
+PlaylistFollowersData = List[UserData]
+
 PlaylistTracks = List[PositionTrack]
 PlaylistTracksData = List[PositionTrackData]

@@ -12,6 +12,7 @@ from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_
 from melody.kit.models.base import Base, base_from_object
 from melody.kit.models.playlist import (
     Playlist,
+    PlaylistFollowers,
     PlaylistTracks,
     partial_playlist_from_object,
     playlist_from_object,
@@ -83,6 +84,11 @@ QUERY_PLAYLIST = load_query("playlists/query")
 DELETE_PLAYLIST = load_query("playlists/delete")
 CHECK_PLAYLIST = load_query("playlists/check")
 UPDATE_PLAYLIST = load_query("playlists/update")
+
+QUERY_PLAYLIST_FOLLOWERS = load_query("playlists/followers/query")
+
+INSERT_PLAYLIST_FOLLOWER = load_query("playlists/followers/insert")
+DELETE_PLAYLIST_FOLLOWER = load_query("playlists/followers/delete")
 
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
@@ -216,6 +222,21 @@ class Database:
             name=name,
             description=description,
             privacy_type=privacy_type.value,
+        )
+
+    async def query_playlist_followers(self, playlist_id: UUID) -> Optional[PlaylistFollowers]:
+        option = await self.client.query_single(QUERY_PLAYLIST_FOLLOWERS, playlist_id=playlist_id)
+
+        return None if option is None else iter(option.followers).map(user_from_object).list()
+
+    async def insert_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
+        await self.client.query_single(
+            INSERT_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
+        )
+
+    async def delete_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
+        await self.client.query_single(
+            DELETE_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
         )
 
     async def query_playlist_tracks(self, playlist_id: UUID) -> Optional[PlaylistTracks]:

@@ -17,11 +17,13 @@ from melody.kit.endpoints.authentication import (
 from melody.kit.endpoints.playlists import (
     create_playlist,
     delete_playlist,
+    follow_playlist,
     get_playlist,
     get_playlist_image,
     get_playlist_link,
     get_playlist_tracks,
     replace_playlist_image,
+    unfollow_playlist,
     update_playlist,
 )
 from melody.kit.endpoints.self import (
@@ -78,6 +80,8 @@ __all__ = (
     "get_playlist_image",
     "replace_playlist_image",
     "get_playlist_tracks",
+    "follow_playlist",
+    "unfollow_playlist",
     # users
     "get_user",
     "get_user_link",
