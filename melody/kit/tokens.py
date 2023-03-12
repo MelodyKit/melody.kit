@@ -17,7 +17,7 @@ __all__ = (
     "token_factory",
     "token_from_data",
     "token_into_data",
-    "generate_token",
+    "generate_token_for",
     "delete_token",
     "delete_tokens_for",
     "fetch_user_id_by",
@@ -113,7 +113,7 @@ def key_token(key: str) -> Optional[str]:
     return token if token else None
 
 
-async def generate_token(user_id: UUID) -> Token:
+async def generate_token_for(user_id: UUID) -> Token:
     token = Token()
 
     expires_in = token.expires_in

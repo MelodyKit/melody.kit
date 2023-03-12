@@ -36,8 +36,6 @@ verification_tokens: UUIDDict[str] = {}
 
 app = FastAPI(openapi_url=None, redoc_url=None)
 
-INTERNAL_SERVER_ERROR = "internal server error"
-
 ORIGIN = f"https://{config.open}.{config.domain}"
 
 TAURI_ORIGIN = "tauri://localhost"

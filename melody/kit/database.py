@@ -225,17 +225,17 @@ class Database:
         )
 
     async def query_playlist_followers(self, playlist_id: UUID) -> Optional[PlaylistFollowers]:
-        option = await self.client.query_single(QUERY_PLAYLIST_FOLLOWERS, playlist_id=playlist_id)
+        option = await self.client.query_single(QUERY_PLAYLIST_FOLLOWERS, playlist_id=playlist_id)  # type: ignore
 
         return None if option is None else iter(option.followers).map(user_from_object).list()
 
     async def insert_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
-        await self.client.query_single(
+        await self.client.query_single(  # type: ignore
             INSERT_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
         )
 
     async def delete_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
-        await self.client.query_single(
+        await self.client.query_single(  # type: ignore
             DELETE_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
         )
 

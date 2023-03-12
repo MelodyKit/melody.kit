@@ -21,7 +21,7 @@ from melody.kit.tokens import (
     TokenData,
     delete_token,
     delete_tokens_for,
-    generate_token,
+    generate_token_for,
     token_factory,
     token_into_data,
 )
@@ -60,7 +60,7 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         raise Unauthorized(PASSWORD_MISMATCH) from None
 
     else:
-        token = await generate_token(user_id)
+        token = await generate_token_for(user_id)
 
         if hasher.check_needs_rehash(password_hash):
             password_hash = hasher.hash(password)

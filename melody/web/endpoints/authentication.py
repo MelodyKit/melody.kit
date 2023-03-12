@@ -5,13 +5,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from melody.kit.core import app, config
 from melody.kit.dependencies import BoundToken
-from melody.kit.endpoints.authentication import forgot as kit_forgot
-from melody.kit.endpoints.authentication import login as kit_login
-from melody.kit.endpoints.authentication import logout as kit_logout
-from melody.kit.endpoints.authentication import register as kit_register
-from melody.kit.endpoints.authentication import reset as kit_reset
-from melody.kit.endpoints.authentication import revoke as kit_revoke
-from melody.kit.endpoints.authentication import verify as kit_verify
+from melody.kit.endpoints.v1.authentication import forgot as kit_forgot
+from melody.kit.endpoints.v1.authentication import login as kit_login
+from melody.kit.endpoints.v1.authentication import logout as kit_logout
+from melody.kit.endpoints.v1.authentication import register as kit_register
+from melody.kit.endpoints.v1.authentication import reset as kit_reset
+from melody.kit.endpoints.v1.authentication import revoke as kit_revoke
+from melody.kit.endpoints.v1.authentication import verify as kit_verify
 from melody.kit.errors import Unauthorized
 from melody.kit.tokens import Token
 from melody.shared.constants import TOKEN
