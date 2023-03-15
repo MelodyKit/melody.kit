@@ -13,6 +13,7 @@ from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
 from melody.kit.models.playlist import partial_playlist_into_data
+from melody.kit.models.streams import user_stream_into_data
 from melody.kit.models.track import track_into_data
 from melody.kit.models.user import (
     UserAlbumsData,
@@ -26,7 +27,6 @@ from melody.kit.models.user import (
     UserTracksData,
     user_into_data,
 )
-from melody.kit.models.user_stream import user_stream_into_data
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, TRACKS, USERS
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_CONTENT_TYPE, IMAGE_TYPE, WRITE_BINARY

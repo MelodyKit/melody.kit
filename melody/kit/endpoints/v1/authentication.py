@@ -223,7 +223,7 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
     if user_info is None:
         raise NotFound(CAN_NOT_FIND_USER_BY_EMAIL.format(email))
 
-    token = await generate_token(user_info.id)
+    token = await generate_token_for(user_info.id)
 
     message = EmailMessage()
 

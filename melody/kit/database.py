@@ -18,6 +18,7 @@ from melody.kit.models.playlist import (
     playlist_from_object,
 )
 from melody.kit.models.statistics import Statistics, statistics_from_object
+from melody.kit.models.streams import user_stream_from_object
 from melody.kit.models.track import (
     Track,
     partial_track_from_object,
@@ -37,7 +38,6 @@ from melody.kit.models.user import (
     user_from_object,
 )
 from melody.kit.models.user_info import UserInfo, user_info_from_object
-from melody.kit.models.user_stream import user_stream_from_object
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
 from melody.shared.typing import IntoPath
 
