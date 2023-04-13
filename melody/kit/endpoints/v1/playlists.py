@@ -1,7 +1,6 @@
 from typing import Optional
 from uuid import UUID
 
-from async_extensions.file import open_file
 from fastapi import Body, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from iters import iter
@@ -10,6 +9,7 @@ from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_token_dependency, token_dependency
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
+from melody.kit.link import generate_code_for_uri
 from melody.kit.models.base import BaseData, base_into_data
 from melody.kit.models.playlist import (
     Playlist,
@@ -20,7 +20,8 @@ from melody.kit.models.playlist import (
 from melody.kit.models.track import position_track_into_data
 from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
-from melody.shared.constants import EMPTY, IMAGE_CONTENT_TYPE, IMAGE_TYPE, WRITE_BINARY
+from melody.shared.constants import EMPTY, IMAGE_TYPE
+from melody.shared.image import check_image_type, validate_and_save_image
 
 __all__ = (
     "create_playlist",
@@ -29,7 +30,7 @@ __all__ = (
     "delete_playlist",
     "get_playlist_link",
     "get_playlist_image",
-    "replace_playlist_image",
+    "change_playlist_image",
     "get_playlist_tracks",
     "follow_playlist",
     "unfollow_playlist",
@@ -65,7 +66,11 @@ async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -
     return True
 
 
-@v1.post("/playlists")
+@v1.post(
+    "/playlists",
+    tags=[PLAYLISTS],
+    summary="Creates a new playlist with the given name.",
+)
 async def create_playlist(
     name: str = Body(),
     description: str = Body(default=EMPTY),
@@ -142,11 +147,15 @@ async def update_playlist(
     summary="Deletes the playlist with the given ID.",
 )
 async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
-    if await database.check_playlist(playlist_id, user_id):
-        await database.delete_playlist(playlist_id)
+    playlist = await database.query_playlist(playlist_id)
 
-    else:
+    if playlist is None:
+        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+
+    if playlist.user.id != user_id:
         raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+
+    await database.delete_playlist(playlist_id)
 
 
 @v1.get(
@@ -157,7 +166,7 @@ async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_depen
 async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = await uri.create_link()
+    path = await generate_code_for_uri(uri)
 
     return FileResponse(path)
 
@@ -170,7 +179,7 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
 async def get_playlist_image(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = uri.image_path_for(config.images)
+    path = config.images / uri.image_name
 
     if not path.exists():
         raise NotFound(CAN_NOT_FIND_PLAYLIST_IMAGE.format(playlist_id))
@@ -179,30 +188,32 @@ async def get_playlist_image(playlist_id: UUID) -> FileResponse:
 
 
 EXPECTED_IMAGE_TYPE = f"expected `{IMAGE_TYPE}` image type"
+EXPECTED_SQUARE_IMAGE = "expected square image"
 
 
 @v1.put(
     "/playlists/{playlist_id}/image",
     tags=[PLAYLISTS, IMAGES],
-    summary="Replaces the playlist image with the given ID.",
+    summary="Changes the playlist image with the given ID.",
 )
-async def replace_playlist_image(
+async def change_playlist_image(
     playlist_id: UUID, image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
 ) -> None:
-    if image.content_type != IMAGE_CONTENT_TYPE:
+    if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
 
-    if await database.check_playlist(playlist_id, user_id):
-        uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
+    playlist = await database.query_playlist(playlist_id)
 
-        path = uri.image_path_for(config.images)
+    if playlist is None:
+        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
-        file = await open_file(path, WRITE_BINARY)
-
-        await file.write(await image.read())
-
-    else:
+    if playlist.user.id != user_id:
         raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+
+    path = config.images / playlist.uri.image_name
+
+    if not await validate_and_save_image(image, path):
+        raise ValidationError(EXPECTED_SQUARE_IMAGE)
 
 
 @v1.get(

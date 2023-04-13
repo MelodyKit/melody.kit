@@ -6,7 +6,7 @@ from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import Body, Depends
 
-from melody.kit.core import config, database, hasher, v1, verification_tokens
+from melody.kit.core import config, database, hasher, v1
 from melody.kit.dependencies import (
     BoundToken,
     bound_token_dependency,
@@ -21,8 +21,10 @@ from melody.kit.tokens import (
     TokenData,
     delete_token,
     delete_tokens_for,
+    delete_verification_token,
+    fetch_user_id_by_verification,
     generate_token_for,
-    token_factory,
+    generate_verification_token_for,
     token_into_data,
 )
 from melody.shared.constants import TOKEN
@@ -101,7 +103,7 @@ VERIFICATION = "Please verify your account"
 VERIFICATION_CONTENT = """
 Please verify your account by clicking the link below:
 
-https://{domain}/verify/{user_id}/{verification_token}
+https://{domain}/verify/{verification_token}
 """.strip()
 verification_content = VERIFICATION_CONTENT.format
 
@@ -126,42 +128,48 @@ async def register(
 
     else:
         user_id = base.id
-        verification_token = token_factory()
 
-        message = EmailMessage()
-
-        message[FROM] = from_format(name=config.name, email=config.email.support)
-
-        message[TO] = email
-
-        message[SUBJECT] = VERIFICATION
-
-        message.set_content(
-            verification_content(
-                domain=config.domain, user_id=user_id, verification_token=verification_token
-            )
-        )
-
-        client = SMTP(
-            config.email.host,
-            config.email.port,
-            config.email.name,
-            config.email.password,
-            start_tls=True,
-        )
+        verification_token = await generate_verification_token_for(user_id)
 
         try:
-            async with client:
-                await client.send_message(message)
+            await send_email(
+                from_format(name=config.name, email=config.email.support),
+                email,
+                VERIFICATION,
+                verification_content(domain=config.domain, verification_token=verification_token),
+            )
 
         except Exception:
             await database.delete_user(user_id)
+            await delete_verification_token(verification_token)
 
             raise
 
-        verification_tokens[user_id] = verification_token
-
         return base_into_data(base)
+
+
+async def send_email(author: str, target: str, subject: str, content: str) -> None:
+    message = EmailMessage()
+
+    message[FROM] = author
+    message[TO] = target
+
+    message[SUBJECT] = subject
+
+    message.set_content(content)
+
+    email = config.email
+
+    client = SMTP(
+        email.host,
+        email.port,
+        email.name,
+        email.password,
+        start_tls=True,
+    )
+
+    async with client:
+        await client.send_message(message)
 
 
 VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"
@@ -169,22 +177,17 @@ VERIFICATION_NOT_FOUND = "verification for the user with ID `{}` not found"
 
 
 @v1.post(
-    "/verify/{user_id}/{verification_token}",
+    "/verify/{verification_token}",
     tags=[AUTHENTICATION],
     summary="Verifies the user with the given ID.",
 )
-async def verify(user_id: UUID, verification_token: str) -> None:
-    if user_id in verification_tokens:
-        if verification_tokens[user_id] == verification_token:
-            del verification_tokens[user_id]
+async def verify(verification_token: str) -> None:
+    user_id = await fetch_user_id_by_verification(verification_token)
 
-            await database.update_user_verified(user_id, True)
-
-        else:
-            raise Unauthorized(VERIFICATION_TOKEN_MISMATCH)
-
-    else:
+    if user_id is None:
         raise NotFound(VERIFICATION_NOT_FOUND.format(user_id))
+
+    await database.update_user_verified(user_id, True)
 
 
 @v1.post(
@@ -215,7 +218,7 @@ reset_content = RESET_CONTENT.format
 @v1.post(
     "/forgot",
     tags=[AUTHENTICATION],
-    summary="Allows the user to reset their password via email.",
+    summary="Allows the user to reset their password via the email.",
 )
 async def forgot(email: str = Depends(email_dependency)) -> None:
     user_info = await database.query_user_info_by_email(email)
@@ -225,23 +228,9 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
 
     token = await generate_token_for(user_info.id)
 
-    message = EmailMessage()
-
-    message[FROM] = from_format(name=config.name, email=config.email.support)
-
-    message[SUBJECT] = RESET
-
-    message[TO] = email
-
-    message.set_content(reset_content(domain=config.domain, name=TOKEN, token=token))
-
-    client = SMTP(
-        config.email.host,
-        config.email.port,
-        config.email.name,
-        config.email.password,
-        start_tls=True,
+    await send_email(
+        from_format(name=config.name, email=config.email.support),
+        email,
+        RESET,
+        reset_content(domain=config.domain, name=TOKEN, token=token),
     )
-
-    async with client:
-        await client.send_message(message)

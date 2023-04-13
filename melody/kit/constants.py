@@ -2,7 +2,6 @@ from pathlib import Path
 
 __all__ = (
     # root
-    "MELODY_ROOT",
     "KIT_ROOT",
     # v1
     "V1",
@@ -16,10 +15,11 @@ __all__ = (
     "DEFAULT_POSITION",
 )
 
-# constants
+# root
 
 KIT_ROOT = Path(__file__).parent
-MELODY_ROOT = KIT_ROOT.parent
+
+# v1
 
 VERSION_1 = "1.0.0"
 V1 = "/api/v1"

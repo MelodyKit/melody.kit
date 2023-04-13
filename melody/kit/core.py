@@ -9,7 +9,6 @@ from melody.kit.config import get_config
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors import AnyError, Error, InternalError
-from melody.kit.typing import UUIDDict
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
 
 __all__ = ("config", "database", "redis", "hasher", "app", "v1")
@@ -32,11 +31,11 @@ hasher = PasswordHasher(
     parallelism=config.hash.parallelism,
 )
 
-verification_tokens: UUIDDict[str] = {}
-
 app = FastAPI(openapi_url=None, redoc_url=None)
 
 ORIGIN = f"https://{config.open}.{config.domain}"
+
+LOCAL_ORIGIN = f"http://{config.web.host}:{config.web.port}"
 
 TAURI_ORIGIN = "tauri://localhost"
 OTHER_TAURI_ORIGIN = "https://tauri.localhost"
@@ -45,7 +44,7 @@ OTHER_TAURI_ORIGIN = "https://tauri.localhost"
 def register_cors_middleware(app: FastAPI) -> None:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[ORIGIN, TAURI_ORIGIN, OTHER_TAURI_ORIGIN],
+        allow_origins=[ORIGIN, LOCAL_ORIGIN, TAURI_ORIGIN, OTHER_TAURI_ORIGIN],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

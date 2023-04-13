@@ -13,6 +13,7 @@ GITHUB_NAME = "github"
 REDDIT_NAME = "reddit"
 TWITTER_NAME = "twitter"
 YOUTUBE_NAME = "youtube"
+TELEGRAM_NAME = "telegram"
 
 INTRO_NAME = "intro"
 
@@ -20,6 +21,7 @@ GITHUB_LINK = "https://github.com/MelodyKit"
 REDDIT_LINK = "https://reddit.com/r/MelodyKit"
 TWITTER_LINK = "https://twitter.com/MelodyKitApp"
 YOUTUBE_LINK = "https://youtube.com/MelodyKit"
+TELEGRAM_LINK = "https://t.me/MelodyKitApp"
 
 INTRO_LINK = "https://youtu.be/dQw4w9WgXcQ"
 
@@ -29,6 +31,7 @@ NAME_TO_LINK = {
     REDDIT_NAME: REDDIT_LINK,
     TWITTER_NAME: TWITTER_LINK,
     YOUTUBE_NAME: YOUTUBE_LINK,
+    TELEGRAM_NAME: TELEGRAM_LINK,
     INTRO_NAME: INTRO_LINK,
 }
 

@@ -105,9 +105,9 @@ async def register(
     return RedirectResponse("/login", status_code=status.HTTP_302_FOUND)
 
 
-@app.get("/verify/{user_id}/{verification_token}")
+@app.get("/verify/{verification_token}")
 async def verify(user_id: UUID, verification_token: str) -> RedirectResponse:
-    await kit_verify(user_id, verification_token)
+    await kit_verify(verification_token)
 
     return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
 

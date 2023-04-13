@@ -6,6 +6,7 @@ from iters import iter
 from melody.kit.core import database, v1
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
+from melody.kit.link import generate_code_for_uri
 from melody.kit.models.album import AlbumData, AlbumTracksData, album_into_data
 from melody.kit.models.track import partial_track_into_data
 from melody.kit.tags import ALBUMS, LINKS, TRACKS
@@ -38,7 +39,7 @@ async def get_album(album_id: UUID) -> AlbumData:
 async def get_album_link(album_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.ALBUM, id=album_id)
 
-    path = await uri.create_link()
+    path = await generate_code_for_uri(uri)
 
     return FileResponse(path)
 

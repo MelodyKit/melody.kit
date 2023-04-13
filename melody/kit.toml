@@ -1,7 +1,16 @@
+# This is the default configuration file for MelodyKit.
+# Configuration file is located at `~/.config/melody/kit.toml`.
+# Paths are relative to the configuration file.
+# There are some sensitive fields that need to be manually defined:
+# - `melody.email.name`
+# - `melody.email.password`
+# - `melody.bot.token`
+
 [melody]
 name = "MelodyKit"
 domain = "melodykit.app"
 open = "open"
+
 images = "~/.melody/kit/images"
 
 [melody.email]
@@ -17,6 +26,12 @@ parallelism = 4
 [melody.kit]
 host = "127.0.0.1"
 port = 1342
+
+[melody.link]
+cache = "~/.cache/melody/link"
+error_correction = "high"
+box_size = 10
+border = 4
 
 [melody.log]
 level = "info"
@@ -37,5 +52,9 @@ days = 0
 hours = 0
 minutes = 0
 seconds = 0
+
+[melody.web]
+host = "127.0.0.1"
+port = 4269
 
 [melody.bot]

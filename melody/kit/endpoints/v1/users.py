@@ -3,12 +3,14 @@ from uuid import UUID
 
 from fastapi import Depends
 from fastapi.responses import FileResponse
+from funcs.typing import Predicate
 from iters import iter
 
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_token_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
+from melody.kit.link import generate_code_for_uri
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
 from melody.kit.models.playlist import PartialPlaylist, partial_playlist_into_data
@@ -23,7 +25,6 @@ from melody.kit.models.user import (
 )
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
-from melody.shared.typing import Predicate
 
 __all__ = (
     "get_user",
@@ -61,7 +62,7 @@ async def get_user(user_id: UUID) -> UserData:
 async def get_user_link(user_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = await uri.create_link()
+    path = await generate_code_for_uri(uri)
 
     return FileResponse(path)
 
@@ -74,7 +75,7 @@ async def get_user_link(user_id: UUID) -> FileResponse:
 async def get_user_image(user_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = uri.image_path_for(config.images)
+    path = config.images / uri.image_name
 
     if not path.exists():
         raise NotFound(CAN_NOT_FIND_USER_IMAGE.format(user_id))

@@ -5,23 +5,30 @@ from attrs import define
 from toml import loads as load_string
 from wraps import Option, wrap_optional
 
-from melody.kit.constants import DEFAULT_IGNORE_SENSITIVE, MELODY_ROOT
-from melody.kit.enums import LogLevel
-from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, EMPTY
+from melody.kit.constants import DEFAULT_IGNORE_SENSITIVE
+from melody.kit.enums import ErrorCorrection, LogLevel
+from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, EMPTY, HOME, ROOT
 from melody.shared.typing import IntoPath, StringDict
 
 __all__ = ("Config", "ConfigData", "get_config", "get_default_config")
 
 T = TypeVar("T")
 
-HOME = Path.home()
+
+def expand_user_directory(path: Path) -> Path:
+    directory = path.expanduser()
+
+    directory.mkdir(parents=True, exist_ok=True)
+
+    return directory
+
 
 CONFIG_NAME = ".config"
 MELODY_NAME = "melody"
 
 NAME = "kit.toml"
 
-DEFAULT_PATH = MELODY_ROOT / NAME
+DEFAULT_PATH = ROOT / NAME
 PATH = HOME / CONFIG_NAME / MELODY_NAME / NAME
 
 
@@ -58,7 +65,14 @@ class HashConfig:
 class KitConfig:
     host: str
     port: int
-    key: str
+
+
+@define()
+class LinkConfig:
+    cache: Path
+    error_correction: ErrorCorrection
+    box_size: int
+    border: int
 
 
 @define()
@@ -91,6 +105,12 @@ class TokenConfig:
 
 
 @define()
+class WebConfig:
+    host: str
+    port: int
+
+
+@define()
 class BotConfig:
     token: str
 
@@ -117,7 +137,11 @@ EXPECTED_MELODY_HASH_PARALLELISM = expected("melody.hash.parallelism")
 EXPECTED_MELODY_KIT = expected("melody.kit")
 EXPECTED_MELODY_KIT_HOST = expected("melody.kit.host")
 EXPECTED_MELODY_KIT_PORT = expected("melody.kit.port")
-EXPECTED_MELODY_KIT_KEY = expected("melody.kit.key")
+EXPECTED_MELODY_LINK = expected("melody.link")
+EXPECTED_MELODY_LINK_CACHE = expected("melody.link.cache")
+EXPECTED_MELODY_LINK_ERROR_CORRECTION = expected("melody.link.error_correction")
+EXPECTED_MELODY_LINK_BOX_SIZE = expected("melody.link.box_size")
+EXPECTED_MELODY_LINK_BORDER = expected("melody.link.border")
 EXPECTED_MELODY_LOG = expected("melody.log")
 EXPECTED_MELODY_LOG_LEVEL = expected("melody.log.level")
 EXPECTED_MELODY_REDIS = expected("melody.redis")
@@ -134,6 +158,9 @@ EXPECTED_MELODY_TOKEN_EXPIRES_DAYS = expected("melody.token.expires.days")
 EXPECTED_MELODY_TOKEN_EXPIRES_HOURS = expected("melody.token.expires.hours")
 EXPECTED_MELODY_TOKEN_EXPIRES_MINUTES = expected("melody.token.expires.minutes")
 EXPECTED_MELODY_TOKEN_EXPIRES_SECONDS = expected("melody.token.expires.seconds")
+EXPECTED_MELODY_WEB = expected("melody.web")
+EXPECTED_MELODY_WEB_HOST = expected("melody.web.host")
+EXPECTED_MELODY_WEB_PORT = expected("melody.web.port")
 EXPECTED_MELODY_BOT = expected("melody.bot")
 EXPECTED_MELODY_BOT_TOKEN = expected("melody.bot.token")
 
@@ -149,17 +176,19 @@ class Config:
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
+    link: LinkConfig
     log: LogConfig
     redis: RedisConfig
     token: TokenConfig
+    web: WebConfig
     bot: BotConfig
 
-    def ensure_images(self: C) -> C:
-        images = self.images.expanduser()
+    def ensure_directories(self: C) -> C:
+        self.images = expand_user_directory(self.images)
 
-        images.mkdir(parents=True, exist_ok=True)
+        link = self.link
 
-        self.images = images
+        link.cache = expand_user_directory(link.cache)
 
         return self
 
@@ -209,7 +238,18 @@ class Config:
         kit = KitConfig(
             host=kit_data.host.unwrap_or(kit_config.host),
             port=kit_data.port.unwrap_or(kit_config.port),
-            key=kit_data.key.expect(EXPECTED_MELODY_KIT_KEY),
+        )
+
+        link_data = config_data.link.unwrap_or_else(AnyConfigData)
+        link_config = default_config.link
+
+        link = LinkConfig(
+            cache=link_data.cache.map_or(link_config.cache, Path),
+            error_correction=link_data.error_correction.map_or(
+                link_config.error_correction, ErrorCorrection
+            ),
+            box_size=link_data.box_size.unwrap_or(link_config.box_size),
+            border=link_data.border.unwrap_or(link_config.border),
         )
 
         log_data = config_data.log.unwrap_or_else(AnyConfigData)
@@ -250,6 +290,14 @@ class Config:
 
         bot = BotConfig(token=bot_data.token.expect(EXPECTED_MELODY_BOT_TOKEN))
 
+        web_data = config_data.web.unwrap_or_else(AnyConfigData)
+        web_config = default_config.web
+
+        web = WebConfig(
+            host=web_data.host.unwrap_or(web_config.host),
+            port=web_data.port.unwrap_or(web_config.port),
+        )
+
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
         open = config_data.open.unwrap_or(default_config.open)
@@ -263,9 +311,11 @@ class Config:
             email=email,
             hash=hash,
             kit=kit,
+            link=link,
             log=log,
             redis=redis,
             token=token,
+            web=web,
             bot=bot,
         )
 
@@ -324,11 +374,17 @@ class Config:
         kit = KitConfig(
             host=kit_data.host.expect(EXPECTED_MELODY_KIT_HOST),
             port=kit_data.port.expect(EXPECTED_MELODY_KIT_PORT),
-            key=(
-                kit_data.key.unwrap_or(EMPTY)
-                if ignore_sensitive
-                else kit_data.key.expect(EXPECTED_MELODY_KIT_KEY)
+        )
+
+        link_data = config_data.link.expect(EXPECTED_MELODY_LINK)
+
+        link = LinkConfig(
+            cache=link_data.cache.map(Path).expect(EXPECTED_MELODY_LINK_CACHE),
+            error_correction=link_data.error_correction.map(ErrorCorrection).expect(
+                EXPECTED_MELODY_LINK_ERROR_CORRECTION
             ),
+            box_size=link_data.box_size.expect(EXPECTED_MELODY_LINK_BOX_SIZE),
+            border=link_data.border.expect(EXPECTED_MELODY_LINK_BORDER),
         )
 
         log_data = config_data.log.expect(EXPECTED_MELODY_LOG)
@@ -359,6 +415,13 @@ class Config:
             ),
         )
 
+        web_data = config_data.web.expect(EXPECTED_MELODY_WEB)
+
+        web = WebConfig(
+            host=web_data.host.expect(EXPECTED_MELODY_WEB_HOST),
+            port=web_data.port.expect(EXPECTED_MELODY_WEB_PORT),
+        )
+
         bot_data = config_data.bot.expect(EXPECTED_MELODY_BOT)
 
         bot = BotConfig(
@@ -382,9 +445,11 @@ class Config:
             email=email,
             hash=hash,
             kit=kit,
+            link=link,
             log=log,
             redis=redis,
             token=token,
+            web=web,
             bot=bot,
         )
 
@@ -392,11 +457,11 @@ class Config:
 def get_default_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
     return Config.unsafe_from_path(
         DEFAULT_PATH, encoding=encoding, errors=errors, ignore_sensitive=True
-    ).ensure_images()
+    ).ensure_directories()
 
 
 DEFAULT_CONFIG = get_default_config()
 
 
 def get_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
-    return Config.from_path(PATH, encoding=encoding, errors=errors).ensure_images()
+    return Config.from_path(PATH, encoding=encoding, errors=errors).ensure_directories()

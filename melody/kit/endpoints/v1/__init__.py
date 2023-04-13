@@ -15,6 +15,7 @@ from melody.kit.endpoints.v1.authentication import (
     verify,
 )
 from melody.kit.endpoints.v1.playlists import (
+    change_playlist_image,
     create_playlist,
     delete_playlist,
     follow_playlist,
@@ -22,11 +23,11 @@ from melody.kit.endpoints.v1.playlists import (
     get_playlist_image,
     get_playlist_link,
     get_playlist_tracks,
-    replace_playlist_image,
     unfollow_playlist,
     update_playlist,
 )
 from melody.kit.endpoints.v1.self import (
+    change_self_image,
     get_self,
     get_self_albums,
     get_self_artists,
@@ -41,7 +42,6 @@ from melody.kit.endpoints.v1.self import (
     remove_self_albums,
     remove_self_artists,
     remove_self_tracks,
-    replace_self_image,
     save_self_albums,
     save_self_artists,
     save_self_tracks,
@@ -78,7 +78,7 @@ __all__ = (
     "delete_playlist",
     "get_playlist_link",
     "get_playlist_image",
-    "replace_playlist_image",
+    "change_playlist_image",
     "get_playlist_tracks",
     "follow_playlist",
     "unfollow_playlist",
@@ -94,7 +94,7 @@ __all__ = (
     "get_self",
     "get_self_link",
     "get_self_image",
-    "replace_self_image",
+    "change_self_image",
     "get_self_tracks",
     "save_self_tracks",
     "remove_self_tracks",

@@ -1,5 +1,5 @@
-import subprocess
 from pathlib import Path
+from subprocess import call
 from sys import exit
 from typing import Sequence
 
@@ -12,8 +12,8 @@ EXECUTE = "npx"
 TAILWIND = "tailwindcss"
 INPUT = "-i"
 OUTPUT = "-o"
-MINIFY = "--minify"
-WATCH = "--watch"
+MINIFY = "-m"
+WATCH = "-w"
 
 
 def build_command(input: Path, output: Path, watch: bool) -> Sequence[str]:
@@ -41,4 +41,4 @@ SHELL = True
 @click.option("--watch", "-w", is_flag=True, default=DEFAULT_WATCH)
 @web.command()
 def build(input: Path, output: Path, watch: bool) -> None:
-    exit(subprocess.call(build_command(input, output, watch=watch), cwd=WEB_ROOT, shell=SHELL))
+    exit(call(build_command(input, output, watch=watch), cwd=WEB_ROOT, shell=SHELL))

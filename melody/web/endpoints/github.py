@@ -7,8 +7,6 @@ __all__ = ("redirect_github",)
 
 GITHUB = "https://github.com/MelodyKit/"
 
-NOT_FOUND = "not found"
-
 
 @app.get("/github/{name}")
 async def redirect_github(name: str) -> RedirectResponse:

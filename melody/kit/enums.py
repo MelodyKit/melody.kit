@@ -1,5 +1,10 @@
 from enum import Enum
 
+from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW  # type: ignore
+from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM  # type: ignore
+from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER  # type: ignore
+from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH  # type: ignore
+
 __all__ = ("AlbumType", "PrivacyType", "EntityType", "LogLevel")
 
 
@@ -73,3 +78,21 @@ class LogLevel(Enum):
     INFO = "info"
     DEBUG = "debug"
     TRACE = "trace"
+
+
+class ErrorCorrection(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    QUARTER = "quarter"
+    HIGH = "high"
+
+    def into_error_correction(self) -> int:
+        return ERROR_CORRECTION[self]  # type: ignore
+
+
+ERROR_CORRECTION = {
+    ErrorCorrection.LOW: ERROR_CORRECTION_LOW,
+    ErrorCorrection.MEDIUM: ERROR_CORRECTION_MEDIUM,
+    ErrorCorrection.QUARTER: ERROR_CORRECTION_QUARTER,
+    ErrorCorrection.HIGH: ERROR_CORRECTION_HIGH,
+}

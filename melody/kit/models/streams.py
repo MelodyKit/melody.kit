@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Type, TypeVar, overload
 
 from attrs import define, field

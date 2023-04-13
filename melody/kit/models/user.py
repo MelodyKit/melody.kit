@@ -7,7 +7,6 @@ from pendulum import DateTime
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.models.entity import Entity, EntityData
-from melody.kit.models.streams import UserStream, UserStreamData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
@@ -130,6 +129,7 @@ def user_into_data(user: User) -> UserData:
 from melody.kit.models.album import Album, AlbumData
 from melody.kit.models.artist import Artist, ArtistData
 from melody.kit.models.playlist import PartialPlaylist, PartialPlaylistData
+from melody.kit.models.streams import UserStream, UserStreamData
 from melody.kit.models.track import Track, TrackData
 
 UserTracks = List[Track]

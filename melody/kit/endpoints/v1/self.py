@@ -1,7 +1,6 @@
 from typing import List
 from uuid import UUID
 
-from async_extensions.file import open_file
 from fastapi import Body, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from iters import iter
@@ -10,6 +9,7 @@ from melody.kit.core import config, database, v1
 from melody.kit.dependencies import token_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound, ValidationError
+from melody.kit.link import generate_code_for_uri
 from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import artist_into_data
 from melody.kit.models.playlist import partial_playlist_into_data
@@ -29,13 +29,14 @@ from melody.kit.models.user import (
 )
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, TRACKS, USERS
 from melody.kit.uri import URI
-from melody.shared.constants import IMAGE_CONTENT_TYPE, IMAGE_TYPE, WRITE_BINARY
+from melody.shared.constants import IMAGE_TYPE
+from melody.shared.image import check_image_type, validate_and_save_image
 
 __all__ = (
     "get_self",
     "get_self_link",
     "get_self_image",
-    "replace_self_image",
+    "change_self_image",
     "get_self_tracks",
     "save_self_tracks",
     "remove_self_tracks",
@@ -78,7 +79,7 @@ async def get_self(user_id: UUID = Depends(token_dependency)) -> UserData:
 async def get_self_link(user_id: UUID = Depends(token_dependency)) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = await uri.create_link()
+    path = await generate_code_for_uri(uri)
 
     return FileResponse(path)
 
@@ -91,7 +92,7 @@ async def get_self_link(user_id: UUID = Depends(token_dependency)) -> FileRespon
 async def get_self_image(user_id: UUID = Depends(token_dependency)) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = uri.image_path_for(config.images)
+    path = config.images / uri.image_name
 
     if not path.exists():
         raise NotFound(CAN_NOT_FIND_USER_IMAGE.format(user_id))
@@ -100,26 +101,26 @@ async def get_self_image(user_id: UUID = Depends(token_dependency)) -> FileRespo
 
 
 EXPECTED_IMAGE_TYPE = f"expected `{IMAGE_TYPE}` image type"
+EXPECTED_SQUARE_IMAGE = "expected square image"
 
 
 @v1.put(
     "/me/image",
     tags=[SELF, IMAGES],
-    summary="Replaces self user image.",
+    summary="Changes self user image.",
 )
-async def replace_self_image(
+async def change_self_image(
     image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
 ) -> None:
-    if image.content_type != IMAGE_CONTENT_TYPE:
+    if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
 
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = uri.image_path_for(config.images)
+    path = config.images / uri.image_name
 
-    file = await open_file(path, WRITE_BINARY)
-
-    await file.write(await image.read())
+    if not await validate_and_save_image(image, path):
+        raise ValidationError(EXPECTED_SQUARE_IMAGE)
 
 
 @v1.get(

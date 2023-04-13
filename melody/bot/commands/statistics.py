@@ -10,19 +10,27 @@ from melody.shared.constants import MELODY_COLORS
 COUNT = "{:,}"
 count = COUNT.format
 
+STATISTICS = "Statistics"
+USERS = "Users"
+STREAMS = "Streams"
+TRACKS = "Tracks"
+ARTISTS = "Artists"
+ALBUMS = "Albums"
+PLAYLISTS = "Playlists"
+
 
 @client.tree.command(name="statistics", description="Fetches overall statistics.")
 async def get_statistics(interaction: Interaction) -> None:
     statistics = await database.query_statistics()
 
     embed = (
-        Embed(color=Color(choice(MELODY_COLORS)), title="Statistics")
-        .add_field(name="Users", value=count(statistics.user_count), inline=INLINE)
-        .add_field(name="Streams", value=count(statistics.stream_count), inline=INLINE)
-        .add_field(name="Tracks", value=count(statistics.track_count), inline=INLINE)
-        .add_field(name="Artists", value=count(statistics.artist_count), inline=INLINE)
-        .add_field(name="Albums", value=count(statistics.album_count), inline=INLINE)
-        .add_field(name="Playlists", value=count(statistics.playlist_count), inline=INLINE)
+        Embed(color=Color(choice(MELODY_COLORS).value), title=STATISTICS)
+        .add_field(name=USERS, value=count(statistics.user_count), inline=INLINE)
+        .add_field(name=STREAMS, value=count(statistics.stream_count), inline=INLINE)
+        .add_field(name=TRACKS, value=count(statistics.track_count), inline=INLINE)
+        .add_field(name=ARTISTS, value=count(statistics.artist_count), inline=INLINE)
+        .add_field(name=ALBUMS, value=count(statistics.album_count), inline=INLINE)
+        .add_field(name=PLAYLISTS, value=count(statistics.playlist_count), inline=INLINE)
     )
 
     await interaction.response.send_message(embed=embed)

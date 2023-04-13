@@ -1,53 +1,29 @@
-from pathlib import Path
 from typing import Type, TypeVar
 from uuid import UUID
 
-from async_extensions.blocking import run_blocking_in_thread
 from attrs import frozen
-from qrcode import QRCode  # type: ignore
-from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH  # type: ignore
-from qrcode.image.styledpil import StyledPilImage as StyledPILImage  # type: ignore
-from qrcode.image.styles.colormasks import VerticalGradiantColorMask  # type: ignore
 
 from melody.kit.enums import EntityType
+from melody.shared.constants import IMAGE_TYPE
 from melody.shared.converter import CONVERTER
 
-__all__ = ("URI",)
+__all__ = ("URI", "URI_HEADER", "URI_SEPARATOR")
 
-# QR code constants
+# image constants
 
-HOME = Path.home()
-
-CACHE_NAME = ".cache"
-MELODY = "melody"
-LINK = "link"
-
-LINK_CACHE = HOME / CACHE_NAME / MELODY / LINK
-
-LINK_CACHE.mkdir(parents=True, exist_ok=True)
-
-IMAGE_NAME = "{type}.{id}.png"
+IMAGE_NAME = f"{{type}}.{{id}}.{IMAGE_TYPE}"
 image_name = IMAGE_NAME.format
-
-VERSION = None  # auto-detect version
-ERROR_CORRECTION = ERROR_CORRECTION_HIGH
-BOX_SIZE = 20
-BORDER = 4
-
-MELODY_PURPLE = (0xCC, 0x55, 0xFF, 0xFF)
-MELODY_BLUE = (0x55, 0xCC, 0xFF, 0xFF)
-TRANSPARENT = (0x00, 0x00, 0x00, 0x00)
 
 # URI constants
 
-HEADER = "melody.link"
+URI_HEADER = "melody.link"
 
 URI_SEPARATOR = ":"
 
 URI_STRING = f"{{header}}{URI_SEPARATOR}{{type}}{URI_SEPARATOR}{{id}}"
 uri_string = URI_STRING.format
 
-INVALID_HEADER = f"invalid header `{{}}`; expected `{HEADER}`"
+INVALID_URI_HEADER = f"invalid header `{{}}`; expected `{URI_HEADER}`"
 
 U = TypeVar("U", bound="URI")
 
@@ -64,8 +40,8 @@ class URI:
     def from_string(cls: Type[U], string: str) -> U:
         header, type_string, id_string = string.split(URI_SEPARATOR)
 
-        if header != HEADER:
-            raise ValueError(INVALID_HEADER.format(header))
+        if header != URI_HEADER:
+            raise ValueError(INVALID_URI_HEADER.format(header))
 
         type = EntityType(type_string)
 
@@ -74,48 +50,11 @@ class URI:
         return cls(type=type, id=id)
 
     def to_string(self) -> str:
-        return uri_string(header=HEADER, type=self.type.value, id=self.id)
+        return uri_string(header=URI_HEADER, type=self.type.value, id=self.id)
 
     @property
     def image_name(self) -> str:
         return image_name(type=self.type.value, id=self.id)
-
-    @property
-    def link_path(self) -> Path:
-        return self.image_path_for(LINK_CACHE)
-
-    def image_path_for(self, images: Path) -> Path:
-        return images / self.image_name
-
-    async def create_link(self) -> Path:
-        return await run_blocking_in_thread(self.create_link_sync)
-
-    def create_link_sync(self) -> Path:
-        path = self.link_path
-
-        if path.exists():
-            return path
-
-        qr = QRCode(
-            version=VERSION, error_correction=ERROR_CORRECTION, box_size=BOX_SIZE, border=BORDER
-        )
-
-        qr.add_data(self.to_string())
-
-        qr.make()
-
-        image = qr.make_image(
-            image_factory=StyledPILImage,
-            color_mask=VerticalGradiantColorMask(
-                back_color=TRANSPARENT,
-                top_color=MELODY_PURPLE,
-                bottom_color=MELODY_BLUE,
-            ),
-        )
-
-        image.save(path)
-
-        return path
 
 
 def structure_uri(string: str, uri_type: Type[U]) -> U:
