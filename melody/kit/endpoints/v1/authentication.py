@@ -173,7 +173,7 @@ async def send_email(author: str, target: str, subject: str, content: str) -> No
 
 
 VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"
-VERIFICATION_NOT_FOUND = "verification for the user with ID `{}` not found"
+VERIFICATION_NOT_FOUND = "verification for the user not found"
 
 
 @v1.post(
@@ -185,7 +185,7 @@ async def verify(verification_token: str) -> None:
     user_id = await fetch_user_id_by_verification(verification_token)
 
     if user_id is None:
-        raise NotFound(VERIFICATION_NOT_FOUND.format(user_id))
+        raise NotFound(VERIFICATION_NOT_FOUND)
 
     await database.update_user_verified(user_id, True)
 
