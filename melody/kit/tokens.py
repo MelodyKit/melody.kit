@@ -177,7 +177,7 @@ async def fetch_user_id_by(token: str) -> Optional[UUID]:
 
 
 async def fetch_user_id_by_verification(verification_token: str) -> Optional[UUID]:
-    option = await redis.get(verification_token_key(verification_token_key))
+    option = await redis.get(verification_token_key(verification_token))
 
     if option is None:
         return None
