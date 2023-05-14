@@ -21,7 +21,7 @@ GITHUB_LINK = "https://github.com/MelodyKit"
 REDDIT_LINK = "https://reddit.com/r/MelodyKit"
 TWITTER_LINK = "https://twitter.com/MelodyKitApp"
 YOUTUBE_LINK = "https://youtube.com/MelodyKit"
-TELEGRAM_LINK = "https://t.me/MelodyKitApp"
+TELEGRAM_LINK = "https://t.me/MelodyKitOfficial"
 
 INTRO_LINK = "https://youtu.be/dQw4w9WgXcQ"
 

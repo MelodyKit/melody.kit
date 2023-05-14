@@ -1,4 +1,5 @@
-from versions import parse_version, python_version_info
+from versions.functions import parse_version
+from versions.meta import python_version_info
 
 from melody import __version__
 

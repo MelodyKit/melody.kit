@@ -102,6 +102,9 @@ types-redis = "4.5.4.1"
 [tool.black]
 line_length = 100
 
+[tool.flake8]
+max_line_length = 100
+
 [tool.isort]
 line_length = 100
 profile = "black"
