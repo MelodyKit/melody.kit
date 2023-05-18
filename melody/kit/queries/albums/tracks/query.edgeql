@@ -23,5 +23,5 @@ select Album {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    } order by @position
+    } order by @position offset <expression>$offset limit <expression>$limit
 } filter .id = <uuid>$album_id;

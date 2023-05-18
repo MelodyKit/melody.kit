@@ -3,7 +3,8 @@ from typing import Any, Type, TypeVar, cast
 
 from attrs import define
 from toml import loads as load_string
-from wraps import Option, wrap_optional
+from wraps.option import Option
+from wraps.wraps import wrap_optional
 
 from melody.kit.constants import DEFAULT_IGNORE_SENSITIVE
 from melody.kit.enums import ErrorCorrection, LogLevel

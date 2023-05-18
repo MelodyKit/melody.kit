@@ -138,5 +138,6 @@ def album_into_data(album: Album) -> AlbumData:
 from melody.kit.models.artist import Artist, ArtistData, artist_from_object
 from melody.kit.models.track import PartialTrack, PartialTrackData
 
+
 AlbumTracks = List[PartialTrack]
 AlbumTracksData = List[PartialTrackData]

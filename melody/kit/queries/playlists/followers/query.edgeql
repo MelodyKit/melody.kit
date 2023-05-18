@@ -10,5 +10,5 @@ select Playlist {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    }
+    } offset <expression>$offset limit <expression>$limit
 } filter .id = <uuid>$playlist_id;

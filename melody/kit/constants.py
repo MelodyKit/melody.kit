@@ -24,6 +24,15 @@ KIT_ROOT = Path(__file__).parent
 VERSION_1 = "1.0.0"
 V1 = "/api/v1"
 
+# API-related
+
+DEFAULT_OFFSET = 0
+MIN_OFFSET = 0
+
+DEFAULT_LIMIT = 100
+MIN_LIMIT = 0
+MAX_LIMIT = 100
+
 # defaults
 
 DEFAULT_IGNORE_SENSITIVE = False

@@ -49,5 +49,5 @@ select Artist {
         spotify_id,
         apple_music_id,
         yandex_music_id
-    } order by .stream_count desc
+    } order by .stream_count desc offset <expression>$offset limit <expression>$limit
 } filter .id = <uuid>$artist_id;

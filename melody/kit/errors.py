@@ -5,6 +5,7 @@ from typing import Any, Generic, TypeVar
 
 from attrs import frozen
 from fastapi import status
+from funcs.typing import NormalError
 from typing_extensions import TypedDict as Data
 
 __all__ = (
@@ -71,7 +72,7 @@ class ErrorData(Data, Generic[T]):
 
 
 @frozen()
-class Error(Exception, Generic[T]):
+class Error(NormalError, Generic[T]):
     detail: T
     code: ErrorCode = ErrorCode.DEFAULT
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR

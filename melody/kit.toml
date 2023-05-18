@@ -1,6 +1,5 @@
 # This is the default configuration file for MelodyKit.
 # Configuration file is located at `~/.config/melody/kit.toml`.
-# Paths are relative to the configuration file.
 # There are some sensitive fields that need to be manually defined:
 # - `melody.email.name`
 # - `melody.email.password`

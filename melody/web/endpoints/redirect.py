@@ -14,6 +14,7 @@ REDDIT_NAME = "reddit"
 TWITTER_NAME = "twitter"
 YOUTUBE_NAME = "youtube"
 TELEGRAM_NAME = "telegram"
+DOCS_NAME = "docs"
 
 INTRO_NAME = "intro"
 
@@ -22,6 +23,7 @@ REDDIT_LINK = "https://reddit.com/r/MelodyKit"
 TWITTER_LINK = "https://twitter.com/MelodyKitApp"
 YOUTUBE_LINK = "https://youtube.com/MelodyKit"
 TELEGRAM_LINK = "https://t.me/MelodyKitOfficial"
+DOCS_LINK = "https://docs.melodykit.app/"
 
 INTRO_LINK = "https://youtu.be/dQw4w9WgXcQ"
 
@@ -32,6 +34,7 @@ NAME_TO_LINK = {
     TWITTER_NAME: TWITTER_LINK,
     YOUTUBE_NAME: YOUTUBE_LINK,
     TELEGRAM_NAME: TELEGRAM_LINK,
+    DOCS_NAME: DOCS_LINK,
     INTRO_NAME: INTRO_LINK,
 }
 

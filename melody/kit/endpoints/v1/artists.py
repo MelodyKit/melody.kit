@@ -1,8 +1,16 @@
 from uuid import UUID
 
+from fastapi import Query
 from fastapi.responses import FileResponse
 from iters import iter
 
+from melody.kit.constants import (
+    DEFAULT_LIMIT,
+    DEFAULT_OFFSET,
+    MAX_LIMIT,
+    MIN_LIMIT,
+    MIN_OFFSET,
+)
 from melody.kit.core import database, v1
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
@@ -55,8 +63,12 @@ async def get_artist_link(artist_id: UUID) -> FileResponse:
     tags=[ARTISTS, ALBUMS],
     summary="Fetches artist albums with the given ID.",
 )
-async def get_artist_albums(artist_id: UUID) -> ArtistAlbumsData:
-    albums = await database.query_artist_albums(artist_id)
+async def get_artist_albums(
+    artist_id: UUID,
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> ArtistAlbumsData:
+    albums = await database.query_artist_albums(artist_id, offset=offset, limit=limit)
 
     if albums is None:
         raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
@@ -69,8 +81,12 @@ async def get_artist_albums(artist_id: UUID) -> ArtistAlbumsData:
     tags=[ARTISTS, TRACKS],
     summary="Fetches artist tracks with the given ID.",
 )
-async def get_artist_tracks(artist_id: UUID) -> ArtistTracksData:
-    tracks = await database.query_artist_tracks(artist_id)
+async def get_artist_tracks(
+    artist_id: UUID,
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> ArtistTracksData:
+    tracks = await database.query_artist_tracks(artist_id, offset=offset, limit=limit)
 
     if tracks is None:
         raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))

@@ -17,6 +17,10 @@ module default {
         constraint min_value(0);
     }
 
+    scalar type expression extending int64 {
+        constraint min_value(0);
+    }
+
     abstract link with_position {
         property position -> position {
             default := 0;

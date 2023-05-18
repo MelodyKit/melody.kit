@@ -43,11 +43,15 @@ async def get_login() -> HTMLResponse:
     return HTMLResponse(await LOGIN_TEMPLATE.render_async())
 
 
+OPEN = "/{config.open}"
+open = OPEN.format
+
+
 @app.post("/login")
 async def login(
     email: str = Depends(form_email_dependency), password: str = Form()
 ) -> RedirectResponse:
-    response = RedirectResponse(f"/{config.open}", status_code=status.HTTP_302_FOUND)
+    response = RedirectResponse(open(config=config), status_code=status.HTTP_302_FOUND)
 
     token_data = await kit_login(email, password)
 

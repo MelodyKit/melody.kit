@@ -5,7 +5,7 @@ from attrs import define, field
 from edgedb import AsyncIOClient, create_async_client  # type: ignore
 from iters import iter
 
-from melody.kit.constants import KIT_ROOT
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, KIT_ROOT
 from melody.kit.enums import PrivacyType
 from melody.kit.models.album import Album, AlbumTracks, album_from_object
 from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_from_object
@@ -147,16 +147,20 @@ class Database:
 
         return None if option is None else artist_from_object(option)
 
-    async def query_artist_tracks(self, artist_id: UUID) -> Optional[ArtistTracks]:
+    async def query_artist_tracks(
+        self, artist_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[ArtistTracks]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_ARTIST_TRACKS, artist_id=artist_id
+            QUERY_ARTIST_TRACKS, artist_id=artist_id, offset=offset, limit=limit
         )
 
         return None if option is None else iter(option.tracks).map(track_from_object).list()
 
-    async def query_artist_albums(self, artist_id: UUID) -> Optional[ArtistAlbums]:
+    async def query_artist_albums(
+        self, artist_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[ArtistAlbums]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_ARTIST_ALBUMS, artist_id=artist_id
+            QUERY_ARTIST_ALBUMS, artist_id=artist_id, offset=offset, limit=limit
         )
 
         return None if option is None else iter(option.albums).map(album_from_object).list()
@@ -169,7 +173,9 @@ class Database:
 
         return None if option is None else album_from_object(option)
 
-    async def query_album_tracks(self, album_id: UUID) -> Optional[AlbumTracks]:
+    async def query_album_tracks(
+        self, album_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[AlbumTracks]:
         option = await self.client.query_single(  # type: ignore
             QUERY_ALBUM_TRACKS, album_id=album_id
         )

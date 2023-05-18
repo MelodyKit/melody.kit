@@ -9,7 +9,6 @@ from melody.web.endpoints.authentication import (
     revoke,
     verify,
 )
-from melody.web.endpoints.docs import redirect_docs
 from melody.web.endpoints.email import redirect_email
 from melody.web.endpoints.github import redirect_github
 from melody.web.endpoints.index import get_index
@@ -28,8 +27,6 @@ __all__ = (
     "verify",
     "get_reset",
     "reset",
-    # docs
-    "redirect_docs",
     # email
     "redirect_email",
     # github

@@ -54,5 +54,5 @@ select User {
             apple_music_id,
             yandex_music_id
         }
-    } order by .created_at desc
+    } order by .created_at desc offset <expression>$offset limit <expression>$limit
 } filter .id = <uuid>$user_id;
