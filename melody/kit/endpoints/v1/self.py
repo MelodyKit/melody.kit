@@ -1,31 +1,43 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import Body, Depends, File, UploadFile
+from fastapi import Body, Depends, File, Query, UploadFile
 from fastapi.responses import FileResponse
-from iters import iter
+from yarl import URL
 
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import token_dependency
+from melody.kit.dependencies import token_dependency, url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.album import album_into_data
-from melody.kit.models.artist import artist_into_data
-from melody.kit.models.playlist import partial_playlist_into_data
-from melody.kit.models.streams import user_stream_into_data
-from melody.kit.models.track import track_into_data
+from melody.kit.models.pagination import paginate
 from melody.kit.models.user import (
+    UserAlbums,
     UserAlbumsData,
+    UserArtists,
     UserArtistsData,
     UserData,
+    UserFollowers,
     UserFollowersData,
+    UserFollowing,
     UserFollowingData,
+    UserFriends,
     UserFriendsData,
+    UserPlaylists,
     UserPlaylistsData,
+    UserStreams,
     UserStreamsData,
+    UserTracks,
     UserTracksData,
-    user_into_data,
+    user_albums_into_data,
+    user_artists_into_data,
+    user_followers_into_data,
+    user_following_into_data,
+    user_friends_into_data,
+    user_playlists_into_data,
+    user_streams_into_data,
+    user_tracks_into_data,
 )
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, TRACKS, USERS
 from melody.kit.uri import URI
@@ -51,6 +63,9 @@ __all__ = (
     "get_self_friends",
     "get_self_followers",
     "get_self_following",
+    "add_self_following",
+    "remove_self_following",
+    "get_self_followed_playlists",
 )
 
 CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
@@ -63,7 +78,7 @@ CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
     summary="Fetch self user.",
 )
 async def get_self(user_id: UUID = Depends(token_dependency)) -> UserData:
-    user = await database.query_user(user_id)
+    user = await database.query_user(user_id=user_id)
 
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
@@ -128,13 +143,22 @@ async def change_self_image(
     tags=[SELF, TRACKS],
     summary="Fetch self user tracks.",
 )
-async def get_self_tracks(user_id: UUID = Depends(token_dependency)) -> UserTracksData:
-    tracks = await database.query_user_tracks(user_id)
+async def get_self_tracks(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserTracksData:
+    counted = await database.query_user_tracks(user_id=user_id, offset=offset, limit=limit)
 
-    if tracks is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(tracks).map(track_into_data).list()
+    items, count = counted
+
+    self_tracks = UserTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return user_tracks_into_data(self_tracks)
 
 
 @v1.put(
@@ -164,13 +188,22 @@ async def remove_self_tracks(
     tags=[SELF, ARTISTS],
     summary="Fetch self user artists.",
 )
-async def get_self_artists(user_id: UUID = Depends(token_dependency)) -> UserArtistsData:
-    artists = await database.query_user_artists(user_id)
+async def get_self_artists(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserArtistsData:
+    counted = await database.query_user_artists(user_id=user_id)
 
-    if artists is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(artists).map(artist_into_data).list()
+    items, count = counted
+
+    self_artists = UserArtists(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return user_artists_into_data(self_artists)
 
 
 @v1.put(
@@ -200,13 +233,22 @@ async def remove_self_artists(
     tags=[SELF, ALBUMS],
     summary="Fetch self user albums.",
 )
-async def get_self_albums(user_id: UUID = Depends(token_dependency)) -> UserAlbumsData:
-    albums = await database.query_user_albums(user_id)
+async def get_self_albums(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserAlbumsData:
+    counted = await database.query_user_albums(user_id=user_id)
 
-    if albums is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(albums).map(album_into_data).list()
+    items, count = counted
+
+    self_albums = UserAlbums(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return user_albums_into_data(self_albums)
 
 
 @v1.put(
@@ -236,13 +278,24 @@ async def remove_self_albums(
     tags=[SELF, PLAYLISTS],
     summary="Fetch self user playlists.",
 )
-async def get_self_playlists(user_id: UUID = Depends(token_dependency)) -> UserPlaylistsData:
-    playlists = await database.query_user_playlists(user_id)
+async def get_self_playlists(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserPlaylistsData:
+    counted = await database.query_user_playlists(user_id=user_id)
 
-    if playlists is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(playlists).map(partial_playlist_into_data).list()
+    items, count = counted
+
+    self_playlists = UserPlaylists(
+        items, paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_playlists_into_data(self_playlists)
 
 
 @v1.get(
@@ -250,13 +303,22 @@ async def get_self_playlists(user_id: UUID = Depends(token_dependency)) -> UserP
     tags=[SELF, TRACKS],
     summary="Fetch self user streams.",
 )
-async def get_self_streams(user_id: UUID = Depends(token_dependency)) -> UserStreamsData:
-    streams = await database.query_user_streams(user_id)
+async def get_self_streams(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserStreamsData:
+    counted = await database.query_user_streams(user_id=user_id)
 
-    if streams is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(streams).map(user_stream_into_data).list()
+    items, count = counted
+
+    self_streams = UserStreams(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return user_streams_into_data(self_streams)
 
 
 @v1.get(
@@ -264,13 +326,22 @@ async def get_self_streams(user_id: UUID = Depends(token_dependency)) -> UserStr
     tags=[SELF, USERS],
     summary="Fetch self user friends.",
 )
-async def get_self_friends(user_id: UUID = Depends(token_dependency)) -> UserFriendsData:
-    friends = await database.query_user_friends(user_id)
+async def get_self_friends(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFriendsData:
+    counted = await database.query_user_friends(user_id=user_id)
 
-    if friends is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(friends).map(user_into_data).list()
+    items, count = counted
+
+    self_friends = UserFriends(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return user_friends_into_data(self_friends)
 
 
 @v1.get(
@@ -278,13 +349,24 @@ async def get_self_friends(user_id: UUID = Depends(token_dependency)) -> UserFri
     tags=[SELF, USERS],
     summary="Fetch self user followers.",
 )
-async def get_self_followers(user_id: UUID = Depends(token_dependency)) -> UserFollowersData:
-    followers = await database.query_user_followers(user_id)
+async def get_self_followers(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFollowersData:
+    counted = await database.query_user_followers(user_id=user_id)
 
-    if followers is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(followers).map(user_into_data).list()
+    items, count = counted
+
+    self_followers = UserFollowers(
+        items, paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_followers_into_data(self_followers)
 
 
 @v1.get(
@@ -292,10 +374,43 @@ async def get_self_followers(user_id: UUID = Depends(token_dependency)) -> UserF
     tags=[SELF, USERS],
     summary="Fetch self user following.",
 )
-async def get_self_following(user_id: UUID = Depends(token_dependency)) -> UserFollowingData:
-    following = await database.query_user_following(user_id)
+async def get_self_following(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFollowingData:
+    counted = await database.query_user_following(user_id=user_id)
 
-    if following is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return iter(following).map(user_into_data).list()
+    items, count = counted
+
+    self_following = UserFollowing(
+        items, paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_following_into_data(self_following)
+
+
+@v1.put(
+    "/me/following",
+    tags=[SELF, USERS],
+    summary="Add users to self following.",
+)
+async def add_self_following(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    await database.add_user_following(user_id=user_id, ids=ids)
+
+
+@v1.delete(
+    "/me/following",
+    tags=[SELF, USERS],
+    summary="Remove users from self following.",
+)
+async def remove_self_following(
+    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+) -> None:
+    await database.remove_user_following(user_id=user_id, ids=ids)

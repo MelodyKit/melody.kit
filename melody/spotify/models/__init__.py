@@ -9,7 +9,9 @@ from melody.spotify.models.followers import Followers, FollowersData
 from melody.spotify.models.image import Image, ImageData
 from melody.spotify.models.linked_from import LinkedFrom, LinkedFromData
 from melody.spotify.models.named import Named, NamedData
+
 # from melody.spotify.models.playlist import Playlist, PlaylistData
 from melody.spotify.models.restrictions import Restrictions, RestrictionsData
+
 # from melody.spotify.models.tokens import ...
 from melody.spotify.models.track import Track, TrackData

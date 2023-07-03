@@ -1,14 +1,23 @@
 from uuid import UUID
 
+from fastapi import Depends, Query
 from fastapi.responses import FileResponse
-from iters import iter
+from yarl import URL
 
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import database, v1
+from melody.kit.dependencies import url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.album import AlbumData, AlbumTracksData, album_into_data
-from melody.kit.models.track import partial_track_into_data
+from melody.kit.models.album import (
+    AlbumData,
+    AlbumTracks,
+    AlbumTracksData,
+    album_into_data,
+    album_tracks_into_data,
+)
+from melody.kit.models.pagination import paginate
 from melody.kit.tags import ALBUMS, LINKS, TRACKS
 from melody.kit.uri import URI
 
@@ -23,7 +32,7 @@ CAN_NOT_FIND_ALBUM = "can not find the album with ID `{}`"
     summary="Fetches the album with the given ID.",
 )
 async def get_album(album_id: UUID) -> AlbumData:
-    album = await database.query_album(album_id)
+    album = await database.query_album(album_id=album_id)
 
     if album is None:
         raise NotFound(CAN_NOT_FIND_ALBUM.format(album_id))
@@ -49,10 +58,19 @@ async def get_album_link(album_id: UUID) -> FileResponse:
     tags=[ALBUMS, TRACKS],
     summary="Fetches album tracks with the given ID.",
 )
-async def get_album_tracks(album_id: UUID) -> AlbumTracksData:
-    tracks = await database.query_album_tracks(album_id)
+async def get_album_tracks(
+    album_id: UUID,
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> AlbumTracksData:
+    counted = await database.query_album_tracks(album_id=album_id, offset=offset, limit=limit)
 
-    if tracks is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_ALBUM.format(album_id))
 
-    return iter(tracks).map(partial_track_into_data).list()
+    items, count = counted
+
+    album_tracks = AlbumTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return album_tracks_into_data(album_tracks)

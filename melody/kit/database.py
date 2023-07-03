@@ -1,47 +1,41 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple, TypeVar
 from uuid import UUID
 
 from attrs import define, field
 from edgedb import AsyncIOClient, create_async_client  # type: ignore
 from iters import iter
+from typing_aliases import IntoPath
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, KIT_ROOT
 from melody.kit.enums import PrivacyType
-from melody.kit.models.album import Album, AlbumTracks, album_from_object
-from melody.kit.models.artist import Artist, ArtistAlbums, ArtistTracks, artist_from_object
+from melody.kit.models.album import Album, album_from_object
+from melody.kit.models.artist import Artist, artist_from_object
 from melody.kit.models.base import Base, base_from_object
 from melody.kit.models.playlist import (
+    PartialPlaylist,
     Playlist,
-    PlaylistFollowers,
-    PlaylistTracks,
     partial_playlist_from_object,
     playlist_from_object,
 )
 from melody.kit.models.statistics import Statistics, statistics_from_object
-from melody.kit.models.streams import user_stream_from_object
+from melody.kit.models.streams import UserStream, user_stream_from_object
 from melody.kit.models.track import (
+    PartialTrack,
+    PositionTrack,
     Track,
     partial_track_from_object,
     position_track_from_object,
     track_from_object,
 )
-from melody.kit.models.user import (
-    User,
-    UserAlbums,
-    UserArtists,
-    UserFollowers,
-    UserFollowing,
-    UserFriends,
-    UserPlaylists,
-    UserStreams,
-    UserTracks,
-    user_from_object,
-)
+from melody.kit.models.user import User, user_from_object
 from melody.kit.models.user_info import UserInfo, user_info_from_object
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
-from melody.shared.typing import IntoPath
 
 __all__ = ("Database",)
+
+T = TypeVar("T")
+
+Counted = Tuple[List[T], int]
 
 # NOTE: any is everywhere! we need to be cautious!
 
@@ -87,8 +81,8 @@ UPDATE_PLAYLIST = load_query("playlists/update")
 
 QUERY_PLAYLIST_FOLLOWERS = load_query("playlists/followers/query")
 
-INSERT_PLAYLIST_FOLLOWER = load_query("playlists/followers/insert")
-DELETE_PLAYLIST_FOLLOWER = load_query("playlists/followers/delete")
+ADD_PLAYLIST_FOLLOWER = load_query("playlists/followers/add")
+REMOVE_PLAYLIST_FOLLOWER = load_query("playlists/followers/remove")
 
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
@@ -118,7 +112,12 @@ QUERY_USER_PLAYLISTS = load_query("users/playlists/query")
 QUERY_USER_STREAMS = load_query("users/streams/query")
 
 QUERY_USER_FOLLOWERS = load_query("users/followers/query")
+
 QUERY_USER_FOLLOWING = load_query("users/following/query")
+ADD_USER_FOLLOWING = load_query("users/following/add")
+REMOVE_USER_FOLLOWING = load_query("users/following/remove")
+
+QUERY_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/query")
 
 QUERY_USER_FRIENDS = load_query("users/friends/query")
 CHECK_USER_FRIENDS = load_query("users/friends/check")
@@ -149,21 +148,29 @@ class Database:
 
     async def query_artist_tracks(
         self, artist_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
-    ) -> Optional[ArtistTracks]:
+    ) -> Optional[Counted[Track]]:
         option = await self.client.query_single(  # type: ignore
             QUERY_ARTIST_TRACKS, artist_id=artist_id, offset=offset, limit=limit
         )
 
-        return None if option is None else iter(option.tracks).map(track_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(track_from_object).list(), option.count)
+        )
 
     async def query_artist_albums(
         self, artist_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
-    ) -> Optional[ArtistAlbums]:
+    ) -> Optional[Counted[Album]]:
         option = await self.client.query_single(  # type: ignore
             QUERY_ARTIST_ALBUMS, artist_id=artist_id, offset=offset, limit=limit
         )
 
-        return None if option is None else iter(option.albums).map(album_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(album_from_object).list(), option.count)
+        )
 
     async def delete_artist(self, artist_id: UUID) -> None:
         await self.client.query_single(DELETE_ARTIST, artist_id=artist_id)  # type: ignore
@@ -175,12 +182,16 @@ class Database:
 
     async def query_album_tracks(
         self, album_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
-    ) -> Optional[AlbumTracks]:
+    ) -> Optional[Counted[PartialTrack]]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_ALBUM_TRACKS, album_id=album_id
+            QUERY_ALBUM_TRACKS, album_id=album_id, offset=offset, limit=limit
         )
 
-        return None if option is None else iter(option.tracks).map(partial_track_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(partial_track_from_object).list(), option.count)
+        )
 
     async def delete_album(self, album_id: UUID) -> None:
         await self.client.query_single(DELETE_ALBUM, album_id=album_id)  # type: ignore
@@ -230,28 +241,27 @@ class Database:
             privacy_type=privacy_type.value,
         )
 
-    async def query_playlist_followers(self, playlist_id: UUID) -> Optional[PlaylistFollowers]:
-        option = await self.client.query_single(QUERY_PLAYLIST_FOLLOWERS, playlist_id=playlist_id)  # type: ignore
-
-        return None if option is None else iter(option.followers).map(user_from_object).list()
-
-    async def insert_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
+    async def add_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
         await self.client.query_single(  # type: ignore
-            INSERT_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
+            ADD_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
         )
 
-    async def delete_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
+    async def remove_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
         await self.client.query_single(  # type: ignore
-            DELETE_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
+            REMOVE_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
         )
 
-    async def query_playlist_tracks(self, playlist_id: UUID) -> Optional[PlaylistTracks]:
+    async def query_playlist_tracks(
+        self, playlist_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[PositionTrack]]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_PLAYLIST_TRACKS, playlist_id=playlist_id
+            QUERY_PLAYLIST_TRACKS, playlist_id=playlist_id, offset=offset, limit=limit
         )
 
         return (
-            None if option is None else iter(option.tracks).map(position_track_from_object).list()
+            None
+            if option is None
+            else (iter(option.items).map(position_track_from_object).list(), option.count)
         )
 
     async def query_user(self, user_id: UUID) -> Optional[User]:
@@ -279,10 +289,18 @@ class Database:
     async def delete_user(self, user_id: UUID) -> None:
         await self.client.query_single(DELETE_USER, user_id=user_id)  # type: ignore
 
-    async def query_user_tracks(self, user_id: UUID) -> Optional[UserTracks]:
-        option = await self.client.query_single(QUERY_USER_TRACKS, user_id=user_id)  # type: ignore
+    async def query_user_tracks(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[Track]]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_TRACKS, user_id=user_id, offset=offset, limit=limit
+        )
 
-        return None if option is None else iter(option.tracks).map(track_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(track_from_object).list(), option.count)
+        )
 
     async def save_user_tracks(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(SAVE_USER_TRACKS, user_id=user_id, ids=ids)  # type: ignore
@@ -290,10 +308,18 @@ class Database:
     async def remove_user_tracks(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(REMOVE_USER_TRACKS, user_id=user_id, ids=ids)  # type: ignore
 
-    async def query_user_artists(self, user_id: UUID) -> Optional[UserArtists]:
-        option = await self.client.query_single(QUERY_USER_ARTISTS, user_id=user_id)  # type: ignore
+    async def query_user_artists(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[Artist]]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_ARTISTS, user_id=user_id, offset=offset, limit=limit
+        )
 
-        return None if option is None else iter(option.artists).map(artist_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(artist_from_object).list(), option.count)
+        )
 
     async def save_user_artists(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(SAVE_USER_ARTISTS, user_id=user_id, ids=ids)  # type: ignore
@@ -303,10 +329,18 @@ class Database:
             REMOVE_USER_ARTISTS, user_id=user_id, ids=ids
         )
 
-    async def query_user_albums(self, user_id: UUID) -> Optional[UserAlbums]:
-        option = await self.client.query_single(QUERY_USER_ALBUMS, user_id=user_id)  # type: ignore
+    async def query_user_albums(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[Album]]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_ALBUMS, user_id=user_id, offset=offset, limit=limit
+        )
 
-        return None if option is None else iter(option.albums).map(album_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(album_from_object).list(), option.count)
+        )
 
     async def save_user_albums(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(SAVE_USER_ALBUMS, user_id=user_id, ids=ids)  # type: ignore
@@ -314,40 +348,91 @@ class Database:
     async def remove_user_albums(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(REMOVE_USER_ALBUMS, user_id=user_id, ids=ids)  # type: ignore
 
-    async def query_user_playlists(self, user_id: UUID) -> Optional[UserPlaylists]:
+    async def query_user_playlists(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[PartialPlaylist]]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_USER_PLAYLISTS, user_id=user_id
+            QUERY_USER_PLAYLISTS, user_id=user_id, offset=offset, limit=limit
         )
 
         return (
             None
             if option is None
-            else iter(option.playlists).map(partial_playlist_from_object).list()
+            else (iter(option.items).map(partial_playlist_from_object).list(), option.count)
         )
 
-    async def query_user_streams(self, user_id: UUID) -> Optional[UserStreams]:
-        option = await self.client.query_single(QUERY_USER_STREAMS, user_id=user_id)  # type: ignore
-
-        return None if option is None else iter(option.streams).map(user_stream_from_object).list()
-
-    async def query_user_followers(self, user_id: UUID) -> Optional[UserFollowers]:
+    async def query_user_followed_playlists(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[Playlist]]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_USER_FOLLOWERS, user_id=user_id
+            QUERY_USER_FOLLOWED_PLAYLISTS, user_id=user_id, offset=offset, limit=limit
         )
 
-        return None if option is None else iter(option.followers).map(user_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(playlist_from_object).list(), option.count)
+        )
 
-    async def query_user_following(self, user_id: UUID) -> Optional[UserFollowing]:
+    async def query_user_streams(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[UserStream]]:
         option = await self.client.query_single(  # type: ignore
-            QUERY_USER_FOLLOWING, user_id=user_id
+            QUERY_USER_STREAMS, user_id=user_id, offset=offset, limit=limit
         )
 
-        return None if option is None else iter(option.following).map(user_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(user_stream_from_object).list(), option.count)
+        )
 
-    async def query_user_friends(self, user_id: UUID) -> Optional[UserFriends]:
-        option = await self.client.query_single(QUERY_USER_FRIENDS, user_id=user_id)  # type: ignore
+    async def query_user_followers(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[User]]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_FOLLOWERS, user_id=user_id, offset=offset, limit=limit
+        )
 
-        return None if option is None else iter(option.friends).map(user_from_object).list()
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(user_from_object).list(), option.count)
+        )
+
+    async def query_user_following(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[User]]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_FOLLOWING, user_id=user_id, offset=offset, limit=limit
+        )
+
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(user_from_object).list(), option.count)
+        )
+
+    async def add_user_following(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(ADD_USER_FOLLOWING, user_id=user_id, ids=ids)  # type: ignore
+
+    async def remove_user_following(self, user_id: UUID, ids: List[UUID]) -> None:
+        await self.client.query_single(  # type: ignore
+            REMOVE_USER_FOLLOWING, user_id=user_id, ids=ids
+        )
+
+    async def query_user_friends(
+        self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> Optional[Counted[User]]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_FRIENDS, user_id=user_id, offset=offset, limit=limit
+        )
+
+        return (
+            None
+            if option is None
+            else (iter(option.items).map(user_from_object).list(), option.count)
+        )
 
     async def check_user_friends(self, user_id: UUID, target_id: UUID) -> bool:
         option = await self.client.query_single(  # type: ignore

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from atexit import register as register_at_exit
-from typing import Any, ClassVar, List, Optional, overload
+from typing import Any, ClassVar, List, Optional, Union, overload
 
 from async_extensions.run import run
 from attrs import define, field, frozen
 from httpx import AsyncClient, HTTPError
+from typing_aliases import Headers, Parameters, Payload
 from typing_extensions import Literal
 
 from melody.shared.constants import DEFAULT_RETRIES, NAME, PYTHON
 from melody.shared.enums import ResponseType
-from melody.shared.typing import Headers, Parameters, Payload, Response
 from melody.versions import python_version_info, version_info
 
 __all__ = ("HTTPClient", "Route")
@@ -31,6 +31,8 @@ class Route:
     def key(self) -> str:
         return key(route=self)
 
+
+Response = Union[Payload, str, bytes]
 
 USER_AGENT_LITERAL = "User-Agent"
 USER_AGENT = f"{NAME}/{version_info} ({PYTHON}/{python_version_info})"

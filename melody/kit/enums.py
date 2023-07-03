@@ -1,9 +1,9 @@
 from enum import Enum
 
+from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH  # type: ignore
 from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW  # type: ignore
 from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM  # type: ignore
 from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER  # type: ignore
-from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH  # type: ignore
 
 __all__ = ("AlbumType", "PrivacyType", "EntityType", "LogLevel")
 

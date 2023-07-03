@@ -5,28 +5,35 @@ from typing import List, Optional, Type, TypeVar, overload
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
+from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.models.entity import Entity, EntityData
+from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.constants import EMPTY
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
+    # partial playlists
     "PartialPlaylist",
     "PartialPlaylistData",
     "partial_playlist_from_object",
     "partial_playlist_from_data",
     "partial_playlist_into_data",
+    # playlists
     "Playlist",
     "PlaylistData",
-    "PlaylistTracks",
-    "PlaylistTracksData",
     "playlist_from_object",
     "playlist_from_data",
     "playlist_into_data",
+    # playlist tracks
+    "PlaylistTracks",
+    "PlaylistTracksData",
+    "playlist_tracks_from_data",
+    "playlist_tracks_into_data",
 )
 
 
@@ -223,8 +230,43 @@ def playlist_into_data(playlist: Playlist) -> PlaylistData:
 from melody.kit.models.track import PositionTrack, PositionTrackData
 from melody.kit.models.user import User, UserData, user_from_object
 
-PlaylistFollowers = List[User]
-PlaylistFollowersData = List[UserData]
 
-PlaylistTracks = List[PositionTrack]
-PlaylistTracksData = List[PositionTrackData]
+class PlaylistTracksData(Data):
+    items: List[PositionTrackData]
+    pagination: PaginationData
+
+
+PT = TypeVar("PT", bound="PlaylistTracks")
+
+
+@define()
+class PlaylistTracks:
+    items: List[PositionTrack] = field(factory=list)
+    pagination: Pagination = field(factory=Pagination)
+
+    @classmethod
+    def from_data(cls: Type[PT], data: PlaylistTracksData) -> PT:
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> PlaylistTracksData:
+        return CONVERTER.unstructure(self)  # type: ignore
+
+
+@overload
+def playlist_tracks_from_data(data: PlaylistTracksData) -> PlaylistTracks:
+    ...
+
+
+@overload
+def playlist_tracks_from_data(data: PlaylistTracksData, playlist_tracks_type: Type[PT]) -> PT:
+    ...
+
+
+def playlist_tracks_from_data(
+    data: PlaylistTracksData, playlist_tracks_type: Type[PlaylistTracks] = PlaylistTracks
+) -> PlaylistTracks:
+    return playlist_tracks_type.from_data(data)
+
+
+def playlist_tracks_into_data(playlist_tracks: PlaylistTracks) -> PlaylistTracksData:
+    return playlist_tracks.into_data()

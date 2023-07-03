@@ -5,7 +5,7 @@ from typing import Any, Generic, TypeVar
 
 from attrs import frozen
 from fastapi import status
-from funcs.typing import NormalError
+from typing_aliases import NormalError
 from typing_extensions import TypedDict as Data
 
 __all__ = (

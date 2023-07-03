@@ -43,7 +43,7 @@ UNVERIFIED = "user with ID `{}` is not verified"
     summary="Logs in the user with the given email and password.",
 )
 async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokenData:
-    user_info = await database.query_user_info_by_email(email)
+    user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
         raise NotFound(CAN_NOT_FIND_USER.format(email))
@@ -67,7 +67,7 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         if hasher.check_needs_rehash(password_hash):
             password_hash = hasher.hash(password)
 
-            await database.update_user_password_hash(user_id, password_hash)
+            await database.update_user_password_hash(user_id=user_id, password_hash=password_hash)
 
         return token_into_data(token)
 
@@ -121,7 +121,7 @@ async def register(
     password_hash = hasher.hash(password)
 
     try:
-        base = await database.insert_user(name, email, password_hash)
+        base = await database.insert_user(name=name, email=email, password_hash=password_hash)
 
     except ConstraintViolationError:
         raise Conflict(EMAIL_TAKEN.format(email)) from None
@@ -133,14 +133,16 @@ async def register(
 
         try:
             await send_email(
-                from_format(name=config.name, email=config.email.support),
-                email,
-                VERIFICATION,
-                verification_content(domain=config.domain, verification_token=verification_token),
+                author=from_format(name=config.name, email=config.email.support),
+                target=email,
+                subject=VERIFICATION,
+                content=verification_content(
+                    domain=config.domain, verification_token=verification_token
+                ),
             )
 
         except Exception:
-            await database.delete_user(user_id)
+            await database.delete_user(user_id=user_id)
             await delete_verification_token(verification_token)
 
             raise
@@ -187,7 +189,7 @@ async def verify(verification_token: str) -> None:
     if user_id is None:
         raise NotFound(VERIFICATION_NOT_FOUND)
 
-    await database.update_user_verified(user_id, True)
+    await database.update_user_verified(user_id=user_id, verified=True)
 
 
 @v1.post(
@@ -200,7 +202,7 @@ async def reset(user_id: UUID = Depends(token_dependency), password: str = Body(
 
     password_hash = hasher.hash(password)
 
-    await database.update_user_password_hash(user_id, password_hash)
+    await database.update_user_password_hash(user_id=user_id, password_hash=password_hash)
 
 
 CAN_NOT_FIND_USER_BY_EMAIL = "can not find the user with the email `{}`"
@@ -221,7 +223,7 @@ reset_content = RESET_CONTENT.format
     summary="Allows the user to reset their password via the email.",
 )
 async def forgot(email: str = Depends(email_dependency)) -> None:
-    user_info = await database.query_user_info_by_email(email)
+    user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
         raise NotFound(CAN_NOT_FIND_USER_BY_EMAIL.format(email))
@@ -229,8 +231,8 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
     token = await generate_token_for(user_info.id)
 
     await send_email(
-        from_format(name=config.name, email=config.email.support),
-        email,
-        RESET,
-        reset_content(domain=config.domain, name=TOKEN, token=token),
+        author=from_format(name=config.name, email=config.email.support),
+        target=email,
+        subject=RESET,
+        content=reset_content(domain=config.domain, name=TOKEN, token=token),
     )

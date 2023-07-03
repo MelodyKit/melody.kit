@@ -1,27 +1,45 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, Query
 from fastapi.responses import FileResponse
-from funcs.typing import Predicate
 from iters import iter
+from typing_aliases import Predicate
+from yarl import URL
 
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import optional_token_dependency
+from melody.kit.dependencies import optional_token_dependency, url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.album import album_into_data
-from melody.kit.models.artist import artist_into_data
-from melody.kit.models.playlist import PartialPlaylist, partial_playlist_into_data
-from melody.kit.models.track import track_into_data
+from melody.kit.models.pagination import paginate
+from melody.kit.models.playlist import PartialPlaylist
 from melody.kit.models.user import (
     User,
+    UserAlbums,
     UserAlbumsData,
+    UserArtists,
     UserArtistsData,
     UserData,
+    UserFollowers,
+    UserFollowersData,
+    UserFollowing,
+    UserFollowingData,
+    UserFriends,
+    UserFriendsData,
+    UserPlaylists,
     UserPlaylistsData,
+    UserTracks,
     UserTracksData,
+    user_albums_into_data,
+    user_artists_into_data,
+    user_followers_into_data,
+    user_following_into_data,
+    user_friends_into_data,
+    user_into_data,
+    user_playlists_into_data,
+    user_tracks_into_data,
 )
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
@@ -34,6 +52,9 @@ __all__ = (
     "get_user_artists",
     "get_user_albums",
     "get_user_playlists",
+    "get_user_followers",
+    "get_user_following",
+    "get_user_friends",
 )
 
 CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
@@ -46,12 +67,12 @@ CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
     summary="Fetches the user with the given ID.",
 )
 async def get_user(user_id: UUID) -> UserData:
-    user = await database.query_user(user_id)
+    user = await database.query_user(user_id=user_id)
 
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return user.into_data()
+    return user_into_data(user)
 
 
 @v1.get(
@@ -97,7 +118,7 @@ async def check_accessible(user: User, user_id_option: Optional[UUID]) -> bool:
 
     if user_privacy_type.is_friends():
         return user_id_option is not None and await database.check_user_friends(
-            user_id, user_id_option
+            user_id=user_id, target_id=user_id_option
         )
 
     return True
@@ -114,19 +135,26 @@ INACCESSIBLE_TRACKS = "the tracks of the user with ID `{}` are inaccessible"
 async def get_user_tracks(
     user_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserTracksData:
-    user = await database.query_user(user_id)
+    user = await database.query_user(user_id=user_id)
 
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
-        tracks = await database.query_user_tracks(user_id)
+        counted = await database.query_user_tracks(user_id=user_id)
 
-        if tracks is None:
+        if counted is None:
             raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-        return iter(tracks).map(track_into_data).list()
+        items, count = counted
+
+        user_tracks = UserTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+        return user_tracks_into_data(user_tracks)
 
     raise Forbidden(INACCESSIBLE_TRACKS.format(user_id))
 
@@ -142,19 +170,28 @@ INACCESSIBLE_ARTISTS = "the artists of the user with ID `{}` are inaccessible"
 async def get_user_artists(
     user_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserArtistsData:
-    user = await database.query_user(user_id)
+    user = await database.query_user(user_id=user_id)
 
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
-        artists = await database.query_user_artists(user_id)
+        counted = await database.query_user_artists(user_id=user_id)
 
-        if artists is None:
+        if counted is None:
             raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-        return iter(artists).map(artist_into_data).list()
+        items, count = counted
+
+        user_artists = UserArtists(
+            items, paginate(url=url, offset=offset, limit=limit, count=count)
+        )
+
+        return user_artists_into_data(user_artists)
 
     raise Forbidden(INACCESSIBLE_ARTISTS.format(user_id))
 
@@ -170,19 +207,26 @@ INACCESSIBLE_ALBUMS = "the albums of the user with ID `{}` are inaccessible"
 async def get_user_albums(
     user_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserAlbumsData:
-    user = await database.query_user(user_id)
+    user = await database.query_user(user_id=user_id)
 
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
-        albums = await database.query_user_albums(user_id)
+        counted = await database.query_user_albums(user_id=user_id)
 
-        if albums is None:
+        if counted is None:
             raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-        return iter(albums).map(album_into_data).list()
+        items, count = counted
+
+        user_albums = UserAlbums(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+        return user_albums_into_data(user_albums)
 
     raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
 
@@ -194,7 +238,7 @@ async def create_partial_playlist_predicate(
         friends = False
 
     else:
-        friends = await database.check_user_friends(user_id, user_id_option)
+        friends = await database.check_user_friends(user_id=user_id, target_id=user_id_option)
 
     def predicate(playlist: PartialPlaylist) -> bool:
         privacy_type = playlist.privacy_type
@@ -221,23 +265,142 @@ INACCESSIBLE_PLAYLISTS = "the playlists of the user with ID `{}` are inaccessibl
 async def get_user_playlists(
     user_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserPlaylistsData:
-    user = await database.query_user(user_id)
+    user = await database.query_user(user_id=user_id)
 
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
     if await check_accessible(user, user_id_option):
-        playlists = await database.query_user_playlists(user_id)
+        counted = await database.query_user_playlists(user_id=user_id)
 
-        if playlists is None:
+        if counted is None:
             raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-        return (
-            iter(playlists)
-            .filter(await create_partial_playlist_predicate(user_id, user_id_option))
-            .map(partial_playlist_into_data)
-            .list()
+        items, count = counted
+
+        predicate = await create_partial_playlist_predicate(user_id, user_id_option)
+
+        items = iter(items).filter(predicate).list()
+
+        user_playlists = UserPlaylists(
+            items, paginate(url=url, offset=offset, limit=limit, count=count)
         )
 
+        return user_playlists_into_data(user_playlists)
+
     raise Forbidden(INACCESSIBLE_PLAYLISTS.format(user_id))
+
+
+INACCESSIBLE_FOLLOWERS = "the followers of the user with ID `{}` are inaccessible"
+
+
+@v1.get(
+    "/users/{user_id}/followers",
+    tags=[USERS],
+    summary="Fetches user followers by the given ID.",
+)
+async def get_user_followers(
+    user_id: UUID,
+    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFollowersData:
+    user = await database.query_user(user_id=user_id)
+
+    if user is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+    if await check_accessible(user, user_id_option):
+        counted = await database.query_user_followers(user_id=user_id)
+
+        if counted is None:
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+        items, count = counted
+
+        user_followers = UserFollowers(
+            items, paginate(url=url, offset=offset, limit=limit, count=count)
+        )
+
+        return user_followers_into_data(user_followers)
+
+    raise Forbidden(INACCESSIBLE_FOLLOWERS.format(user_id))
+
+
+INACCESSIBLE_FOLLOWING = "the following of the user with ID `{}` are inaccessible"
+
+
+@v1.get(
+    "/users/{user_id}/following",
+    tags=[USERS],
+    summary="Fetches user following by the given ID.",
+)
+async def get_user_following(
+    user_id: UUID,
+    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFollowingData:
+    user = await database.query_user(user_id=user_id)
+
+    if user is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+    if await check_accessible(user, user_id_option):
+        counted = await database.query_user_following(user_id=user_id)
+
+        if counted is None:
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+        items, count = counted
+
+        user_following = UserFollowing(
+            items, paginate(url=url, offset=offset, limit=limit, count=count)
+        )
+
+        return user_following_into_data(user_following)
+
+    raise Forbidden(INACCESSIBLE_FOLLOWING.format(user_id))
+
+
+INACCESSIBLE_FRIENDS = "the friends of the user with ID `{}` are inaccessible"
+
+
+@v1.get(
+    "/users/{user_id}/friends",
+    tags=[USERS],
+    summary="Fetches user friends by the given ID.",
+)
+async def get_user_friends(
+    user_id: UUID,
+    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFriendsData:
+    user = await database.query_user(user_id=user_id)
+
+    if user is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+    if await check_accessible(user, user_id_option):
+        counted = await database.query_user_friends(user_id=user_id)
+
+        if counted is None:
+            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+        items, count = counted
+
+        user_friends = UserFriends(
+            items, paginate(url=url, offset=offset, limit=limit, count=count)
+        )
+
+        return user_friends_into_data(user_friends)
+
+    raise Forbidden(INACCESSIBLE_FRIENDS.format(user_id))

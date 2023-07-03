@@ -6,6 +6,7 @@ from attrs import define
 from email_validator import EmailNotValidError, validate_email  # type: ignore
 from fastapi import Body
 from fastapi.requests import Request
+from yarl import URL
 
 from melody.kit.errors import (
     AuthenticationError,
@@ -24,6 +25,7 @@ __all__ = (
     "optional_token_dependency",
     "email_dependency",
     "email_deliverability_dependency",
+    "url_dependency",
 )
 
 
@@ -97,3 +99,7 @@ async def email_deliverability_dependency(email: str = Body()) -> str:
         raise ValidationError(INVALID_EMAIL.format(email))
 
     return result.email  # type: ignore
+
+
+def url_dependency(request: Request) -> URL:
+    return URL(str(request.url))

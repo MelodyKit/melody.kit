@@ -3,24 +3,33 @@ from typing import List, Optional, Type, TypeVar, overload
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
+from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType
 from melody.kit.models.entity import Entity, EntityData
+from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
+    # artists
     "Artist",
     "ArtistData",
-    "ArtistTracks",
-    "ArtistTracksData",
-    "ArtistAlbums",
-    "ArtistAlbumsData",
     "artist_from_object",
     "artist_from_data",
     "artist_into_data",
+    # artist tracks
+    "ArtistTracks",
+    "ArtistTracksData",
+    "artist_tracks_from_data",
+    "artist_tracks_into_data",
+    # artist albums
+    "ArtistAlbums",
+    "ArtistAlbumsData",
+    "artist_albums_from_data",
+    "artist_albums_into_data",
 )
 
 
@@ -31,6 +40,9 @@ class ArtistData(EntityData):
 
     stream_count: int
     stream_duration_ms: int
+
+    track_count: int
+    album_count: int
 
     genres: List[str]
 
@@ -117,8 +129,84 @@ def artist_into_data(artist: Artist) -> ArtistData:
 from melody.kit.models.album import Album, AlbumData
 from melody.kit.models.track import Track, TrackData
 
-ArtistTracks = List[Track]
-ArtistTracksData = List[TrackData]
 
-ArtistAlbums = List[Album]
-ArtistAlbumsData = List[AlbumData]
+class ArtistTracksData(Data):
+    items: List[TrackData]
+    pagination: PaginationData
+
+
+AT = TypeVar("AT", bound="ArtistTracks")
+
+
+@define()
+class ArtistTracks:
+    items: List[Track] = field(factory=list)
+    pagination: Pagination = field(factory=Pagination)
+
+    @classmethod
+    def from_data(cls: Type[AT], data: ArtistTracksData) -> AT:
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> ArtistTracksData:
+        return CONVERTER.unstructure(self)  # type: ignore
+
+
+@overload
+def artist_tracks_from_data(data: ArtistTracksData) -> ArtistTracks:
+    ...
+
+
+@overload
+def artist_tracks_from_data(data: ArtistTracksData, artist_tracks_type: Type[AT]) -> AT:
+    ...
+
+
+def artist_tracks_from_data(
+    data: ArtistTracksData, artist_tracks_type: Type[ArtistTracks] = ArtistTracks
+) -> ArtistTracks:
+    return artist_tracks_type.from_data(data)
+
+
+def artist_tracks_into_data(artist_tracks: ArtistTracks) -> ArtistTracksData:
+    return artist_tracks.into_data()
+
+
+class ArtistAlbumsData(Data):
+    items: List[AlbumData]
+    pagination: PaginationData
+
+
+AA = TypeVar("AA", bound="ArtistAlbums")
+
+
+@define()
+class ArtistAlbums:
+    items: List[Album] = field(factory=list)
+    pagination: Pagination = field(factory=Pagination)
+
+    @classmethod
+    def from_data(cls: Type[AA], data: ArtistAlbumsData) -> AA:
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> ArtistAlbumsData:
+        return CONVERTER.unstructure(self)  # type: ignore
+
+
+@overload
+def artist_albums_from_data(data: ArtistAlbumsData) -> ArtistAlbums:
+    ...
+
+
+@overload
+def artist_albums_from_data(data: ArtistAlbumsData, artist_albums_type: Type[AA]) -> AA:
+    ...
+
+
+def artist_albums_from_data(
+    data: ArtistAlbumsData, artist_albums_type: Type[ArtistAlbums] = ArtistAlbums
+) -> ArtistAlbums:
+    return artist_albums_type.from_data(data)
+
+
+def artist_albums_into_data(artist_albums: ArtistAlbums) -> ArtistAlbumsData:
+    return artist_albums.into_data()

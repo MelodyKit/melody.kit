@@ -1,10 +1,34 @@
-select Artist {
-    tracks: {
-        id,
-        name,
-        album: {
+with artist := (
+    select Artist {
+        tracks: {
             id,
             name,
+            album: {
+                id,
+                name,
+                artists: {
+                    id,
+                    name,
+                    follower_count,
+                    stream_count,
+                    stream_duration_ms,
+                    genres,
+                    created_at,
+                    spotify_id,
+                    apple_music_id,
+                    yandex_music_id
+                },
+                album_type,
+                release_date,
+                duration_ms,
+                track_count,
+                label,
+                genres,
+                created_at,
+                spotify_id,
+                apple_music_id,
+                yandex_music_id
+            },
             artists: {
                 id,
                 name,
@@ -17,21 +41,8 @@ select Artist {
                 apple_music_id,
                 yandex_music_id
             },
-            album_type,
-            release_date,
+            explicit,
             duration_ms,
-            track_count,
-            label,
-            genres,
-            created_at,
-            spotify_id,
-            apple_music_id,
-            yandex_music_id
-        },
-        artists: {
-            id,
-            name,
-            follower_count,
             stream_count,
             stream_duration_ms,
             genres,
@@ -39,15 +50,12 @@ select Artist {
             spotify_id,
             apple_music_id,
             yandex_music_id
-        },
-        explicit,
-        duration_ms,
-        stream_count,
-        stream_duration_ms,
-        genres,
-        created_at,
-        spotify_id,
-        apple_music_id,
-        yandex_music_id
-    } order by .stream_count desc offset <expression>$offset limit <expression>$limit
-} filter .id = <uuid>$artist_id;
+        } order by .stream_count desc offset <expression>$offset limit <expression>$limit,
+        track_count
+    } filter .id = <uuid>$artist_id
+)
+
+select {
+    items := artist.tracks,
+    count := artist.track_count
+}

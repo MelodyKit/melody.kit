@@ -6,10 +6,12 @@ from attrs import define, field
 from edgedb import Object  # type: ignore
 from iters import iter
 from pendulum import Date, DateTime
+from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import AlbumType, EntityType
 from melody.kit.models.entity import Entity, EntityData
+from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import (
@@ -20,13 +22,17 @@ from melody.shared.date_time import (
 )
 
 __all__ = (
+    # albums
     "Album",
     "AlbumData",
-    "AlbumTracks",
-    "AlbumTracksData",
     "album_from_object",
     "album_from_data",
     "album_into_data",
+    # album tracks
+    "AlbumTracks",
+    "AlbumTracksData",
+    "album_tracks_from_data",
+    "album_tracks_into_data",
 )
 
 
@@ -75,6 +81,9 @@ class Album(Entity):
 
     @uri.default
     def default_uri(self) -> URI:
+        return self.compute_uri()
+
+    def compute_uri(self) -> URI:
         return URI(type=EntityType.ALBUM, id=self.id)
 
     @classmethod
@@ -139,5 +148,42 @@ from melody.kit.models.artist import Artist, ArtistData, artist_from_object
 from melody.kit.models.track import PartialTrack, PartialTrackData
 
 
-AlbumTracks = List[PartialTrack]
-AlbumTracksData = List[PartialTrackData]
+class AlbumTracksData(Data):
+    items: List[PartialTrackData]
+    pagination: PaginationData
+
+
+AT = TypeVar("AT", bound="AlbumTracks")
+
+
+@define()
+class AlbumTracks:
+    items: List[PartialTrack] = field(factory=list)
+    pagination: Pagination = field(factory=Pagination)
+
+    @classmethod
+    def from_data(cls: Type[AT], data: AlbumTracksData) -> AT:
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> AlbumTracksData:
+        return CONVERTER.unstructure(self)  # type: ignore
+
+
+@overload
+def album_tracks_from_data(data: AlbumTracksData) -> AlbumTracks:
+    ...
+
+
+@overload
+def album_tracks_from_data(data: AlbumTracksData, album_tracks_type: Type[AT]) -> AT:
+    ...
+
+
+def album_tracks_from_data(
+    data: AlbumTracksData, album_tracks_type: Type[AlbumTracks] = AlbumTracks
+) -> AlbumTracks:
+    return album_tracks_type.from_data(data)
+
+
+def album_tracks_into_data(album_tracks: AlbumTracks) -> AlbumTracksData:
+    return album_tracks.into_data()

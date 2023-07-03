@@ -77,6 +77,9 @@ module default {
 
         multi link tracks := .<artists[is Track];
         multi link albums := .<artists[is Album];
+
+        property track_count := count(.tracks);  # used in queries
+        property album_count := count(.albums);  # used in queries
     }
 
     type Album extending Entity, Genres {
@@ -145,14 +148,25 @@ module default {
 
         multi link friends := (select .following filter .following in .followers);
 
+        property followee_count := count(.following);  # used in queries
+
         property follower_count := count(.followers);
 
-        multi link following_playlists := .<followers[is Playlist];
+        property friend_count := count(.friends);  # used in queries
+
+        multi link followed_playlists := .<followers[is Playlist];
+
+        property followed_playlist_count := count(.followed_playlists);  # used in queries
 
         multi link streams := .<user[is Stream];
 
         property stream_count := count(.streams);
         property stream_duration_ms := sum(.streams.duration_ms);
+
+        property track_count := count(.tracks);  # used in queries
+        property album_count := count(.albums);  # used in queries
+        property artist_count := count(.artists);  # used in queries
+        property playlist_count := count(.playlists);  # used in queries
 
         required property verified -> bool {
             default := false;

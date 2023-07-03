@@ -1,23 +1,27 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Body, Depends, File, UploadFile
+from fastapi import Body, Depends, File, Query, UploadFile
+from fastapi.requests import Request
 from fastapi.responses import FileResponse
-from iters import iter
+from yarl import URL
 
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_token_dependency, token_dependency
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
 from melody.kit.models.base import BaseData, base_into_data
+from melody.kit.models.pagination import paginate
 from melody.kit.models.playlist import (
     Playlist,
     PlaylistData,
+    PlaylistTracks,
     PlaylistTracksData,
     playlist_into_data,
+    playlist_tracks_into_data,
 )
-from melody.kit.models.track import position_track_into_data
 from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
 from melody.shared.constants import EMPTY, IMAGE_TYPE
@@ -60,7 +64,7 @@ async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -
 
     if friends:
         return user_id_option is not None and await database.check_user_friends(
-            playlist_user_id, user_id_option
+            user_id=playlist_user_id, target_id=user_id_option
         )
 
     return True
@@ -93,7 +97,7 @@ async def get_playlist(
     playlist_id: UUID,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
 ) -> PlaylistData:
-    playlist = await database.query_playlist(playlist_id)
+    playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
@@ -147,7 +151,7 @@ async def update_playlist(
     summary="Deletes the playlist with the given ID.",
 )
 async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
-    playlist = await database.query_playlist(playlist_id)
+    playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
@@ -155,7 +159,7 @@ async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_depen
     if playlist.user.id != user_id:
         raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
-    await database.delete_playlist(playlist_id)
+    await database.delete_playlist(playlist_id=playlist_id)
 
 
 @v1.get(
@@ -202,7 +206,7 @@ async def change_playlist_image(
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
 
-    playlist = await database.query_playlist(playlist_id)
+    playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
@@ -223,20 +227,29 @@ async def change_playlist_image(
 )
 async def get_playlist_tracks(
     playlist_id: UUID,
+    request: Request,
     user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> PlaylistTracksData:
-    playlist = await database.query_playlist(playlist_id)
+    playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
     if await check_accessible(playlist, user_id_option):
-        tracks = await database.query_playlist_tracks(playlist_id)
+        counted = await database.query_playlist_tracks(playlist_id=playlist_id)
 
-        if tracks is None:
+        if counted is None:
             raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
-        return iter(tracks).map(position_track_into_data).list()
+        items, count = counted
+
+        base = URL(str(request.url))
+
+        playlist_tracks = PlaylistTracks(items, paginate(base, count, offset, limit))
+
+        return playlist_tracks_into_data(playlist_tracks)
 
     raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
@@ -247,7 +260,7 @@ async def get_playlist_tracks(
     summary="Follows the playlist with the given ID.",
 )
 async def follow_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
-    await database.insert_playlist_follower(playlist_id, user_id)
+    await database.add_playlist_follower(playlist_id=playlist_id, user_id=user_id)
 
 
 @v1.delete(
@@ -256,4 +269,4 @@ async def follow_playlist(playlist_id: UUID, user_id: UUID = Depends(token_depen
     summary="Unfollows the playlist with the given ID.",
 )
 async def unfollow_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
-    await database.delete_playlist_follower(playlist_id, user_id)
+    await database.remove_playlist_follower(playlist_id=playlist_id, user_id=user_id)

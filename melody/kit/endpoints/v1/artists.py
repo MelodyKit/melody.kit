@@ -1,28 +1,26 @@
 from uuid import UUID
 
-from fastapi import Query
+from fastapi import Depends, Query
 from fastapi.responses import FileResponse
-from iters import iter
+from yarl import URL
 
-from melody.kit.constants import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    MAX_LIMIT,
-    MIN_LIMIT,
-    MIN_OFFSET,
-)
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import database, v1
+from melody.kit.dependencies import url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.album import album_into_data
 from melody.kit.models.artist import (
+    ArtistAlbums,
     ArtistAlbumsData,
     ArtistData,
+    ArtistTracks,
     ArtistTracksData,
+    artist_albums_into_data,
     artist_into_data,
+    artist_tracks_into_data,
 )
-from melody.kit.models.track import track_into_data
+from melody.kit.models.pagination import paginate
 from melody.kit.tags import ALBUMS, ARTISTS, LINKS, TRACKS
 from melody.kit.uri import URI
 
@@ -37,7 +35,7 @@ CAN_NOT_FIND_ARTIST = "can not find the artist with ID `{}`"
     summary="Fetches the artist with the given ID.",
 )
 async def get_artist(artist_id: UUID) -> ArtistData:
-    artist = await database.query_artist(artist_id)
+    artist = await database.query_artist(artist_id=artist_id)
 
     if artist is None:
         raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
@@ -59,36 +57,46 @@ async def get_artist_link(artist_id: UUID) -> FileResponse:
 
 
 @v1.get(
-    "/artists/{artist_id}/albums",
-    tags=[ARTISTS, ALBUMS],
-    summary="Fetches artist albums with the given ID.",
-)
-async def get_artist_albums(
-    artist_id: UUID,
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
-) -> ArtistAlbumsData:
-    albums = await database.query_artist_albums(artist_id, offset=offset, limit=limit)
-
-    if albums is None:
-        raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
-
-    return iter(albums).map(album_into_data).list()
-
-
-@v1.get(
     "/artists/{artist_id}/tracks",
     tags=[ARTISTS, TRACKS],
     summary="Fetches artist tracks with the given ID.",
 )
 async def get_artist_tracks(
     artist_id: UUID,
+    url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> ArtistTracksData:
-    tracks = await database.query_artist_tracks(artist_id, offset=offset, limit=limit)
+    counted = await database.query_artist_tracks(artist_id=artist_id, offset=offset, limit=limit)
 
-    if tracks is None:
+    if counted is None:
         raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
 
-    return iter(tracks).map(track_into_data).list()
+    items, count = counted
+
+    artist_tracks = ArtistTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return artist_tracks_into_data(artist_tracks)
+
+
+@v1.get(
+    "/artists/{artist_id}/albums",
+    tags=[ARTISTS, ALBUMS],
+    summary="Fetches artist albums with the given ID.",
+)
+async def get_artist_albums(
+    artist_id: UUID,
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> ArtistAlbumsData:
+    counted = await database.query_artist_albums(artist_id=artist_id, offset=offset, limit=limit)
+
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
+
+    items, count = counted
+
+    artist_albums = ArtistAlbums(items, paginate(url=url, offset=offset, limit=limit, count=count))
+
+    return artist_albums_into_data(artist_albums)

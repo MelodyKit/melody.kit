@@ -14,21 +14,25 @@ from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
+    # base streams
     "BaseStream",
     "BaseStreamData",
     "base_stream_from_object",
     "base_stream_from_data",
     "base_stream_into_data",
+    # user streams
     "UserStream",
     "UserStreamData",
     "user_stream_from_object",
     "user_stream_from_data",
     "user_stream_into_data",
+    # track streams
     "TrackStream",
     "TrackStreamData",
     "track_stream_from_object",
     "track_stream_from_data",
     "track_stream_into_data",
+    # streams
     "Stream",
     "StreamData",
     "stream_from_object",

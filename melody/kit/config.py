@@ -3,13 +3,13 @@ from typing import Any, Type, TypeVar, cast
 
 from attrs import define
 from toml import loads as load_string
+from typing_aliases import IntoPath, StringDict
 from wraps.option import Option
 from wraps.wraps import wrap_optional
 
 from melody.kit.constants import DEFAULT_IGNORE_SENSITIVE
 from melody.kit.enums import ErrorCorrection, LogLevel
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, EMPTY, HOME, ROOT
-from melody.shared.typing import IntoPath, StringDict
 
 __all__ = ("Config", "ConfigData", "get_config", "get_default_config")
 
