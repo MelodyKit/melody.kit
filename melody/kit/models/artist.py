@@ -41,9 +41,6 @@ class ArtistData(EntityData):
     stream_count: int
     stream_duration_ms: int
 
-    track_count: int
-    album_count: int
-
     genres: List[str]
 
 
