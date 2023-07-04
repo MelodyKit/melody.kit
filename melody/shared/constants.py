@@ -43,15 +43,12 @@ __all__ = (
     "MELODY_PURPLE",
     "MELODY_BLUE",
     "MELODY_COLORS",
+    "BYTE",
+    "ZERO",
     # defaults
     "DEFAULT_RETRIES",
     "DEFAULT_ENCODING",
     "DEFAULT_ERRORS",
-    # colors
-    "MELODY_PURPLE",
-    "MELODY_BLUE",
-    "BYTE",
-    "ZERO",
 )
 
 # paths

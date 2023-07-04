@@ -4,7 +4,7 @@ from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
-from iters import iter
+from iters.iters import iter
 from pendulum import Date, DateTime
 from typing_extensions import TypedDict as Data
 

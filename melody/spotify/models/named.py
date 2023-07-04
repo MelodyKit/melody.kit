@@ -1,9 +1,8 @@
 from typing import Type, TypeVar
 
 from attrs import define
-from cattrs.gen import make_dict_unstructure_fn, override
 
-from melody.shared.converter import CONVERTER
+from melody.shared.converter import CONVERTER, register_unstructure_hook_omit_client
 from melody.spotify.models.entity import Entity, EntityData
 
 __all__ = ("Named", "NamedData")
@@ -16,6 +15,7 @@ class NamedData(EntityData):
 N = TypeVar("N", bound="Named")
 
 
+@register_unstructure_hook_omit_client
 @define()
 class Named(Entity):
     name: str
@@ -26,9 +26,3 @@ class Named(Entity):
 
     def into_data(self) -> NamedData:
         return CONVERTER.unstructure(self)  # type: ignore
-
-
-CONVERTER.register_unstructure_hook(
-    Named,
-    make_dict_unstructure_fn(Named, CONVERTER, client_unchecked=override(omit=True)),
-)

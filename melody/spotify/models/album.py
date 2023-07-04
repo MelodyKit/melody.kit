@@ -1,10 +1,9 @@
 from typing import List
 
 from attrs import define
-from cattrs.gen import make_dict_unstructure_fn, override
 from pendulum import Date
 
-from melody.shared.converter import CONVERTER
+from melody.shared.converter import CONVERTER, register_unstructure_hook_omit_client
 from melody.spotify.enums import AlbumType, DatePrecision
 from melody.spotify.models.artist import Artist, ArtistData
 from melody.spotify.models.copyright import Copyright, CopyrightData
@@ -34,6 +33,7 @@ class AlbumData(NamedData):
     artists: List[ArtistData]
 
 
+@register_unstructure_hook_omit_client
 @define()
 class Album(Named):
     album_type: AlbumType
@@ -50,8 +50,3 @@ class Album(Named):
     label: str
     popularity: int
     artists: List[Artist]
-
-
-CONVERTER.register_unstructure_hook(
-    Album, make_dict_unstructure_fn(Album, CONVERTER, client_unchecked=override(omit=True))
-)

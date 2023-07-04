@@ -1,9 +1,14 @@
 from typing import List, Optional, Type, TypeVar, overload
 
 from attrs import define
-from cattrs.gen import make_dict_structure_fn, make_dict_unstructure_fn, override
+from cattrs.gen import override
 
-from melody.shared.converter import CONVERTER
+from melody.shared.converter import (
+    CONVERTER,
+    register_structure_hook,
+    register_unstructure_hook,
+    register_unstructure_hook_omit_client,
+)
 from melody.spotify.models.album import Album, AlbumData
 from melody.spotify.models.artist import Artist, ArtistData
 from melody.spotify.models.external_ids import ExternalIDs, ExternalIDsData
@@ -33,9 +38,27 @@ class TrackData(NamedData):
     is_local: bool
 
 
+IS_PLAYABLE = "is_playable"
+IS_LOCAL = "is_local"
+
+
+register_unstructure_hook_rename = register_unstructure_hook(
+    playable=override(rename=IS_PLAYABLE),
+    local=override(rename=IS_LOCAL),
+)
+
+register_structure_hook_rename = register_structure_hook(
+    playable=override(rename=IS_PLAYABLE),
+    local=override(rename=IS_LOCAL),
+)
+
+
 T = TypeVar("T", bound="Track")
 
 
+@register_unstructure_hook_omit_client
+@register_unstructure_hook_rename
+@register_structure_hook_rename
 @define()
 class Track(Named):
     album: Album
@@ -84,29 +107,3 @@ def track_from_data(data: TrackData, track_type: Type[Track] = Track) -> Track:
 
 def track_into_data(track: Track) -> TrackData:
     return track.into_data()
-
-
-IS_PLAYABLE = "is_playable"
-IS_LOCAL = "is_local"
-
-
-CONVERTER.register_unstructure_hook(
-    Track,
-    make_dict_unstructure_fn(
-        Track,
-        CONVERTER,
-        client_unchecked=override(omit=True),
-        playable=override(rename=IS_PLAYABLE),
-        local=override(rename=IS_LOCAL),
-    ),
-)
-
-CONVERTER.register_structure_hook(
-    Track,
-    make_dict_structure_fn(
-        Track,
-        CONVERTER,
-        playable=override(rename=IS_PLAYABLE),
-        local=override(rename=IS_LOCAL),
-    ),
-)

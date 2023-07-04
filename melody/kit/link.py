@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from async_extensions import run_blocking_in_thread
+from async_extensions.blocking import run_blocking_in_thread
 from colors import Color
 from qrcode import QRCode  # type: ignore
 from qrcode.image.styledpil import StyledPilImage as StyledPILImage  # type: ignore

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from attrs import define, field
 from edgedb import AsyncIOClient, create_async_client  # type: ignore
-from iters import iter
+from iters.iters import iter
 from typing_aliases import IntoPath
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, KIT_ROOT

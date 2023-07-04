@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar
 
 from attrs import define, field
-from cattrs.gen import make_dict_unstructure_fn, override
 
-from melody.shared.converter import CONVERTER
+from melody.shared.converter import CONVERTER, register_unstructure_hook_omit_client
 from melody.spotify.enums import EntityType
 from melody.spotify.models.base import Base, BaseData
 from melody.spotify.uri import URI
@@ -73,8 +72,3 @@ class Entity(Base):
 
 if not TYPE_CHECKING:
     Client = Any
-
-
-CONVERTER.register_unstructure_hook(
-    Entity, make_dict_unstructure_fn(Entity, CONVERTER, client_unchecked=override(omit=True))
-)

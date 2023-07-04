@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import Depends, Query
 from fastapi.responses import FileResponse
-from iters import iter
+from iters.iters import iter
 from typing_aliases import Predicate
 from yarl import URL
 
