@@ -79,8 +79,6 @@ DELETE_PLAYLIST = load_query("playlists/delete")
 CHECK_PLAYLIST = load_query("playlists/check")
 UPDATE_PLAYLIST = load_query("playlists/update")
 
-QUERY_PLAYLIST_FOLLOWERS = load_query("playlists/followers/query")
-
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
 # users
@@ -155,7 +153,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(track_from_object).list(), option.count)
+            else (iter(option.tracks).map(track_from_object).list(), option.track_count)
         )
 
     async def query_artist_albums(
@@ -168,7 +166,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(album_from_object).list(), option.count)
+            else (iter(option.albums).map(album_from_object).list(), option.album_count)
         )
 
     async def delete_artist(self, artist_id: UUID) -> None:
@@ -189,7 +187,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(partial_track_from_object).list(), option.count)
+            else (iter(option.tracks).map(partial_track_from_object).list(), option.track_count)
         )
 
     async def delete_album(self, album_id: UUID) -> None:
@@ -260,7 +258,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(position_track_from_object).list(), option.count)
+            else (iter(option.tracks).map(position_track_from_object).list(), option.track_count)
         )
 
     async def query_user(self, user_id: UUID) -> Optional[User]:
@@ -298,7 +296,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(track_from_object).list(), option.count)
+            else (iter(option.tracks).map(track_from_object).list(), option.track_count)
         )
 
     async def save_user_tracks(self, user_id: UUID, ids: List[UUID]) -> None:
@@ -317,7 +315,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(artist_from_object).list(), option.count)
+            else (iter(option.artists).map(artist_from_object).list(), option.artist_count)
         )
 
     async def save_user_artists(self, user_id: UUID, ids: List[UUID]) -> None:
@@ -338,7 +336,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(album_from_object).list(), option.count)
+            else (iter(option.albums).map(album_from_object).list(), option.album_count)
         )
 
     async def save_user_albums(self, user_id: UUID, ids: List[UUID]) -> None:
@@ -357,7 +355,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(partial_playlist_from_object).list(), option.count)
+            else (iter(option.playlists).map(partial_playlist_from_object).list(), option.playlist_count)
         )
 
     async def query_user_followed_playlists(
@@ -370,7 +368,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(playlist_from_object).list(), option.count)
+            else (iter(option.followed_playlists).map(playlist_from_object).list(), option.followed_playlist_count)
         )
 
     async def query_user_streams(
@@ -383,7 +381,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(user_stream_from_object).list(), option.count)
+            else (iter(option.streams).map(user_stream_from_object).list(), option.stream_count)
         )
 
     async def query_user_followers(
@@ -396,7 +394,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(user_from_object).list(), option.count)
+            else (iter(option.followers).map(user_from_object).list(), option.follower_count)
         )
 
     async def query_user_following(
@@ -409,7 +407,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(user_from_object).list(), option.count)
+            else (iter(option.following).map(user_from_object).list(), option.following_count)
         )
 
     async def add_user_following(self, user_id: UUID, ids: List[UUID]) -> None:
@@ -430,7 +428,7 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.items).map(user_from_object).list(), option.count)
+            else (iter(option.friends).map(user_from_object).list(), option.friend_count)
         )
 
     async def check_user_friends(self, user_id: UUID, target_id: UUID) -> bool:
