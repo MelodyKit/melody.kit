@@ -1,14 +1,22 @@
-select User {
-    followers: {
-        id,
-        name,
-        follower_count,
-        stream_count,
-        stream_duration_ms,
-        privacy_type,
-        created_at,
-        spotify_id,
-        apple_music_id,
-        yandex_music_id
-    } order by @linked_at desc offset <expression>$offset limit <expression>$limit
-} filter .id = <uuid>$user_id;
+with user := (
+    select User {
+        followers: {
+            id,
+            name,
+            follower_count,
+            stream_count,
+            stream_duration_ms,
+            privacy_type,
+            created_at,
+            spotify_id,
+            apple_music_id,
+            yandex_music_id
+        } order by @linked_at desc offset <expression>$offset limit <expression>$limit,
+        follower_count
+    } filter .id = <uuid>$user_id
+)
+
+select {
+    items := user.followers,
+    count := user.follower_count
+}

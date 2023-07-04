@@ -81,9 +81,6 @@ UPDATE_PLAYLIST = load_query("playlists/update")
 
 QUERY_PLAYLIST_FOLLOWERS = load_query("playlists/followers/query")
 
-ADD_PLAYLIST_FOLLOWER = load_query("playlists/followers/add")
-REMOVE_PLAYLIST_FOLLOWER = load_query("playlists/followers/remove")
-
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
 # users
@@ -118,6 +115,8 @@ ADD_USER_FOLLOWING = load_query("users/following/add")
 REMOVE_USER_FOLLOWING = load_query("users/following/remove")
 
 QUERY_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/query")
+ADD_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/add")
+REMOVE_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/remove")
 
 QUERY_USER_FRIENDS = load_query("users/friends/query")
 CHECK_USER_FRIENDS = load_query("users/friends/check")
@@ -241,14 +240,14 @@ class Database:
             privacy_type=privacy_type.value,
         )
 
-    async def add_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
+    async def add_user_followed_playlists(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(  # type: ignore
-            ADD_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
+            ADD_USER_FOLLOWED_PLAYLISTS, user_id=user_id, ids=ids
         )
 
-    async def remove_playlist_follower(self, playlist_id: UUID, user_id: UUID) -> None:
+    async def remove_user_followed_playlists(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(  # type: ignore
-            REMOVE_PLAYLIST_FOLLOWER, playlist_id=playlist_id, user_id=user_id
+            REMOVE_USER_FOLLOWED_PLAYLISTS, user_id=user_id, ids=ids
         )
 
     async def query_playlist_tracks(

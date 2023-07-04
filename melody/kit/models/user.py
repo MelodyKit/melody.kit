@@ -534,6 +534,6 @@ def user_followed_playlists_from_data(
 
 
 def user_followed_playlists_into_data(
-    user_followed_playlists: UserFollowedPlaylists
+    user_followed_playlists: UserFollowedPlaylists,
 ) -> UserFollowedPlaylistsData:
     return user_followed_playlists.into_data()

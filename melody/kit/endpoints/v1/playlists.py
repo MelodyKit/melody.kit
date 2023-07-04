@@ -22,7 +22,7 @@ from melody.kit.models.playlist import (
     playlist_into_data,
     playlist_tracks_into_data,
 )
-from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
+from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
 from melody.shared.constants import EMPTY, IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
@@ -36,8 +36,6 @@ __all__ = (
     "get_playlist_image",
     "change_playlist_image",
     "get_playlist_tracks",
-    "follow_playlist",
-    "unfollow_playlist",
 )
 
 CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
@@ -252,21 +250,3 @@ async def get_playlist_tracks(
         return playlist_tracks_into_data(playlist_tracks)
 
     raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
-
-
-@v1.put(
-    "/playlists/{playlist_id}/followers",
-    tags=[PLAYLISTS, USERS],
-    summary="Follows the playlist with the given ID.",
-)
-async def follow_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
-    await database.add_playlist_follower(playlist_id=playlist_id, user_id=user_id)
-
-
-@v1.delete(
-    "/playlists/{playlist_id}/followers",
-    tags=[PLAYLISTS, USERS],
-    summary="Unfollows the playlist with the given ID.",
-)
-async def unfollow_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
-    await database.remove_playlist_follower(playlist_id=playlist_id, user_id=user_id)

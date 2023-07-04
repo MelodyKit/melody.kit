@@ -104,7 +104,7 @@ module default {
             on target delete delete source;
         };
 
-        multi link followers extending with_linked_at -> User;
+        multi link followers := .<followed_playlists[is User];
 
         property follower_count := count(.followers);
 
@@ -148,13 +148,13 @@ module default {
 
         multi link friends := (select .following filter .following in .followers);
 
-        property followee_count := count(.following);  # used in queries
+        property following_count := count(.following);  # used in queries
 
         property follower_count := count(.followers);
 
         property friend_count := count(.friends);  # used in queries
 
-        multi link followed_playlists := .<followers[is Playlist];
+        multi link followed_playlists extending with_linked_at -> Playlist;
 
         property followed_playlist_count := count(.followed_playlists);  # used in queries
 

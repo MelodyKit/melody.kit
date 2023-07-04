@@ -18,6 +18,8 @@ from melody.kit.models.user import (
     UserArtists,
     UserArtistsData,
     UserData,
+    UserFollowedPlaylists,
+    UserFollowedPlaylistsData,
     UserFollowers,
     UserFollowersData,
     UserFollowing,
@@ -32,6 +34,7 @@ from melody.kit.models.user import (
     UserTracksData,
     user_albums_into_data,
     user_artists_into_data,
+    user_followed_playlists_into_data,
     user_followers_into_data,
     user_following_into_data,
     user_friends_into_data,
@@ -414,3 +417,52 @@ async def remove_self_following(
     user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.remove_user_following(user_id=user_id, ids=ids)
+
+
+@v1.get(
+    "/me/playlists/followed",
+    tags=[SELF, PLAYLISTS],
+    summary="Fetch self user followed playlists.",
+)
+async def get_self_followed_playlists(
+    user_id: UUID = Depends(token_dependency),
+    url: URL = Depends(url_dependency),
+    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
+    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+) -> UserFollowedPlaylistsData:
+    counted = await database.query_user_followed_playlists(user_id=user_id)
+
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+    items, count = counted
+
+    self_followed_playlists = UserFollowedPlaylists(
+        items, paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_followed_playlists_into_data(self_followed_playlists)
+
+
+@v1.put(
+    "/me/playlists/followed",
+    tags=[SELF, PLAYLISTS],
+    summary="Add playlists to self followed playlists.",
+)
+async def add_self_followed_playlists(
+    user_id: UUID = Depends(token_dependency),
+    ids: List[UUID] = Body(),
+) -> None:
+    await database.add_user_followed_playlists(user_id=user_id, ids=ids)
+
+
+@v1.delete(
+    "/me/playlists/followed",
+    tags=[SELF, PLAYLISTS],
+    summary="Remove playlists from self followed playlists.",
+)
+async def remove_self_followed_playlists(
+    user_id: UUID = Depends(token_dependency),
+    ids: List[UUID] = Body(),
+) -> None:
+    await database.remove_user_followed_playlists(user_id=user_id, ids=ids)
