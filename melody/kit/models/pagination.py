@@ -35,11 +35,11 @@ class Pagination:
     def paginate(cls: Type[P], url: URL, offset: int, limit: int, count: int) -> P:
         after = offset + limit
 
-        if after > count:
-            next = None
+        if after < count:
+            next = url.update_query(offset=after, limit=limit)
 
         else:
-            next = url.update_query(offset=after, limit=limit)
+            next = None
 
         before = offset - limit
 
