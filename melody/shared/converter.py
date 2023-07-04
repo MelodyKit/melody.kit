@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Type, TypeVar
 from uuid import UUID
 
@@ -16,18 +15,6 @@ __all__ = (
 )
 
 CONVERTER = Converter()
-
-
-def structure_path_ignore_type(string: str, path_type: Type[Path]) -> Path:
-    return Path(string)
-
-
-def unstructure_path(path: Path) -> str:
-    return str(path)
-
-
-CONVERTER.register_structure_hook(Path, structure_path_ignore_type)
-CONVERTER.register_unstructure_hook(Path, unstructure_path)
 
 
 U = TypeVar("U", bound=UUID)
