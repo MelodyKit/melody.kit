@@ -39,7 +39,7 @@ class Pagination:
             next = None
 
         else:
-            next = url.with_query(offset=after, limit=limit)
+            next = url.update_query(offset=after, limit=limit)
 
         before = offset - limit
 
@@ -47,7 +47,7 @@ class Pagination:
             before = 0
 
         if offset:
-            previous = url.with_query(offset=before, limit=limit)
+            previous = url.update_query(offset=before, limit=limit)
 
         else:
             previous = None
