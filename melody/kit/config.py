@@ -33,9 +33,14 @@ DEFAULT_PATH = ROOT / NAME
 PATH = HOME / CONFIG_NAME / MELODY_NAME / NAME
 
 
-if not PATH.exists():
-    PATH.parent.mkdir(parents=True, exist_ok=True)
-    PATH.write_bytes(DEFAULT_PATH.read_bytes())
+def ensure_path(path: Path, default_path: Path) -> None:
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        path.write_bytes(default_path.read_bytes())
+
+
+ensure_path(PATH, DEFAULT_PATH)
 
 
 class ConfigData(StringDict[T]):
