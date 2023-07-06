@@ -187,7 +187,7 @@ module default {
         };
 
         required property platform -> Platform {
-            default := Playform.any;
+            default := Platform.any;
         };
 
         required property privacy_type -> PrivacyType {
