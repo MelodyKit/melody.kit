@@ -2,6 +2,8 @@ module default {
     scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
     scalar type PrivacyType extending enum<`public`, `friends`, `private`>;
 
+    scalar type Platform extending enum<`any`, `spotify`, `apple_music`, `yandex_music`>;
+
     abstract type CreatedAt {
         required property created_at -> datetime {
             default := datetime_of_statement();
@@ -175,6 +177,18 @@ module default {
         required property premium -> bool {
             default := false;
         }
+
+        required property explicit -> bool {
+            default := false;
+        }
+
+        required property autoplay -> bool {
+            default := false;
+        };
+
+        required property platform -> Platform {
+            default := Playform.any;
+        };
 
         required property privacy_type -> PrivacyType {
             default := PrivacyType.public;

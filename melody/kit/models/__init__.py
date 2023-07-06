@@ -62,6 +62,13 @@ from melody.kit.models.playlist import (
     playlist_tracks_from_data,
     playlist_tracks_into_data,
 )
+from melody.kit.models.user_settings import (
+    UserSettings,
+    UserSettingsData,
+    user_settings_from_data,
+    user_settings_from_object,
+    user_settings_into_data,
+)
 from melody.kit.models.statistics import (
     Statistics,
     StatisticsData,
@@ -297,6 +304,12 @@ __all__ = (
     "user_info_from_object",
     "user_info_from_data",
     "user_info_into_data",
+    # user settings
+    "UserSettings",
+    "UserSettingsData",
+    "user_settings_from_object",
+    "user_settings_from_data",
+    "user_settings_into_data",
     # statistics
     "Statistics",
     "StatisticsData",

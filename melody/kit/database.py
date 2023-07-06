@@ -7,7 +7,7 @@ from iters.iters import iter
 from typing_aliases import IntoPath
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, KIT_ROOT
-from melody.kit.enums import PrivacyType
+from melody.kit.enums import Platform, PrivacyType
 from melody.kit.models.album import Album, album_from_object
 from melody.kit.models.artist import Artist, artist_from_object
 from melody.kit.models.base import Base, base_from_object
@@ -17,6 +17,7 @@ from melody.kit.models.playlist import (
     partial_playlist_from_object,
     playlist_from_object,
 )
+from melody.kit.models.user_settings import UserSettings, user_settings_from_object
 from melody.kit.models.statistics import Statistics, statistics_from_object
 from melody.kit.models.streams import UserStream, user_stream_from_object
 from melody.kit.models.track import (
@@ -120,6 +121,9 @@ QUERY_USER_FRIENDS = load_query("users/friends/query")
 CHECK_USER_FRIENDS = load_query("users/friends/check")
 
 QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
+
+QUERY_USER_SETTINGS = load_query("users/settings/query")
+UPDATE_USER_SETTINGS = load_query("users/settings/update")
 
 # statistics
 
@@ -444,6 +448,32 @@ class Database:
         )
 
         return None if option is None else user_info_from_object(option)
+
+    async def query_user_settings(self, user_id: UUID) -> Optional[UserSettings]:
+        option = await self.client.query_single(  # type: ignore
+            QUERY_USER_SETTINGS, user_id=user_id
+        )
+
+        return None if option is None else user_settings_from_object(option)
+
+    async def update_user_settings(
+        self,
+        user_id: UUID,
+        name: str,
+        explicit: bool,
+        autoplay: bool,
+        platform: Platform,
+        privacy_type: PrivacyType,
+    ) -> None:
+        await self.client.query_single(  # type: ignore
+            UPDATE_USER_SETTINGS,
+            user_id=user_id,
+            name=name,
+            explicit=explicit,
+            autoplay=autoplay,
+            platform=platform.value,
+            privacy_type=privacy_type.value,
+        )
 
     async def query_statistics(self) -> Statistics:
         object = await self.client.query_required_single(QUERY_STATISTICS)  # type: ignore

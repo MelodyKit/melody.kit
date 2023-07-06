@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import Body, Depends, File, Query, UploadFile
@@ -8,10 +8,11 @@ from yarl import URL
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import token_dependency, url_dependency
-from melody.kit.enums import EntityType
+from melody.kit.enums import EntityType, Platform, PrivacyType
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
 from melody.kit.models.pagination import paginate
+from melody.kit.models.user_settings import UserSettingsData, user_settings_into_data
 from melody.kit.models.user import (
     UserAlbums,
     UserAlbumsData,
@@ -42,7 +43,7 @@ from melody.kit.models.user import (
     user_streams_into_data,
     user_tracks_into_data,
 )
-from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, TRACKS, USERS
+from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, SETTINGS, TRACKS, USERS
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
@@ -69,6 +70,8 @@ __all__ = (
     "add_self_following",
     "remove_self_following",
     "get_self_followed_playlists",
+    "get_self_settings",
+    "update_self_settings",
 )
 
 CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
@@ -466,3 +469,69 @@ async def remove_self_followed_playlists(
     ids: List[UUID] = Body(),
 ) -> None:
     await database.remove_user_followed_playlists(user_id=user_id, ids=ids)
+
+
+@v1.get(
+    "/me/settings",
+    tags=[SELF, SETTINGS],
+    summary="Fetch self settings.",
+)
+async def get_self_settings(user_id: UUID = Depends(token_dependency)) -> UserSettingsData:
+    settings = await database.query_user_settings(user_id=user_id)
+
+    if settings is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+    return user_settings_into_data(settings)
+
+
+@v1.put(
+    "/me/settings",
+    tags=[SELF, SETTINGS],
+    summary="Update self settings.",
+)
+async def update_self_settings(
+    user_id: UUID = Depends(token_dependency),
+    name: Optional[str] = Body(default=None),
+    explicit: Optional[bool] = Body(default=None),
+    autoplay: Optional[bool] = Body(default=None),
+    platform: Optional[Platform] = Body(default=None),
+    privacy_type: Optional[PrivacyType] = Body(default=None),
+) -> None:
+    if (
+        name is None
+        and explicit is None
+        and autoplay is None
+        and platform is None
+        and privacy_type is None
+    ):
+        return  # there is nothing to update
+
+    settings = await database.query_user_settings(user_id=user_id)
+
+    if settings is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+
+    if name is None:
+        name = settings.name
+
+    if explicit is None:
+        explicit = settings.is_explicit()
+
+    if autoplay is None:
+        autoplay = settings.is_autoplay()
+
+    if platform is None:
+        platform = settings.platform
+
+    if privacy_type is None:
+        privacy_type = settings.privacy_type
+
+    await database.update_user_settings(
+        user_id=user_id,
+        name=name,
+        explicit=explicit,
+        autoplay=autoplay,
+        platform=platform,
+        privacy_type=privacy_type,
+    )

@@ -7,6 +7,8 @@ __all__ = (
     "USERS",
     # self
     "SELF",
+    # settings
+    "SETTINGS",
     # others
     "AUTHENTICATION",
     "STATISTICS",
@@ -21,6 +23,8 @@ PLAYLISTS = "playlists"
 USERS = "users"
 
 SELF = "self"
+
+SETTINGS = "settings"
 
 AUTHENTICATION = "authentication"
 STATISTICS = "statistics"

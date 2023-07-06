@@ -38,6 +38,7 @@ from melody.kit.endpoints.v1.self import (
     get_self_image,
     get_self_link,
     get_self_playlists,
+    get_self_settings,
     get_self_streams,
     get_self_tracks,
     remove_self_albums,
@@ -48,6 +49,7 @@ from melody.kit.endpoints.v1.self import (
     save_self_albums,
     save_self_artists,
     save_self_tracks,
+    update_self_settings,
 )
 from melody.kit.endpoints.v1.statistics import get_statistics
 from melody.kit.endpoints.v1.tracks import get_track, get_track_link
@@ -121,6 +123,8 @@ __all__ = (
     "get_self_followed_playlists",
     "add_self_followed_playlists",
     "remove_self_followed_playlists",
+    "get_self_settings",
+    "update_self_settings",
     # statistics
     "get_statistics",
     # authentication

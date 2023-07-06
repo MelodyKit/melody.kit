@@ -5,7 +5,7 @@ from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW  # type: ig
 from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM  # type: ignore
 from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER  # type: ignore
 
-__all__ = ("AlbumType", "PrivacyType", "EntityType", "LogLevel")
+__all__ = ("AlbumType", "PrivacyType", "Platform", "EntityType", "LogLevel")
 
 
 class AlbumType(Enum):
@@ -46,6 +46,15 @@ class PrivacyType(Enum):
 
     def is_default(self) -> bool:
         return self is type(self).DEFAULT
+
+
+class Platform(Enum):
+    ANY = "any"
+    SPOTIFY = "spotify"
+    APPLE_MUSIC = "apple_music"
+    YANDEX_MUSIC = "yandex_music"
+
+    DEFAULT = ANY
 
 
 class EntityType(Enum):
