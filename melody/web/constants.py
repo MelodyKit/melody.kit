@@ -4,9 +4,6 @@ from pathlib import Path
 
 WEB_ROOT = Path(__file__).parent
 
-NEW_LINE = "\n"
-BREAK = "<br>"
-
 STATIC_PATH = "/static"
 
 CSS_NAME = "css"

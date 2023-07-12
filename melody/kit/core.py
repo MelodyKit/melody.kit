@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
+from typing_aliases import NormalError
 
 from melody.kit.config import get_config
 from melody.kit.constants import V1, VERSION_1
@@ -59,8 +60,8 @@ def register_error_handlers(app: FastAPI) -> None:
     async def error_handler(request: Request, error: AnyError) -> JSONResponse:
         return JSONResponse(error.into_data(), status_code=error.status_code)
 
-    @app.exception_handler(Exception)  # type: ignore
-    async def internal_error_handler(request: Request, error: Exception) -> JSONResponse:
+    @app.exception_handler(NormalError)  # type: ignore
+    async def internal_error_handler(request: Request, error: NormalError) -> JSONResponse:
         internal_error = InternalError()
 
         return await error_handler(request, internal_error)  # type: ignore

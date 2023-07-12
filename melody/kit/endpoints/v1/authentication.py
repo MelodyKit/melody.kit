@@ -5,6 +5,7 @@ from aiosmtplib import SMTP
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import Body, Depends
+from typing_aliases import NormalError
 
 from melody.kit.core import config, database, hasher, v1
 from melody.kit.dependencies import (
@@ -99,11 +100,11 @@ SUBJECT = "Subject"
 FROM_FORMAT = "{name} <{email}>"
 from_format = FROM_FORMAT.format
 
-VERIFICATION = "Please verify your account"
+VERIFICATION = "MelodyKit verification token"
 VERIFICATION_CONTENT = """
-Please verify your account by clicking the link below:
+Here is your verification token:
 
-https://{domain}/verify/{verification_token}
+{verification_token}
 """.strip()
 verification_content = VERIFICATION_CONTENT.format
 
@@ -136,12 +137,10 @@ async def register(
                 author=from_format(name=config.name, email=config.email.support),
                 target=email,
                 subject=VERIFICATION,
-                content=verification_content(
-                    domain=config.domain, verification_token=verification_token
-                ),
+                content=verification_content(verification_token=verification_token),
             )
 
-        except Exception:
+        except NormalError:
             await database.delete_user(user_id=user_id)
             await delete_verification_token(verification_token)
 
@@ -174,7 +173,6 @@ async def send_email(author: str, target: str, subject: str, content: str) -> No
         await client.send_message(message)
 
 
-VERIFICATION_TOKEN_MISMATCH = "verification token mismatch"
 VERIFICATION_NOT_FOUND = "verification for the user not found"
 
 
@@ -208,13 +206,13 @@ async def reset(user_id: UUID = Depends(token_dependency), password: str = Body(
 CAN_NOT_FIND_USER_BY_EMAIL = "can not find the user with the email `{}`"
 
 
-RESET = "Password reset"
-RESET_CONTENT = """
-Follow the link below in order to reset your password:
+TEMPORARY_TOKEN = "MelodyKit temporary token"
+TEMPORARY_TOKEN_CONTENT = """
+Here is your temporary token:
 
-https://{domain}/reset?{name}={token}
+{temporary_token}
 """.strip()
-reset_content = RESET_CONTENT.format
+temporary_token_content = TEMPORARY_TOKEN_CONTENT.format
 
 
 @v1.post(
@@ -228,11 +226,11 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
     if user_info is None:
         raise NotFound(CAN_NOT_FIND_USER_BY_EMAIL.format(email))
 
-    token = await generate_token_for(user_info.id)
+    temporary_token = await generate_token_for(user_info.id)
 
     await send_email(
         author=from_format(name=config.name, email=config.email.support),
         target=email,
-        subject=RESET,
-        content=reset_content(domain=config.domain, name=TOKEN, token=token),
+        subject=TEMPORARY_TOKEN,
+        content=temporary_token_content(temporary_token=temporary_token),
     )
