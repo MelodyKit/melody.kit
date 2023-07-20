@@ -167,9 +167,11 @@ async def generate_tokens_for(user_id: UUID) -> Tokens:
     access_expires_seconds = tokens.access_expires_in.total_seconds()  # type: ignore
     refresh_expires_seconds = tokens.refresh_expires_in.total_seconds()  # type: ignore
 
-    await redis.set(access_token_key(tokens.access_token), str(user_id), ex=access_expires_seconds)
     await redis.set(
-        refresh_token_key(tokens.refresh_token), str(user_id), ex=refresh_expires_seconds
+        access_token_key(tokens.access_token), str(user_id), ex=int(access_expires_seconds)
+    )
+    await redis.set(
+        refresh_token_key(tokens.refresh_token), str(user_id), ex=int(refresh_expires_seconds)
     )
 
     return tokens
@@ -181,7 +183,9 @@ async def generate_verification_token_for(user_id: UUID) -> str:
     verification_expires_seconds = verification_expires_in_factory().total_seconds()  # type: ignore
 
     await redis.set(
-        verification_token_key(verification_token), str(user_id), ex=verification_expires_seconds
+        verification_token_key(verification_token),
+        str(user_id),
+        ex=int(verification_expires_seconds),
     )
 
     return verification_token
