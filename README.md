@@ -1,4 +1,4 @@
-# `melody.web`
+# [`melody.web`][Link]
 
 > *All your music, in one place.*
 
@@ -12,6 +12,8 @@ This project consists of 8 parts:
 - [`melody.apple`][melody.apple] is the API wrapper for Apple Music;
 - [`melody.spotify`][melody.spotify] is the API wrapper for Spotify;
 - [`melody.yandex`][melody.yandex] is the API wrapper for Yandex Music.
+
+[Link]: https://melodykit.app/
 
 [melody.kit]: https://github.com/MelodyKit/melody.web/tree/main/melody/kit
 [melody.web]: https://github.com/MelodyKit/melody.web/tree/main/melody/web
