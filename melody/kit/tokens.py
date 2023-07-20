@@ -54,7 +54,7 @@ def access_token_factory() -> str:
 
 
 def access_expires_in_factory() -> Duration:
-    return config.token.refresh.expires.duration
+    return config.token.access.expires.duration
 
 
 def token_type_factory() -> str:
