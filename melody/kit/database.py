@@ -359,7 +359,10 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.playlists).map(partial_playlist_from_object).list(), option.playlist_count)
+            else (
+                iter(option.playlists).map(partial_playlist_from_object).list(),
+                option.playlist_count,
+            )
         )
 
     async def query_user_followed_playlists(
@@ -372,7 +375,10 @@ class Database:
         return (
             None
             if option is None
-            else (iter(option.followed_playlists).map(playlist_from_object).list(), option.followed_playlist_count)
+            else (
+                iter(option.followed_playlists).map(playlist_from_object).list(),
+                option.followed_playlist_count,
+            )
         )
 
     async def query_user_streams(

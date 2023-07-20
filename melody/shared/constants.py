@@ -28,12 +28,12 @@ __all__ = (
     # file modes
     "WRITE_BINARY",
     # tokens
-    "TOKEN",
+    "ACCESS_TOKEN",
+    "REFRESH_TOKEN",
     "VERIFICATION_TOKEN",
     # grant types
     "CLIENT_CREDENTIALS",
     "AUTHORIZATION_CODE",
-    "REFRESH_TOKEN",
     # response types
     "CODE",
     # user agent names
@@ -97,15 +97,14 @@ WRITE_BINARY: Literal["wb"] = "wb"
 
 # tokens
 
-TOKEN: Literal["token"] = "token"
+ACCESS_TOKEN: Literal["access_token"] = "access_token"
+REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
 VERIFICATION_TOKEN: Literal["verification_token"] = "verification_token"
 
 # grant types
 
 CLIENT_CREDENTIALS = "client_credentials"
 AUTHORIZATION_CODE = "authorization_code"
-
-REFRESH_TOKEN = "refresh_token"
 
 # response types
 

@@ -24,18 +24,6 @@ from melody.kit.errors import (
     Unauthorized,
     ValidationError,
 )
-from melody.kit.tokens import (
-    Token,
-    TokenData,
-    delete_token,
-    delete_tokens_for,
-    fetch_tokens_for,
-    fetch_user_id_by,
-    generate_token_for,
-    token_factory,
-    token_from_data,
-    token_into_data,
-)
 from melody.kit.uri import URI
 
 __all__ = (
@@ -83,17 +71,6 @@ __all__ = (
     "PayloadTooLarge",
     "RateLimited",
     "InternalError",
-    # tokens
-    "Token",
-    "TokenData",
-    "token_factory",
-    "token_from_data",
-    "token_into_data",
-    "generate_token_for",
-    "delete_token",
-    "delete_tokens_for",
-    "fetch_user_id_by",
-    "fetch_tokens_for",
     # URI
     "URI",
 )

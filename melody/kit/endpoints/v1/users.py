@@ -9,7 +9,7 @@ from yarl import URL
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import optional_token_dependency, url_dependency
+from melody.kit.dependencies import optional_access_token_dependency, url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.link import generate_code_for_uri
@@ -134,7 +134,7 @@ INACCESSIBLE_TRACKS = "the tracks of the user with ID `{}` are inaccessible"
 )
 async def get_user_tracks(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -169,7 +169,7 @@ INACCESSIBLE_ARTISTS = "the artists of the user with ID `{}` are inaccessible"
 )
 async def get_user_artists(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -206,7 +206,7 @@ INACCESSIBLE_ALBUMS = "the albums of the user with ID `{}` are inaccessible"
 )
 async def get_user_albums(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -264,7 +264,7 @@ INACCESSIBLE_PLAYLISTS = "the playlists of the user with ID `{}` are inaccessibl
 )
 async def get_user_playlists(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -305,7 +305,7 @@ INACCESSIBLE_FOLLOWERS = "the followers of the user with ID `{}` are inaccessibl
 )
 async def get_user_followers(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -342,7 +342,7 @@ INACCESSIBLE_FOLLOWING = "the following of the user with ID `{}` are inaccessibl
 )
 async def get_user_following(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -379,7 +379,7 @@ INACCESSIBLE_FRIENDS = "the friends of the user with ID `{}` are inaccessible"
 )
 async def get_user_friends(
     user_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),

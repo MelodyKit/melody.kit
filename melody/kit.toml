@@ -40,14 +40,40 @@ host = "127.0.0.1"
 port = 6379
 
 [melody.token]
-size = 32
 type = "Bearer"
 
-[melody.token.expires]
+[melody.token.access]
+size = 32
+
+[melody.token.access.expires]
 years = 0
 months = 0
 weeks = 0
 days = 0
+hours = 1
+minutes = 0
+seconds = 0
+
+[melody.token.refresh]
+size = 32
+
+[melody.token.refresh.expires]
+years = 0
+months = 1
+weeks = 0
+days = 0
+hours = 0
+minutes = 0
+seconds = 0
+
+[melody.token.verification]
+size = 32
+
+[melody.token.verification.expires]
+years = 0
+months = 0
+weeks = 0
+days = 1
 hours = 0
 minutes = 0
 seconds = 0

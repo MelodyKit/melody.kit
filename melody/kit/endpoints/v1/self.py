@@ -7,7 +7,7 @@ from yarl import URL
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import token_dependency, url_dependency
+from melody.kit.dependencies import access_token_dependency, url_dependency
 from melody.kit.enums import EntityType, Platform, PrivacyType
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
@@ -83,7 +83,7 @@ CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
     tags=[SELF],
     summary="Fetch self user.",
 )
-async def get_self(user_id: UUID = Depends(token_dependency)) -> UserData:
+async def get_self(user_id: UUID = Depends(access_token_dependency)) -> UserData:
     user = await database.query_user(user_id=user_id)
 
     if user is None:
@@ -97,7 +97,7 @@ async def get_self(user_id: UUID = Depends(token_dependency)) -> UserData:
     tags=[SELF, LINKS],
     summary="Fetch self user link.",
 )
-async def get_self_link(user_id: UUID = Depends(token_dependency)) -> FileResponse:
+async def get_self_link(user_id: UUID = Depends(access_token_dependency)) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
     path = await generate_code_for_uri(uri)
@@ -110,7 +110,7 @@ async def get_self_link(user_id: UUID = Depends(token_dependency)) -> FileRespon
     tags=[SELF, IMAGES],
     summary="Fetch self user image.",
 )
-async def get_self_image(user_id: UUID = Depends(token_dependency)) -> FileResponse:
+async def get_self_image(user_id: UUID = Depends(access_token_dependency)) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
     path = config.images / uri.image_name
@@ -131,7 +131,7 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     summary="Changes self user image.",
 )
 async def change_self_image(
-    image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
+    image: UploadFile = File(), user_id: UUID = Depends(access_token_dependency)
 ) -> None:
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
@@ -150,7 +150,7 @@ async def change_self_image(
     summary="Fetch self user tracks.",
 )
 async def get_self_tracks(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -173,7 +173,7 @@ async def get_self_tracks(
     summary="Save self user tracks.",
 )
 async def save_self_tracks(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.save_user_tracks(user_id=user_id, ids=ids)
 
@@ -184,7 +184,7 @@ async def save_self_tracks(
     summary="Remove self user tracks.",
 )
 async def remove_self_tracks(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.remove_user_tracks(user_id=user_id, ids=ids)
 
@@ -195,7 +195,7 @@ async def remove_self_tracks(
     summary="Fetch self user artists.",
 )
 async def get_self_artists(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -218,7 +218,7 @@ async def get_self_artists(
     summary="Save self user artists.",
 )
 async def save_self_artists(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.save_user_artists(user_id=user_id, ids=ids)
 
@@ -229,7 +229,7 @@ async def save_self_artists(
     summary="Remove self user artists.",
 )
 async def remove_self_artists(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.remove_user_artists(user_id=user_id, ids=ids)
 
@@ -240,7 +240,7 @@ async def remove_self_artists(
     summary="Fetch self user albums.",
 )
 async def get_self_albums(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -263,7 +263,7 @@ async def get_self_albums(
     summary="Save self user albums.",
 )
 async def save_self_albums(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.save_user_albums(user_id=user_id, ids=ids)
 
@@ -274,7 +274,7 @@ async def save_self_albums(
     summary="Remove self user albums.",
 )
 async def remove_self_albums(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.remove_user_albums(user_id=user_id, ids=ids)
 
@@ -285,7 +285,7 @@ async def remove_self_albums(
     summary="Fetch self user playlists.",
 )
 async def get_self_playlists(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -310,7 +310,7 @@ async def get_self_playlists(
     summary="Fetch self user streams.",
 )
 async def get_self_streams(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -333,7 +333,7 @@ async def get_self_streams(
     summary="Fetch self user friends.",
 )
 async def get_self_friends(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -356,7 +356,7 @@ async def get_self_friends(
     summary="Fetch self user followers.",
 )
 async def get_self_followers(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -381,7 +381,7 @@ async def get_self_followers(
     summary="Fetch self user following.",
 )
 async def get_self_following(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -406,7 +406,7 @@ async def get_self_following(
     summary="Add users to self following.",
 )
 async def add_self_following(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.add_user_following(user_id=user_id, ids=ids)
 
@@ -417,7 +417,7 @@ async def add_self_following(
     summary="Remove users from self following.",
 )
 async def remove_self_following(
-    user_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    user_id: UUID = Depends(access_token_dependency), ids: List[UUID] = Body()
 ) -> None:
     await database.remove_user_following(user_id=user_id, ids=ids)
 
@@ -428,7 +428,7 @@ async def remove_self_following(
     summary="Fetch self user followed playlists.",
 )
 async def get_self_followed_playlists(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     url: URL = Depends(url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
@@ -453,7 +453,7 @@ async def get_self_followed_playlists(
     summary="Add playlists to self followed playlists.",
 )
 async def add_self_followed_playlists(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     ids: List[UUID] = Body(),
 ) -> None:
     await database.add_user_followed_playlists(user_id=user_id, ids=ids)
@@ -465,7 +465,7 @@ async def add_self_followed_playlists(
     summary="Remove playlists from self followed playlists.",
 )
 async def remove_self_followed_playlists(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     ids: List[UUID] = Body(),
 ) -> None:
     await database.remove_user_followed_playlists(user_id=user_id, ids=ids)
@@ -476,7 +476,7 @@ async def remove_self_followed_playlists(
     tags=[SELF, SETTINGS],
     summary="Fetch self settings.",
 )
-async def get_self_settings(user_id: UUID = Depends(token_dependency)) -> UserSettingsData:
+async def get_self_settings(user_id: UUID = Depends(access_token_dependency)) -> UserSettingsData:
     settings = await database.query_user_settings(user_id=user_id)
 
     if settings is None:
@@ -491,7 +491,7 @@ async def get_self_settings(user_id: UUID = Depends(token_dependency)) -> UserSe
     summary="Update self settings.",
 )
 async def update_self_settings(
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     name: Optional[str] = Body(default=None),
     explicit: Optional[bool] = Body(default=None),
     autoplay: Optional[bool] = Body(default=None),

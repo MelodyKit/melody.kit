@@ -10,27 +10,29 @@ from typing_aliases import NormalError
 from melody.kit.core import config, database, hasher, v1
 from melody.kit.dependencies import (
     BoundToken,
-    bound_token_dependency,
+    access_token_dependency,
+    bound_access_token_dependency,
+    bound_refresh_token_dependency,
+    bound_verification_token_dependency,
     email_deliverability_dependency,
     email_dependency,
-    token_dependency,
 )
 from melody.kit.errors import Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData, base_into_data
 from melody.kit.tags import AUTHENTICATION
 from melody.kit.tokens import (
-    TokenData,
-    delete_token,
-    delete_tokens_for,
+    TokensData,
+    delete_access_token,
+    delete_access_tokens_for,
+    delete_refresh_token,
+    delete_refresh_tokens_for,
     delete_verification_token,
-    fetch_user_id_by_verification,
-    generate_token_for,
+    generate_tokens_for,
     generate_verification_token_for,
-    token_into_data,
+    tokens_into_data,
 )
-from melody.shared.constants import TOKEN
 
-__all__ = ("login", "logout", "revoke", "register", "verify", "reset", "forgot")
+__all__ = ("login", "logout", "refresh", "revoke", "register", "verify", "reset", "forgot")
 
 CAN_NOT_FIND_USER = "can not find the user with the email `{}`"
 PASSWORD_MISMATCH = "password mismatch"
@@ -43,7 +45,7 @@ UNVERIFIED = "user with ID `{}` is not verified"
     tags=[AUTHENTICATION],
     summary="Logs in the user with the given email and password.",
 )
-async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokenData:
+async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokensData:
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
@@ -63,14 +65,14 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
         raise Unauthorized(PASSWORD_MISMATCH) from None
 
     else:
-        token = await generate_token_for(user_id)
+        tokens = await generate_tokens_for(user_id)
 
         if hasher.check_needs_rehash(password_hash):
             password_hash = hasher.hash(password)
 
             await database.update_user_password_hash(user_id=user_id, password_hash=password_hash)
 
-        return token_into_data(token)
+        return tokens_into_data(tokens)
 
 
 @v1.post(
@@ -78,8 +80,21 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
     tags=[AUTHENTICATION],
     summary="Logs out the user, revoking the current token.",
 )
-async def logout(bound_token: BoundToken = Depends(bound_token_dependency)) -> None:
-    await delete_token(bound_token.token)
+async def logout(bound_token: BoundToken = Depends(bound_access_token_dependency)) -> None:
+    await delete_access_token(bound_token.token)
+
+
+@v1.post(
+    "/refresh",
+    tags=[AUTHENTICATION],
+    summary="Refreshes the access token.",
+)
+async def refresh(bound_token: BoundToken = Depends(bound_refresh_token_dependency)) -> TokensData:
+    await delete_refresh_token(bound_token.token)
+
+    tokens = await generate_tokens_for(bound_token.user_id)
+
+    return tokens_into_data(tokens)
 
 
 @v1.post(
@@ -87,8 +102,9 @@ async def logout(bound_token: BoundToken = Depends(bound_token_dependency)) -> N
     tags=[AUTHENTICATION],
     summary="Revokes all tokens of the user.",
 )
-async def revoke(user_id: UUID = Depends(token_dependency)) -> None:
-    await delete_tokens_for(user_id)
+async def revoke(user_id: UUID = Depends(access_token_dependency)) -> None:
+    await delete_access_tokens_for(user_id)
+    await delete_refresh_tokens_for(user_id)
 
 
 EMAIL_TAKEN = "the email `{}` is taken"
@@ -181,13 +197,10 @@ VERIFICATION_NOT_FOUND = "verification for the user not found"
     tags=[AUTHENTICATION],
     summary="Verifies the user with the given ID.",
 )
-async def verify(verification_token: str) -> None:
-    user_id = await fetch_user_id_by_verification(verification_token)
+async def verify(bound_token: BoundToken = Depends(bound_verification_token_dependency)) -> None:
+    await delete_verification_token(bound_token.token)
 
-    if user_id is None:
-        raise NotFound(VERIFICATION_NOT_FOUND)
-
-    await database.update_user_verified(user_id=user_id, verified=True)
+    await database.update_user_verified(user_id=bound_token.user_id, verified=True)
 
 
 @v1.post(
@@ -195,7 +208,7 @@ async def verify(verification_token: str) -> None:
     tags=[AUTHENTICATION],
     summary="Resets the password of the user, revoking all tokens.",
 )
-async def reset(user_id: UUID = Depends(token_dependency), password: str = Body()) -> None:
+async def reset(user_id: UUID = Depends(access_token_dependency), password: str = Body()) -> None:
     await revoke(user_id)
 
     password_hash = hasher.hash(password)
@@ -226,7 +239,9 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
     if user_info is None:
         raise NotFound(CAN_NOT_FIND_USER_BY_EMAIL.format(email))
 
-    temporary_token = await generate_token_for(user_info.id)
+    tokens = await generate_tokens_for(user_info.id)
+
+    temporary_token = tokens.access_token
 
     await send_email(
         author=from_format(name=config.name, email=config.email.support),

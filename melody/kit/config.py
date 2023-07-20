@@ -3,6 +3,7 @@ from typing import Any, Type, TypeVar, cast
 
 from attrs import define
 from toml import loads as load_string
+from pendulum import Duration, duration
 from typing_aliases import IntoPath, StringDict
 from wraps.option import Option
 from wraps.wraps import wrap_optional
@@ -102,12 +103,47 @@ class ExpiresConfig:
     minutes: float
     seconds: float
 
+    @property
+    def duration(self) -> Duration:
+        return duration(
+            years=self.years,
+            months=self.months,
+            weeks=self.weeks,
+            days=self.days,
+            hours=self.hours,
+            minutes=self.minutes,
+            seconds=self.seconds,
+        )
+
+
+@define()
+class BaseTokenConfig:
+    size: int
+    expires: ExpiresConfig
+
+
+@define()
+class AccessTokenConfig(BaseTokenConfig):
+    pass
+
+
+@define()
+class RefreshTokenConfig(BaseTokenConfig):
+    pass
+
+
+@define()
+class VerificationTokenConfig(BaseTokenConfig):
+    pass
+
 
 @define()
 class TokenConfig:
-    size: int
     type: str
-    expires: ExpiresConfig
+
+    access: AccessTokenConfig
+    refresh: RefreshTokenConfig
+    verification: VerificationTokenConfig
 
 
 @define()
@@ -154,16 +190,49 @@ EXPECTED_MELODY_REDIS = expected("melody.redis")
 EXPECTED_MELODY_REDIS_HOST = expected("melody.redis.host")
 EXPECTED_MELODY_REDIS_PORT = expected("melody.redis.port")
 EXPECTED_MELODY_TOKEN = expected("melody.token")
-EXPECTED_MELODY_TOKEN_SIZE = expected("melody.token.size")
 EXPECTED_MELODY_TOKEN_TYPE = expected("melody.token.type")
-EXPECTED_MELODY_TOKEN_EXPIRES = expected("melody.token.expires")
-EXPECTED_MELODY_TOKEN_EXPIRES_YEARS = expected("melody.token.expires.years")
-EXPECTED_MELODY_TOKEN_EXPIRES_MONTHS = expected("melody.token.expires.months")
-EXPECTED_MELODY_TOKEN_EXPIRES_WEEKS = expected("melody.token.expires.weeks")
-EXPECTED_MELODY_TOKEN_EXPIRES_DAYS = expected("melody.token.expires.days")
-EXPECTED_MELODY_TOKEN_EXPIRES_HOURS = expected("melody.token.expires.hours")
-EXPECTED_MELODY_TOKEN_EXPIRES_MINUTES = expected("melody.token.expires.minutes")
-EXPECTED_MELODY_TOKEN_EXPIRES_SECONDS = expected("melody.token.expires.seconds")
+EXPECTED_MELODY_TOKEN_ACCESS = expected("melody.token.access")
+EXPECTED_MELODY_TOKEN_ACCESS_SIZE = expected("melody.token.access.size")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES = expected("melody.token.access.expires")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_YEARS = expected("melody.token.access.expires.years")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_MONTHS = expected("melody.token.access.expires.months")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_WEEKS = expected("melody.token.access.expires.weeks")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_DAYS = expected("melody.token.access.expires.days")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_HOURS = expected("melody.token.access.expires.hours")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_MINUTES = expected("melody.token.access.expires.minutes")
+EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_SECONDS = expected("melody.token.access.expires.seconds")
+EXPECTED_MELODY_TOKEN_REFRESH = expected("melody.token.refresh")
+EXPECTED_MELODY_TOKEN_REFRESH_SIZE = expected("melody.token.refresh.size")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES = expected("melody.token.refresh.expires")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_YEARS = expected("melody.token.refresh.expires.years")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_MONTHS = expected("melody.token.refresh.expires.months")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_WEEKS = expected("melody.token.refresh.expires.weeks")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_DAYS = expected("melody.token.refresh.expires.days")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_HOURS = expected("melody.token.refresh.expires.hours")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_MINUTES = expected("melody.token.refresh.expires.minutes")
+EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_SECONDS = expected("melody.token.refresh.expires.seconds")
+EXPECTED_MELODY_TOKEN_VERIFICATION = expected("melody.token.verification")
+EXPECTED_MELODY_TOKEN_VERIFICATION_SIZE = expected("melody.token.verification.size")
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES = expected("melody.token.verification.expires")
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_YEARS = expected(
+    "melody.token.verification.expires.years"
+)
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MONTHS = expected(
+    "melody.token.verification.expires.months"
+)
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_WEEKS = expected(
+    "melody.token.verification.expires.weeks"
+)
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_DAYS = expected("melody.token.verification.expires.days")
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_HOURS = expected(
+    "melody.token.verification.expires.hours"
+)
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MINUTES = expected(
+    "melody.token.verification.expires.minutes"
+)
+EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_SECONDS = expected(
+    "melody.token.verification.expires.seconds"
+)
 EXPECTED_MELODY_WEB = expected("melody.web")
 EXPECTED_MELODY_WEB_HOST = expected("melody.web.host")
 EXPECTED_MELODY_WEB_PORT = expected("melody.web.port")
@@ -274,25 +343,77 @@ class Config:
         token_data = config_data.token.unwrap_or_else(AnyConfigData)
         token_config = default_config.token
 
-        expires_data = token_data.expires.unwrap_or_else(AnyConfigData)
-        expires_config = token_config.expires
+        access_data = token_data.access.unwrap_or_else(AnyConfigData)
+        access_config = token_config.access
+
+        access_expires_data = access_data.expires.unwrap_or_else(AnyConfigData)
+        access_expires_config = access_config.expires
+
+        refresh_data = token_data.refresh.unwrap_or_else(AnyConfigData)
+        refresh_config = token_config.refresh
+
+        refresh_expires_data = refresh_data.expires.unwrap_or_else(AnyConfigData)
+        refresh_expires_config = refresh_config.expires
+
+        verification_data = token_data.verification.unwrap_or_else(AnyConfigData)
+        verification_config = token_config.verification
+
+        verification_expires_data = verification_data.expires.unwrap_or_else(AnyConfigData)
+        verification_expires_config = verification_config.expires
 
         token = TokenConfig(
-            size=token_data.size.unwrap_or(token_config.size),
             type=token_data.type.unwrap_or(token_config.type),
-            expires=ExpiresConfig(
-                years=expires_data.years.unwrap_or(expires_config.years),
-                months=expires_data.months.unwrap_or(expires_config.months),
-                weeks=expires_data.weeks.unwrap_or(expires_config.weeks),
-                days=expires_data.days.unwrap_or(expires_config.days),
-                hours=expires_data.hours.unwrap_or(expires_config.hours),
-                minutes=expires_data.minutes.unwrap_or(expires_config.minutes),
-                seconds=expires_data.seconds.unwrap_or(expires_config.seconds),
+            access=AccessTokenConfig(
+                size=access_data.size.unwrap_or(access_config.size),
+                expires=ExpiresConfig(
+                    years=access_expires_data.years.unwrap_or(access_expires_config.years),
+                    months=access_expires_data.months.unwrap_or(access_expires_config.months),
+                    weeks=access_expires_data.weeks.unwrap_or(access_expires_config.weeks),
+                    days=access_expires_data.days.unwrap_or(access_expires_config.days),
+                    hours=access_expires_data.hours.unwrap_or(access_expires_config.hours),
+                    minutes=access_expires_data.minutes.unwrap_or(access_expires_config.minutes),
+                    seconds=access_expires_data.seconds.unwrap_or(access_expires_config.seconds),
+                ),
+            ),
+            refresh=RefreshTokenConfig(
+                size=refresh_data.size.unwrap_or(refresh_config.size),
+                expires=ExpiresConfig(
+                    years=refresh_expires_data.years.unwrap_or(refresh_expires_config.years),
+                    months=refresh_expires_data.months.unwrap_or(refresh_expires_config.months),
+                    weeks=refresh_expires_data.weeks.unwrap_or(refresh_expires_config.weeks),
+                    days=refresh_expires_data.days.unwrap_or(refresh_expires_config.days),
+                    hours=refresh_expires_data.hours.unwrap_or(refresh_expires_config.hours),
+                    minutes=refresh_expires_data.minutes.unwrap_or(refresh_expires_config.minutes),
+                    seconds=refresh_expires_data.seconds.unwrap_or(refresh_expires_config.seconds),
+                ),
+            ),
+            verification=VerificationTokenConfig(
+                size=verification_data.size.unwrap_or(verification_config.size),
+                expires=ExpiresConfig(
+                    years=verification_expires_data.years.unwrap_or(
+                        verification_expires_config.years
+                    ),
+                    months=verification_expires_data.months.unwrap_or(
+                        verification_expires_config.months
+                    ),
+                    weeks=verification_expires_data.weeks.unwrap_or(
+                        verification_expires_config.weeks
+                    ),
+                    days=verification_expires_data.days.unwrap_or(verification_expires_config.days),
+                    hours=verification_expires_data.hours.unwrap_or(
+                        verification_expires_config.hours
+                    ),
+                    minutes=verification_expires_data.minutes.unwrap_or(
+                        verification_expires_config.minutes
+                    ),
+                    seconds=verification_expires_data.seconds.unwrap_or(
+                        verification_expires_config.seconds
+                    ),
+                ),
             ),
         )
 
         bot_data = config_data.bot.unwrap_or_else(AnyConfigData)
-        # bot_config = default_config.bot
 
         bot = BotConfig(token=bot_data.token.expect(EXPECTED_MELODY_BOT_TOKEN))
 
@@ -405,19 +526,95 @@ class Config:
         )
 
         token_data = config_data.token.expect(EXPECTED_MELODY_TOKEN)
-        expires_data = token_data.expires.expect(EXPECTED_MELODY_TOKEN_EXPIRES)
+
+        access_data = token_data.access.expect(EXPECTED_MELODY_TOKEN_ACCESS)
+        access_expires_data = access_data.expires.expect(EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES)
+
+        refresh_data = token_data.refresh.expect(EXPECTED_MELODY_TOKEN_REFRESH)
+        refresh_expires_data = refresh_data.expires.expect(EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES)
+
+        verification_data = token_data.verification.expect(EXPECTED_MELODY_TOKEN_VERIFICATION)
+        verification_expires_data = verification_data.expires.expect(
+            EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES
+        )
 
         token = TokenConfig(
-            size=token_data.size.expect(EXPECTED_MELODY_TOKEN_SIZE),
             type=token_data.type.expect(EXPECTED_MELODY_TOKEN_TYPE),
-            expires=ExpiresConfig(
-                years=expires_data.years.expect(EXPECTED_MELODY_TOKEN_EXPIRES_YEARS),
-                months=expires_data.months.expect(EXPECTED_MELODY_TOKEN_EXPIRES_MONTHS),
-                weeks=expires_data.weeks.expect(EXPECTED_MELODY_TOKEN_EXPIRES_WEEKS),
-                days=expires_data.days.expect(EXPECTED_MELODY_TOKEN_EXPIRES_DAYS),
-                hours=expires_data.hours.expect(EXPECTED_MELODY_TOKEN_EXPIRES_HOURS),
-                minutes=expires_data.minutes.expect(EXPECTED_MELODY_TOKEN_EXPIRES_MINUTES),
-                seconds=expires_data.seconds.expect(EXPECTED_MELODY_TOKEN_EXPIRES_SECONDS),
+            access=AccessTokenConfig(
+                size=access_data.size.expect(EXPECTED_MELODY_TOKEN_ACCESS_SIZE),
+                expires=ExpiresConfig(
+                    years=access_expires_data.years.expect(
+                        EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_YEARS
+                    ),
+                    months=access_expires_data.months.expect(
+                        EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_MONTHS
+                    ),
+                    weeks=access_expires_data.weeks.expect(
+                        EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_WEEKS
+                    ),
+                    days=access_expires_data.days.expect(EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_DAYS),
+                    hours=access_expires_data.hours.expect(
+                        EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_HOURS
+                    ),
+                    minutes=access_expires_data.minutes.expect(
+                        EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_MINUTES
+                    ),
+                    seconds=access_expires_data.seconds.expect(
+                        EXPECTED_MELODY_TOKEN_ACCESS_EXPIRES_SECONDS
+                    ),
+                ),
+            ),
+            refresh=RefreshTokenConfig(
+                size=refresh_data.size.expect(EXPECTED_MELODY_TOKEN_REFRESH_SIZE),
+                expires=ExpiresConfig(
+                    years=refresh_expires_data.years.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_YEARS
+                    ),
+                    months=refresh_expires_data.months.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_MONTHS
+                    ),
+                    weeks=refresh_expires_data.weeks.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_WEEKS
+                    ),
+                    days=refresh_expires_data.days.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_DAYS
+                    ),
+                    hours=refresh_expires_data.hours.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_HOURS
+                    ),
+                    minutes=refresh_expires_data.minutes.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_MINUTES
+                    ),
+                    seconds=refresh_expires_data.seconds.expect(
+                        EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_SECONDS
+                    ),
+                ),
+            ),
+            verification=VerificationTokenConfig(
+                size=verification_data.size.expect(EXPECTED_MELODY_TOKEN_VERIFICATION_SIZE),
+                expires=ExpiresConfig(
+                    years=verification_expires_data.years.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_YEARS
+                    ),
+                    months=verification_expires_data.months.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MONTHS
+                    ),
+                    weeks=verification_expires_data.weeks.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_WEEKS
+                    ),
+                    days=verification_expires_data.days.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_DAYS
+                    ),
+                    hours=verification_expires_data.hours.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_HOURS
+                    ),
+                    minutes=verification_expires_data.minutes.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MINUTES
+                    ),
+                    seconds=verification_expires_data.seconds.expect(
+                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_SECONDS
+                    ),
+                ),
             ),
         )
 

@@ -2,9 +2,9 @@ from datetime import date as StandardDate
 from datetime import datetime as StandardDateTime
 from typing import Type
 
-from pendulum import UTC, Date, DateTime, date
+from pendulum import UTC, Date, DateTime, Duration, date
 from pendulum import datetime as date_time
-from pendulum import from_timestamp, now, parse
+from pendulum import duration, from_timestamp, now, parse
 
 from melody.shared.converter import CONVERTER
 
@@ -62,8 +62,19 @@ def unstructure_date(date: Date) -> str:
     return str(date)
 
 
+def structure_duration_ignore_type(seconds: float, duration_type: Type[Duration]) -> Duration:
+    return duration(seconds=seconds)
+
+
+def unstructure_duration(duration: Duration) -> float:
+    return duration.total_seconds()  # type: ignore
+
+
 CONVERTER.register_structure_hook(DateTime, structure_date_time_ignore_type)
 CONVERTER.register_unstructure_hook(DateTime, unstructure_date_time)
 
 CONVERTER.register_structure_hook(Date, structure_date_ignore_type)
 CONVERTER.register_unstructure_hook(Date, unstructure_date)
+
+CONVERTER.register_structure_hook(Duration, structure_duration_ignore_type)
+CONVERTER.register_unstructure_hook(Duration, unstructure_duration)

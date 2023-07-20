@@ -8,7 +8,7 @@ from yarl import URL
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import optional_token_dependency, token_dependency
+from melody.kit.dependencies import access_token_dependency, optional_access_token_dependency
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
@@ -77,7 +77,7 @@ async def create_playlist(
     name: str = Body(),
     description: str = Body(default=EMPTY),
     privacy_type: PrivacyType = Body(default=PrivacyType.DEFAULT),
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
 ) -> BaseData:
     base = await database.insert_playlist(
         name=name, description=description, privacy_type=privacy_type, user_id=user_id
@@ -93,7 +93,7 @@ async def create_playlist(
 )
 async def get_playlist(
     playlist_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
 ) -> PlaylistData:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
@@ -113,7 +113,7 @@ async def get_playlist(
 )
 async def update_playlist(
     playlist_id: UUID,
-    user_id: UUID = Depends(token_dependency),
+    user_id: UUID = Depends(access_token_dependency),
     name: Optional[str] = Body(default=None),
     description: Optional[str] = Body(default=None),
     privacy_type: Optional[PrivacyType] = Body(default=None),
@@ -148,7 +148,9 @@ async def update_playlist(
     tags=[PLAYLISTS],
     summary="Deletes the playlist with the given ID.",
 )
-async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
+async def delete_playlist(
+    playlist_id: UUID, user_id: UUID = Depends(access_token_dependency)
+) -> None:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
@@ -199,7 +201,7 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     summary="Changes the playlist image with the given ID.",
 )
 async def change_playlist_image(
-    playlist_id: UUID, image: UploadFile = File(), user_id: UUID = Depends(token_dependency)
+    playlist_id: UUID, image: UploadFile = File(), user_id: UUID = Depends(access_token_dependency)
 ) -> None:
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
@@ -226,7 +228,7 @@ async def change_playlist_image(
 async def get_playlist_tracks(
     playlist_id: UUID,
     request: Request,
-    user_id_option: Optional[UUID] = Depends(optional_token_dependency),
+    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> PlaylistTracksData:
