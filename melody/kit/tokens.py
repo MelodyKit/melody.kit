@@ -44,7 +44,7 @@ class TokensData(Data):
     access_token: str
     token_type: str
     refresh_token: str
-    created_at: DateTime
+    created_at: str
     access_expires_in: float
     refresh_expires_in: float
 
