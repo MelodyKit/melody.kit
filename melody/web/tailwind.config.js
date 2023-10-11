@@ -14,7 +14,6 @@ module.exports = {
                 // brands
                 discord: "#5865f2",
                 youtube: "#ff0000",
-                twitter: "#1da1f2",
                 reddit: "#ff5700",
                 telegram: "#229ed9",
             },
