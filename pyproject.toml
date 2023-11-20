@@ -50,6 +50,7 @@ entrypoint = ">= 1.4.0"
 email-validator = ">= 2.1.0"
 async-extensions = ">= 1.4.1"
 colors-core = ">= 1.0.1"
+typing-extensions = ">= 4.8.0"
 # melody.web
 jinja2 = ">= 3.1.2"
 python-multipart = ">= 0.0.6"

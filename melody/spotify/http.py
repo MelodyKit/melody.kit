@@ -1,7 +1,6 @@
-from typing import TypedDict as Data
-
 from attrs import define, field
 from httpx import AsyncClient
+from typing_extensions import TypedDict as Data
 
 from melody.shared.constants import CLIENT_CREDENTIALS, GET, POST
 from melody.shared.http import HTTPClient as SharedHTTPClient

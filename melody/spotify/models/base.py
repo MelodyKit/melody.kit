@@ -1,8 +1,7 @@
-from typing import Type
-from typing import TypedDict as Data
-from typing import TypeVar
+from typing import Type, TypeVar
 
 from attrs import define
+from typing_extensions import TypedDict as Data
 
 from melody.shared.converter import CONVERTER
 

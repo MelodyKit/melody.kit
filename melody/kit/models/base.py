@@ -1,10 +1,9 @@
-from typing import Type
-from typing import TypedDict as Data
-from typing import TypeVar, overload
+from typing import Type, TypeVar, overload
 from uuid import UUID
 
 from attrs import define
 from edgedb import Object  # type: ignore
+from typing_extensions import TypedDict as Data
 
 from melody.shared.converter import CONVERTER
 

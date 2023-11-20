@@ -1,9 +1,8 @@
-from typing import Type
-from typing import TypedDict as Data
-from typing import TypeVar, overload
+from typing import Type, TypeVar, overload
 
 from attrs import define
 from edgedb import Object  # type: ignore
+from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT
 from melody.shared.converter import CONVERTER

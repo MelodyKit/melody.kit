@@ -1,8 +1,7 @@
-from typing import Optional, Type
-from typing import TypedDict as Data
-from typing import TypeVar, overload
+from typing import Optional, Type, TypeVar, overload
 
 from attrs import define
+from typing_extensions import TypedDict as Data
 from yarl import URL
 
 from melody.kit.constants import DEFAULT_COUNT

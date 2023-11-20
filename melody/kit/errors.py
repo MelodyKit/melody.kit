@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TypedDict as Data
 
 from attrs import frozen
 from fastapi import status
 from typing_aliases import NormalError, Payload
+from typing_extensions import TypedDict as Data
 
 __all__ = (
     "Error",
