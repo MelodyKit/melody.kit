@@ -1,8 +1,9 @@
-from typing import Type, TypeVar, overload
+from typing import Type
+from typing import TypedDict as Data
+from typing import TypeVar, overload
 
 from attrs import define
 from edgedb import Object  # type: ignore
-from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT
 from melody.shared.converter import CONVERTER
@@ -57,17 +58,17 @@ class Statistics:
 
 
 @overload
-def statistics_from_object(object: Object) -> Statistics:
+def statistics_from_object(object: Object) -> Statistics:  # type: ignore
     ...
 
 
 @overload
-def statistics_from_object(object: Object, statistics_type: Type[S]) -> S:
+def statistics_from_object(object: Object, statistics_type: Type[S]) -> S:  # type: ignore
     ...
 
 
 def statistics_from_object(
-    object: Object, statistics_type: Type[Statistics] = Statistics
+    object: Object, statistics_type: Type[Statistics] = Statistics  # type: ignore
 ) -> Statistics:
     return statistics_type.from_object(object)
 

@@ -1,8 +1,9 @@
-from typing import Type, TypeVar, overload
+from typing import Type
+from typing import TypedDict as Data
+from typing import TypeVar, overload
 
 from attrs import define
 from edgedb import Object  # type: ignore
-from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_AUTOPLAY, DEFAULT_EXPLICIT
 from melody.kit.enums import Platform, PrivacyType
@@ -69,17 +70,17 @@ class UserSettings:
 
 
 @overload
-def user_settings_from_object(object: Object) -> UserSettings:
+def user_settings_from_object(object: Object) -> UserSettings:  # type: ignore
     ...
 
 
 @overload
-def user_settings_from_object(object: Object, user_settings_type: Type[US]) -> US:
+def user_settings_from_object(object: Object, user_settings_type: Type[US]) -> US:  # type: ignore
     ...
 
 
 def user_settings_from_object(
-    object: Object, user_settings_type: Type[UserSettings] = UserSettings
+    object: Object, user_settings_type: Type[UserSettings] = UserSettings  # type: ignore
 ) -> UserSettings:
     return user_settings_type.from_object(object)
 

@@ -1,9 +1,10 @@
-from typing import Type, TypeVar, overload
+from typing import Type
+from typing import TypedDict as Data
+from typing import TypeVar, overload
 from uuid import UUID
 
 from attrs import define
 from edgedb import Object  # type: ignore
-from typing_extensions import TypedDict as Data
 
 from melody.shared.converter import CONVERTER
 
@@ -34,16 +35,16 @@ class Base:
 
 
 @overload
-def base_from_object(object: Object) -> Base:
+def base_from_object(object: Object) -> Base:  # type: ignore
     ...
 
 
 @overload
-def base_from_object(object: Object, base_type: Type[B]) -> B:
+def base_from_object(object: Object, base_type: Type[B]) -> B:  # type: ignore
     ...
 
 
-def base_from_object(object: Object, base_type: Type[Base] = Base) -> Base:
+def base_from_object(object: Object, base_type: Type[Base] = Base) -> Base:  # type: ignore
     return base_type.from_object(object)
 
 

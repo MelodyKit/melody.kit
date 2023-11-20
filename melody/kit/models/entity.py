@@ -52,16 +52,18 @@ class Entity(CreatedAt):
 
 
 @overload
-def entity_from_object(object: Object) -> Entity:
+def entity_from_object(object: Object) -> Entity:  # type: ignore
     ...
 
 
 @overload
-def entity_from_object(object: Object, entity_type: Type[E]) -> E:
+def entity_from_object(object: Object, entity_type: Type[E]) -> E:  # type: ignore
     ...
 
 
-def entity_from_object(object: Object, entity_type: Type[Entity] = Entity) -> Entity:
+def entity_from_object(
+    object: Object, entity_type: Type[Entity] = Entity  # type: ignore
+) -> Entity:
     return entity_type.from_object(object)
 
 

@@ -1,9 +1,10 @@
-from typing import List, Optional, Type, TypeVar, overload
+from typing import List, Optional, Type
+from typing import TypedDict as Data
+from typing import TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
-from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
@@ -127,16 +128,16 @@ class User(Entity):
 
 
 @overload
-def user_from_object(object: Object) -> User:
+def user_from_object(object: Object) -> User:  # type: ignore
     ...
 
 
 @overload
-def user_from_object(object: Object, user_type: Type[U]) -> U:
+def user_from_object(object: Object, user_type: Type[U]) -> U:  # type: ignore
     ...
 
 
-def user_from_object(object: Object, user_type: Type[User] = User) -> User:
+def user_from_object(object: Object, user_type: Type[User] = User) -> User:  # type: ignore
     return user_type.from_object(object)
 
 

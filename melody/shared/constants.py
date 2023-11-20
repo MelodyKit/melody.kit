@@ -1,7 +1,7 @@
 from pathlib import Path
+from typing import Literal
 
 from colors import Color
-from typing_extensions import Literal
 
 __all__ = (
     # paths

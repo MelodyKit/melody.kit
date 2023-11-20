@@ -4,7 +4,6 @@ from melody.kit.core import app, config, database, hasher, redis, v1
 from melody.kit.database import Database
 from melody.kit.enums import AlbumType, EntityType, LogLevel, PrivacyType, Repeat
 from melody.kit.errors import (
-    AnyError,
     AuthenticationError,
     AuthenticationInvalid,
     AuthenticationMissing,
@@ -52,7 +51,6 @@ __all__ = (
     "EntityType",
     "LogLevel",
     # errors
-    "AnyError",
     "Error",
     "ErrorCode",
     "ErrorData",

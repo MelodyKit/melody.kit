@@ -9,7 +9,7 @@ from typing_aliases import NormalError
 from melody.kit.config import get_config
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
-from melody.kit.errors import AnyError, Error, InternalError
+from melody.kit.errors import Error, InternalError
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
 
 __all__ = ("config", "database", "redis", "hasher", "app", "v1")
@@ -57,7 +57,7 @@ register_cors_middleware(app)
 
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Error)  # type: ignore
-    async def error_handler(request: Request, error: AnyError) -> JSONResponse:
+    async def error_handler(request: Request, error: Error) -> JSONResponse:
         return JSONResponse(error.into_data(), status_code=error.status_code)
 
     @app.exception_handler(NormalError)  # type: ignore

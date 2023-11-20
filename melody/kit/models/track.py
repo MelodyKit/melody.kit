@@ -106,17 +106,17 @@ class PartialTrack(Entity):
 
 
 @overload
-def partial_track_from_object(object: Object) -> PartialTrack:
+def partial_track_from_object(object: Object) -> PartialTrack:  # type: ignore
     ...
 
 
 @overload
-def partial_track_from_object(object: Object, partial_track_type: Type[P]) -> P:
+def partial_track_from_object(object: Object, partial_track_type: Type[P]) -> P:  # type: ignore
     ...
 
 
 def partial_track_from_object(
-    object: Object, partial_track_type: Type[PartialTrack] = PartialTrack
+    object: Object, partial_track_type: Type[PartialTrack] = PartialTrack  # type: ignore
 ) -> PartialTrack:
     return partial_track_type.from_object(object)
 
@@ -197,16 +197,16 @@ class Track(PartialTrack):
 
 
 @overload
-def track_from_object(object: Object) -> Track:
+def track_from_object(object: Object) -> Track:  # type: ignore
     ...
 
 
 @overload
-def track_from_object(object: Object, track_type: Type[T]) -> T:
+def track_from_object(object: Object, track_type: Type[T]) -> T:  # type: ignore
     ...
 
 
-def track_from_object(object: Object, track_type: Type[Track] = Track) -> Track:
+def track_from_object(object: Object, track_type: Type[Track] = Track) -> Track:  # type: ignore
     return track_type.from_object(object)
 
 
@@ -269,17 +269,17 @@ class PositionTrack(Track):
 
 
 @overload
-def position_track_from_object(object: Object) -> PositionTrack:
+def position_track_from_object(object: Object) -> PositionTrack:  # type: ignore
     ...
 
 
 @overload
-def position_track_from_object(object: Object, position_track_type: Type[PT]) -> PT:
+def position_track_from_object(object: Object, position_track_type: Type[PT]) -> PT:  # type: ignore
     ...
 
 
 def position_track_from_object(
-    object: Object, position_track_type: Type[PositionTrack] = PositionTrack
+    object: Object, position_track_type: Type[PositionTrack] = PositionTrack  # type: ignore
 ) -> PositionTrack:
     return position_track_type.from_object(object)
 

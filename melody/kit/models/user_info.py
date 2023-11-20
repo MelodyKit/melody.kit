@@ -51,16 +51,18 @@ class UserInfo(Base):
 
 
 @overload
-def user_info_from_object(object: Object) -> UserInfo:
+def user_info_from_object(object: Object) -> UserInfo:  # type: ignore
     ...
 
 
 @overload
-def user_info_from_object(object: Object, user_info_type: Type[UI]) -> UI:
+def user_info_from_object(object: Object, user_info_type: Type[UI]) -> UI:  # type: ignore
     ...
 
 
-def user_info_from_object(object: Object, user_info_type: Type[UserInfo] = UserInfo) -> UserInfo:
+def user_info_from_object(
+    object: Object, user_info_type: Type[UserInfo] = UserInfo  # type: ignore
+) -> UserInfo:
     return UserInfo.from_object(object)
 
 

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from atexit import register as register_at_exit
-from typing import Any, ClassVar, List, Optional, Union, overload
+from typing import Any, ClassVar, List, Literal, Optional, Union, overload
 
 from async_extensions.run import run
 from attrs import define, field, frozen
 from httpx import AsyncClient, HTTPError
 from typing_aliases import Headers, Parameters, Payload
-from typing_extensions import Literal
 
 from melody.shared.constants import DEFAULT_RETRIES, NAME, PYTHON
 from melody.shared.enums import ResponseType

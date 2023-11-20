@@ -3,7 +3,7 @@ from random import choice
 from discord import Color, Embed, Interaction
 
 from melody.bot.constants import INLINE
-from melody.bot.core import client
+from melody.bot.core import Melody, client
 from melody.kit.core import database
 from melody.shared.constants import MELODY_COLORS
 
@@ -20,7 +20,7 @@ PLAYLISTS = "Playlists"
 
 
 @client.tree.command(name="statistics", description="Fetches overall statistics.")
-async def get_statistics(interaction: Interaction) -> None:
+async def get_statistics(interaction: Interaction[Melody]) -> None:
     statistics = await database.query_statistics()
 
     embed = (

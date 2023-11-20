@@ -1,10 +1,11 @@
 from secrets import token_hex
-from typing import AsyncIterator, Optional, Type, TypeVar, overload
+from typing import AsyncIterator, Optional, Type
+from typing import TypedDict as Data
+from typing import TypeVar, overload
 from uuid import UUID
 
 from attrs import define, field
 from pendulum import DateTime, Duration
-from typing_extensions import TypedDict as Data
 
 from melody.kit.core import config, redis
 from melody.shared.constants import ACCESS_TOKEN, REFRESH_TOKEN, STAR, VERIFICATION_TOKEN

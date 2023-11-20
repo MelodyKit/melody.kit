@@ -69,17 +69,17 @@ class BaseStream(CreatedAt):
 
 
 @overload
-def base_stream_from_object(object: Object) -> BaseStream:
+def base_stream_from_object(object: Object) -> BaseStream:  # type: ignore
     ...
 
 
 @overload
-def base_stream_from_object(object: Object, base_stream_type: Type[B]) -> B:
+def base_stream_from_object(object: Object, base_stream_type: Type[B]) -> B:  # type: ignore
     ...
 
 
 def base_stream_from_object(
-    object: Object, base_stream_type: Type[BaseStream] = BaseStream
+    object: Object, base_stream_type: Type[BaseStream] = BaseStream  # type: ignore
 ) -> BaseStream:
     return base_stream_type.from_object(object)
 
@@ -135,17 +135,17 @@ class UserStream(BaseStream):
 
 
 @overload
-def user_stream_from_object(object: Object) -> UserStream:
+def user_stream_from_object(object: Object) -> UserStream:  # type: ignore
     ...
 
 
 @overload
-def user_stream_from_object(object: Object, user_stream_type: Type[U]) -> U:
+def user_stream_from_object(object: Object, user_stream_type: Type[U]) -> U:  # type: ignore
     ...
 
 
 def user_stream_from_object(
-    object: Object, user_stream_type: Type[UserStream] = UserStream
+    object: Object, user_stream_type: Type[UserStream] = UserStream  # type: ignore
 ) -> UserStream:
     return user_stream_type.from_object(object)
 
@@ -201,17 +201,17 @@ class TrackStream(BaseStream):
 
 
 @overload
-def track_stream_from_object(object: Object) -> TrackStream:
+def track_stream_from_object(object: Object) -> TrackStream:  # type: ignore
     ...
 
 
 @overload
-def track_stream_from_object(object: Object, track_stream_type: Type[T]) -> T:
+def track_stream_from_object(object: Object, track_stream_type: Type[T]) -> T:  # type: ignore
     ...
 
 
 def track_stream_from_object(
-    object: Object, track_stream_type: Type[TrackStream] = TrackStream
+    object: Object, track_stream_type: Type[TrackStream] = TrackStream  # type: ignore
 ) -> TrackStream:
     return track_stream_type.from_object(object)
 
@@ -270,16 +270,18 @@ class Stream(BaseStream):
 
 
 @overload
-def stream_from_object(object: Object) -> Stream:
+def stream_from_object(object: Object) -> Stream:  # type: ignore
     ...
 
 
 @overload
-def stream_from_object(object: Object, stream_type: Type[S]) -> S:
+def stream_from_object(object: Object, stream_type: Type[S]) -> S:  # type: ignore
     ...
 
 
-def stream_from_object(object: Object, stream_type: Type[Stream] = Stream) -> Stream:
+def stream_from_object(
+    object: Object, stream_type: Type[Stream] = Stream  # type: ignore
+) -> Stream:
     return stream_type.from_object(object)
 
 

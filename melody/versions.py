@@ -1,8 +1,8 @@
-from versions.functions import parse_version
 from versions.meta import python_version_info
+from versions.versioned import get_version
 
-from melody import __version__
+import melody
 
 __all__ = ("python_version_info", "version_info")
 
-version_info = parse_version(__version__)
+version_info = get_version(melody)  # type: ignore

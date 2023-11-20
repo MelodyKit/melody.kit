@@ -33,7 +33,7 @@ def web() -> None:
 web.add_command(run)
 
 
-SHELL = True
+SHELL = False
 
 
 @click.option("--input", "-i", type=Path, default=DEFAULT_INPUT)

@@ -41,17 +41,17 @@ class CreatedAt(Base):
 
 
 @overload
-def created_at_from_object(object: Object) -> CreatedAt:
+def created_at_from_object(object: Object) -> CreatedAt:  # type: ignore
     ...
 
 
 @overload
-def created_at_from_object(object: Object, created_at_type: Type[C]) -> C:
+def created_at_from_object(object: Object, created_at_type: Type[C]) -> C:  # type: ignore
     ...
 
 
 def created_at_from_object(
-    object: Object, created_at_type: Type[CreatedAt] = CreatedAt
+    object: Object, created_at_type: Type[CreatedAt] = CreatedAt  # type: ignore
 ) -> CreatedAt:
     return created_at_type.from_object(object)
 

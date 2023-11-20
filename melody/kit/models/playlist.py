@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import List, Optional, Type, TypeVar, overload
+from typing import List, Optional, Type
+from typing import TypedDict as Data
+from typing import TypeVar, overload
 
 from attrs import define, field
 from edgedb import Object  # type: ignore
 from pendulum import DateTime
-from typing_extensions import TypedDict as Data
 
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
@@ -102,17 +103,19 @@ class PartialPlaylist(Entity):
 
 
 @overload
-def partial_playlist_from_object(object: Object) -> PartialPlaylist:
+def partial_playlist_from_object(object: Object) -> PartialPlaylist:  # type: ignore
     ...
 
 
 @overload
-def partial_playlist_from_object(object: Object, partial_playlist_type: Type[Q]) -> Q:
+def partial_playlist_from_object(  # type: ignore
+    object: Object, partial_playlist_type: Type[Q]
+) -> Q:
     ...
 
 
 def partial_playlist_from_object(
-    object: Object, partial_playlist_type: Type[PartialPlaylist] = PartialPlaylist
+    object: Object, partial_playlist_type: Type[PartialPlaylist] = PartialPlaylist  # type: ignore
 ) -> PartialPlaylist:
     return partial_playlist_type.from_object(object)
 
@@ -196,16 +199,18 @@ class Playlist(PartialPlaylist):
 
 
 @overload
-def playlist_from_object(object: Object) -> Playlist:
+def playlist_from_object(object: Object) -> Playlist:  # type: ignore
     ...
 
 
 @overload
-def playlist_from_object(object: Object, playlist_type: Type[P]) -> P:
+def playlist_from_object(object: Object, playlist_type: Type[P]) -> P:  # type: ignore
     ...
 
 
-def playlist_from_object(object: Object, playlist_type: Type[Playlist] = Playlist) -> Playlist:
+def playlist_from_object(
+    object: Object, playlist_type: Type[Playlist] = Playlist  # type: ignore
+) -> Playlist:
     return playlist_type.from_object(object)
 
 

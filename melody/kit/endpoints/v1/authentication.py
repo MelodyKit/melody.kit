@@ -178,10 +178,10 @@ async def send_email(author: str, target: str, subject: str, content: str) -> No
     email = config.email
 
     client = SMTP(
-        email.host,
-        email.port,
-        email.name,
-        email.password,
+        hostname=email.host,
+        port=email.port,
+        username=email.name,
+        password=email.password,
         start_tls=True,
     )
 
