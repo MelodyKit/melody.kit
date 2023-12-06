@@ -172,7 +172,7 @@ module default {
 
         multi link followers := .<following[is User];
 
-        multi link friends := (select .following filter .following in .followers);
+        multi link friends := .following intersect .followers;
 
         property following_count := count(.following);  # used in pagination
 
