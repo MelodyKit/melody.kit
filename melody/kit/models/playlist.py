@@ -35,7 +35,7 @@ class PartialPlaylistData(EntityData):
 
     follower_count: int
 
-    description: str
+    description: Optional[str]
 
     duration_ms: int
 
@@ -47,7 +47,7 @@ class PartialPlaylistData(EntityData):
 class PartialPlaylist(Entity):
     follower_count: int = field(default=DEFAULT_COUNT)
 
-    description: str = field(default=EMPTY)
+    description: Optional[str] = field(default=None)
 
     duration_ms: int = field(default=DEFAULT_DURATION)
 
