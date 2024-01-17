@@ -18,7 +18,7 @@ database = Database()
 
 config = get_config()
 
-redis = Redis(  # type: ignore
+redis = Redis(
     host=config.redis.host,
     port=config.redis.port,
     encoding=DEFAULT_ENCODING,
@@ -56,15 +56,15 @@ register_cors_middleware(app)
 
 
 def register_error_handlers(app: FastAPI) -> None:
-    @app.exception_handler(Error)  # type: ignore
+    @app.exception_handler(Error)
     async def error_handler(request: Request, error: Error) -> JSONResponse:
         return JSONResponse(error.into_data(), status_code=error.status_code)
 
-    @app.exception_handler(NormalError)  # type: ignore
+    @app.exception_handler(NormalError)
     async def internal_error_handler(request: Request, error: NormalError) -> JSONResponse:
         internal_error = InternalError()
 
-        return await error_handler(request, internal_error)  # type: ignore
+        return await error_handler(request, internal_error)
 
 
 v1 = FastAPI(title=config.name, version=VERSION_1)

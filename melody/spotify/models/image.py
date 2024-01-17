@@ -1,6 +1,5 @@
-from typing import Type, TypeVar
-
 from attrs import define
+from typing_extensions import Self
 
 from melody.shared.converter import CONVERTER
 from melody.spotify.models.base import Base, BaseData
@@ -12,9 +11,6 @@ class ImageData(BaseData):
     height: int
 
 
-I = TypeVar("I", bound="Image")
-
-
 @define()
 class Image(Base):
     url: str
@@ -22,7 +18,7 @@ class Image(Base):
     height: int
 
     @classmethod
-    def from_data(cls: Type[I], data: ImageData) -> I:  # type: ignore
+    def from_data(cls, data: ImageData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> ImageData:

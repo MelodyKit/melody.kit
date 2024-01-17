@@ -3,7 +3,12 @@ from uuid import UUID
 
 from attrs import field, frozen
 from cattrs import Converter
-from cattrs.gen import AttributeOverride, make_dict_structure_fn, make_dict_unstructure_fn, override
+from cattrs.gen import (  # type: ignore[attr-defined]
+    AttributeOverride,
+    make_dict_structure_fn,
+    make_dict_unstructure_fn,
+    override,
+)
 from typing_aliases import AnyType, StringDict
 from yarl import URL
 
@@ -55,7 +60,8 @@ class RegisterStructureHook:
 
     def __call__(self, type: T) -> T:
         CONVERTER.register_structure_hook(
-            type, make_dict_structure_fn(type, CONVERTER, **self.overrides)  # type: ignore
+            type,
+            make_dict_structure_fn(type, CONVERTER, **self.overrides),  # type: ignore
         )
 
         return type
@@ -71,13 +77,16 @@ class RegisterUnstructureHook:
 
     def __call__(self, type: T) -> T:
         CONVERTER.register_unstructure_hook(
-            type, make_dict_unstructure_fn(type, CONVERTER, **self.overrides)  # type: ignore
+            type,
+            make_dict_unstructure_fn(type, CONVERTER, **self.overrides),  # type: ignore
         )
 
         return type
 
 
-def register_unstructure_hook(**overrides: AttributeOverride) -> RegisterUnstructureHook:
+def register_unstructure_hook(
+    **overrides: AttributeOverride,
+) -> RegisterUnstructureHook:
     return RegisterUnstructureHook(overrides)
 
 

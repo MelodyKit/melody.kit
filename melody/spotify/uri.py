@@ -1,6 +1,7 @@
 from typing import Type, TypeVar
 
 from attrs import frozen
+from typing_extensions import Self
 
 from melody.shared.converter import CONVERTER
 from melody.spotify.enums import EntityType
@@ -28,7 +29,7 @@ class URI:
         return self.to_string()
 
     @classmethod
-    def from_string(cls: Type[U], string: str) -> U:
+    def from_string(cls, string: str) -> Self:
         header, type_string, id = string.split(URI_SEPARATOR)
 
         if header != HEADER:

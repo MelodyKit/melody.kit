@@ -4,7 +4,13 @@ from fastapi import Depends, Query
 from fastapi.responses import FileResponse
 from yarl import URL
 
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
+from melody.kit.constants import (
+    DEFAULT_LIMIT,
+    DEFAULT_OFFSET,
+    MAX_LIMIT,
+    MIN_LIMIT,
+    MIN_OFFSET,
+)
 from melody.kit.core import database, v1
 from melody.kit.dependencies import url_dependency
 from melody.kit.enums import EntityType
@@ -14,10 +20,8 @@ from melody.kit.models.album import (
     AlbumData,
     AlbumTracks,
     AlbumTracksData,
-    album_into_data,
-    album_tracks_into_data,
 )
-from melody.kit.models.pagination import paginate
+from melody.kit.models.pagination import Pagination
 from melody.kit.tags import ALBUMS, LINKS, TRACKS
 from melody.kit.uri import URI
 
@@ -37,7 +41,7 @@ async def get_album(album_id: UUID) -> AlbumData:
     if album is None:
         raise NotFound(CAN_NOT_FIND_ALBUM.format(album_id))
 
-    return album_into_data(album)
+    return album.into_data()
 
 
 @v1.get(
@@ -71,6 +75,8 @@ async def get_album_tracks(
 
     items, count = counted
 
-    album_tracks = AlbumTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    album_tracks = AlbumTracks(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return album_tracks_into_data(album_tracks)
+    return album_tracks.into_data()

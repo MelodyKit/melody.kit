@@ -2,6 +2,7 @@ from typing import Type, TypeVar
 from uuid import UUID
 
 from attrs import frozen
+from typing_extensions import Self
 
 from melody.kit.enums import EntityType
 from melody.shared.constants import IMAGE_TYPE
@@ -37,7 +38,7 @@ class URI:
         return self.to_string()
 
     @classmethod
-    def from_string(cls: Type[U], string: str) -> U:
+    def from_string(cls, string: str) -> Self:
         header, type_string, id_string = string.split(URI_SEPARATOR)
 
         if header != URI_HEADER:

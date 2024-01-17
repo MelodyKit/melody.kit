@@ -3,11 +3,6 @@ from melody.kit.models.album import (
     AlbumData,
     AlbumTracks,
     AlbumTracksData,
-    album_from_data,
-    album_from_object,
-    album_into_data,
-    album_tracks_from_data,
-    album_tracks_into_data,
 )
 from melody.kit.models.artist import (
     Artist,
@@ -16,35 +11,22 @@ from melody.kit.models.artist import (
     ArtistData,
     ArtistTracks,
     ArtistTracksData,
-    artist_albums_from_data,
-    artist_albums_into_data,
-    artist_from_data,
-    artist_from_object,
-    artist_into_data,
-    artist_tracks_from_data,
-    artist_tracks_into_data,
 )
-from melody.kit.models.base import Base, BaseData, base_from_data, base_from_object, base_into_data
+from melody.kit.models.base import (
+    Base,
+    BaseData,
+)
 from melody.kit.models.created_at import (
     CreatedAt,
     CreatedAtData,
-    created_at_from_data,
-    created_at_from_object,
-    created_at_into_data,
 )
 from melody.kit.models.entity import (
     Entity,
     EntityData,
-    entity_from_data,
-    entity_from_object,
-    entity_into_data,
 )
 from melody.kit.models.pagination import (
     Pagination,
     PaginationData,
-    paginate,
-    pagination_from_data,
-    pagination_into_data,
 )
 from melody.kit.models.playlist import (
     PartialPlaylist,
@@ -53,28 +35,10 @@ from melody.kit.models.playlist import (
     PlaylistData,
     PlaylistTracks,
     PlaylistTracksData,
-    partial_playlist_from_data,
-    partial_playlist_from_object,
-    partial_playlist_into_data,
-    playlist_from_data,
-    playlist_from_object,
-    playlist_into_data,
-    playlist_tracks_from_data,
-    playlist_tracks_into_data,
-)
-from melody.kit.models.user_settings import (
-    UserSettings,
-    UserSettingsData,
-    user_settings_from_data,
-    user_settings_from_object,
-    user_settings_into_data,
 )
 from melody.kit.models.statistics import (
     Statistics,
     StatisticsData,
-    statistics_from_data,
-    statistics_from_object,
-    statistics_into_data,
 )
 from melody.kit.models.streams import (
     BaseStream,
@@ -85,35 +49,14 @@ from melody.kit.models.streams import (
     TrackStreamData,
     UserStream,
     UserStreamData,
-    base_stream_from_data,
-    base_stream_from_object,
-    base_stream_into_data,
-    stream_from_data,
-    stream_from_object,
-    stream_into_data,
-    track_stream_from_data,
-    track_stream_from_object,
-    track_stream_into_data,
-    user_stream_from_data,
-    user_stream_from_object,
-    user_stream_into_data,
 )
-from melody.kit.models.track import (
+from melody.kit.models.tracks import (
     PartialTrack,
     PartialTrackData,
     PositionTrack,
     PositionTrackData,
     Track,
     TrackData,
-    partial_track_from_data,
-    partial_track_from_object,
-    partial_track_into_data,
-    position_track_from_data,
-    position_track_from_object,
-    position_track_into_data,
-    track_from_data,
-    track_from_object,
-    track_into_data,
 )
 from melody.kit.models.user import (
     User,
@@ -136,214 +79,111 @@ from melody.kit.models.user import (
     UserStreamsData,
     UserTracks,
     UserTracksData,
-    user_albums_from_data,
-    user_albums_into_data,
-    user_artists_from_data,
-    user_artists_into_data,
-    user_followed_playlists_from_data,
-    user_followed_playlists_into_data,
-    user_followers_from_data,
-    user_followers_into_data,
-    user_following_from_data,
-    user_following_into_data,
-    user_friends_from_data,
-    user_friends_into_data,
-    user_from_data,
-    user_from_object,
-    user_into_data,
-    user_playlists_from_data,
-    user_playlists_into_data,
-    user_streams_from_data,
-    user_streams_into_data,
-    user_tracks_from_data,
-    user_tracks_into_data,
 )
 from melody.kit.models.user_info import (
     UserInfo,
     UserInfoData,
-    user_info_from_data,
-    user_info_from_object,
-    user_info_into_data,
+)
+from melody.kit.models.user_settings import (
+    UserSettings,
+    UserSettingsData,
 )
 
 __all__ = (
     # base
     "Base",
     "BaseData",
-    "base_from_object",
-    "base_from_data",
-    "base_into_data",
     # created at
     "CreatedAt",
     "CreatedAtData",
-    "created_at_from_object",
-    "created_at_from_data",
-    "created_at_into_data",
     # entities
     "Entity",
     "EntityData",
-    "entity_from_object",
-    "entity_from_data",
-    "entity_into_data",
     # partial tracks
     "PartialTrack",
     "PartialTrackData",
-    "partial_track_from_object",
-    "partial_track_from_data",
-    "partial_track_into_data",
     # tracks
     "Track",
     "TrackData",
-    "track_from_object",
-    "track_from_data",
-    "track_into_data",
     # position tracks
     "PositionTrack",
     "PositionTrackData",
-    "position_track_from_object",
-    "position_track_from_data",
-    "position_track_into_data",
     # artists
     "Artist",
     "ArtistData",
-    "artist_from_object",
-    "artist_from_data",
-    "artist_into_data",
     # artist tracks
     "ArtistTracks",
     "ArtistTracksData",
-    "artist_tracks_from_data",
-    "artist_tracks_into_data",
     # artist albums
     "ArtistAlbums",
     "ArtistAlbumsData",
-    "artist_albums_from_data",
-    "artist_albums_into_data",
     # albums
     "Album",
     "AlbumData",
-    "album_from_object",
-    "album_from_data",
-    "album_into_data",
     # album tracks
     "AlbumTracks",
     "AlbumTracksData",
-    "album_tracks_from_data",
-    "album_tracks_into_data",
     # partial playlists
     "PartialPlaylist",
     "PartialPlaylistData",
-    "partial_playlist_from_object",
-    "partial_playlist_from_data",
-    "partial_playlist_into_data",
     # playlists
     "Playlist",
     "PlaylistData",
-    "playlist_from_object",
-    "playlist_from_data",
-    "playlist_into_data",
     # playlist tracks
     "PlaylistTracks",
     "PlaylistTracksData",
-    "playlist_tracks_from_data",
-    "playlist_tracks_into_data",
     # users
     "User",
     "UserData",
-    "user_from_object",
-    "user_from_data",
-    "user_into_data",
     # user tracks
     "UserTracks",
     "UserTracksData",
-    "user_tracks_from_data",
-    "user_tracks_into_data",
     # user albums
     "UserAlbums",
     "UserAlbumsData",
-    "user_albums_from_data",
-    "user_albums_into_data",
     # user playlists
     "UserPlaylists",
     "UserPlaylistsData",
-    "user_playlists_from_data",
-    "user_playlists_into_data",
     # user artists
     "UserArtists",
     "UserArtistsData",
-    "user_artists_from_data",
-    "user_artists_into_data",
     # user friends
     "UserFriends",
     "UserFriendsData",
-    "user_friends_from_data",
-    "user_friends_into_data",
     # user followers
     "UserFollowers",
     "UserFollowersData",
-    "user_followers_from_data",
-    "user_followers_into_data",
     # user following
     "UserFollowing",
     "UserFollowingData",
-    "user_following_from_data",
-    "user_following_into_data",
     # user streams
     "UserStreams",
     "UserStreamsData",
-    "user_streams_from_data",
-    "user_streams_into_data",
     # user followed playlists
     "UserFollowedPlaylists",
     "UserFollowedPlaylistsData",
-    "user_followed_playlists_from_data",
-    "user_followed_playlists_into_data",
     # user info
     "UserInfo",
     "UserInfoData",
-    "user_info_from_object",
-    "user_info_from_data",
-    "user_info_into_data",
     # user settings
     "UserSettings",
     "UserSettingsData",
-    "user_settings_from_object",
-    "user_settings_from_data",
-    "user_settings_into_data",
     # statistics
     "Statistics",
     "StatisticsData",
-    "statistics_from_object",
-    "statistics_from_data",
-    "statistics_into_data",
     # base streams
     "BaseStream",
     "BaseStreamData",
-    "base_stream_from_object",
-    "base_stream_from_data",
-    "base_stream_into_data",
     # user streams
     "UserStream",
     "UserStreamData",
-    "user_stream_from_object",
-    "user_stream_from_data",
-    "user_stream_into_data",
     # track streams
     "TrackStream",
     "TrackStreamData",
-    "track_stream_from_object",
-    "track_stream_from_data",
-    "track_stream_into_data",
     # streams
     "Stream",
     "StreamData",
-    "stream_from_object",
-    "stream_from_data",
-    "stream_into_data",
     # pagination
     "Pagination",
     "PaginationData",
-    "pagination_from_data",
-    "pagination_into_data",
-    "paginate",
 )

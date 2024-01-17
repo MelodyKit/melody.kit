@@ -5,7 +5,8 @@ from enum import Enum
 from attrs import frozen
 from fastapi import status
 from typing_aliases import NormalError, Payload
-from typing_extensions import TypedDict as Data
+
+from melody.shared.typing import Data
 
 __all__ = (
     "Error",

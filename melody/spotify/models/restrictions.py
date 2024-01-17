@@ -1,6 +1,5 @@
-from typing import Type, TypeVar
-
 from attrs import define
+from typing_extensions import Self
 
 from melody.shared.converter import CONVERTER
 from melody.spotify.enums import RestrictionsReason
@@ -13,15 +12,12 @@ class RestrictionsData(BaseData):
     reason: str
 
 
-R = TypeVar("R", bound="Restrictions")
-
-
 @define()
 class Restrictions(Base):
     reason: RestrictionsReason
 
     @classmethod
-    def from_data(cls: Type[R], data: RestrictionsData) -> R:  # type: ignore
+    def from_data(cls, data: RestrictionsData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> RestrictionsData:

@@ -1,20 +1,13 @@
-from typing import Type, TypeVar, overload
-
 from attrs import define
-from edgedb import Object  # type: ignore
-from typing_extensions import TypedDict as Data
+from edgedb import Object
+from typing_extensions import Self
 
 from melody.kit.constants import DEFAULT_AUTOPLAY, DEFAULT_EXPLICIT
 from melody.kit.enums import Platform, PrivacyType
 from melody.shared.converter import CONVERTER
+from melody.shared.typing import Data
 
-__all__ = (
-    "UserSettings",
-    "UserSettingsData",
-    "user_settings_from_object",
-    "user_settings_from_data",
-    "user_settings_into_data",
-)
+__all__ = ("UserSettings", "UserSettingsData")
 
 
 class UserSettingsData(Data):
@@ -27,9 +20,6 @@ class UserSettingsData(Data):
     platform: str
 
     privacy_type: str
-
-
-US = TypeVar("US", bound="UserSettings")
 
 
 @define()
@@ -51,7 +41,7 @@ class UserSettings:
         return self.autoplay
 
     @classmethod
-    def from_object(cls: Type[US], object: Object) -> US:  # type: ignore
+    def from_object(cls, object: Object) -> Self:
         return cls(
             name=object.name,
             explicit=object.explicit,
@@ -61,44 +51,8 @@ class UserSettings:
         )
 
     @classmethod
-    def from_data(cls: Type[US], data: UserSettingsData) -> US:
+    def from_data(cls, data: UserSettingsData) -> Self:
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> UserSettingsData:
         return CONVERTER.unstructure(self)  # type: ignore
-
-
-@overload
-def user_settings_from_object(object: Object) -> UserSettings:  # type: ignore
-    ...
-
-
-@overload
-def user_settings_from_object(object: Object, user_settings_type: Type[US]) -> US:  # type: ignore
-    ...
-
-
-def user_settings_from_object(
-    object: Object, user_settings_type: Type[UserSettings] = UserSettings  # type: ignore
-) -> UserSettings:
-    return user_settings_type.from_object(object)
-
-
-@overload
-def user_settings_from_data(data: UserSettingsData) -> UserSettings:
-    ...
-
-
-@overload
-def user_settings_from_data(data: UserSettingsData, user_settings_type: Type[US]) -> US:
-    ...
-
-
-def user_settings_from_data(
-    data: UserSettingsData, user_settings_type: Type[UserSettings] = UserSettings
-) -> UserSettings:
-    return user_settings_type.from_data(data)
-
-
-def user_settings_into_data(user_settings: UserSettings) -> UserSettingsData:
-    return user_settings.into_data()

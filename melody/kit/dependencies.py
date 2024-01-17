@@ -1,9 +1,8 @@
 from typing import Optional
 from uuid import UUID
 
-from async_extensions.blocking import run_blocking_in_thread
 from attrs import define
-from email_validator import EmailNotValidError, validate_email  # type: ignore
+from email_validator import EmailNotValidError, validate_email
 from fastapi import Body
 from fastapi.requests import Request
 from yarl import URL
@@ -20,6 +19,7 @@ from melody.kit.tokens import (
     fetch_user_id_by_refresh_token,
     fetch_user_id_by_verification_token,
 )
+from melody.shared.asyncio import run_blocking
 from melody.shared.constants import SPACE
 
 __all__ = (
@@ -138,17 +138,17 @@ def email_dependency(email: str = Body()) -> str:
     except EmailNotValidError:
         raise ValidationError(INVALID_EMAIL.format(email))
 
-    return result.email  # type: ignore
+    return result.email  # type: ignore[no-any-return]
 
 
 async def email_deliverability_dependency(email: str = Body()) -> str:
     try:
-        result = await run_blocking_in_thread(validate_email, email, check_deliverability=True)
+        result = await run_blocking(validate_email, email, check_deliverability=True)
 
     except EmailNotValidError:
         raise ValidationError(INVALID_EMAIL.format(email))
 
-    return result.email  # type: ignore
+    return result.email  # type: ignore[no-any-return]
 
 
 def url_dependency(request: Request) -> URL:

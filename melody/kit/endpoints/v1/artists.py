@@ -4,7 +4,13 @@ from fastapi import Depends, Query
 from fastapi.responses import FileResponse
 from yarl import URL
 
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
+from melody.kit.constants import (
+    DEFAULT_LIMIT,
+    DEFAULT_OFFSET,
+    MAX_LIMIT,
+    MIN_LIMIT,
+    MIN_OFFSET,
+)
 from melody.kit.core import database, v1
 from melody.kit.dependencies import url_dependency
 from melody.kit.enums import EntityType
@@ -16,11 +22,8 @@ from melody.kit.models.artist import (
     ArtistData,
     ArtistTracks,
     ArtistTracksData,
-    artist_albums_into_data,
-    artist_into_data,
-    artist_tracks_into_data,
 )
-from melody.kit.models.pagination import paginate
+from melody.kit.models.pagination import Pagination
 from melody.kit.tags import ALBUMS, ARTISTS, LINKS, TRACKS
 from melody.kit.uri import URI
 
@@ -40,7 +43,7 @@ async def get_artist(artist_id: UUID) -> ArtistData:
     if artist is None:
         raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
 
-    return artist_into_data(artist)
+    return artist.into_data()
 
 
 @v1.get(
@@ -74,9 +77,11 @@ async def get_artist_tracks(
 
     items, count = counted
 
-    artist_tracks = ArtistTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    artist_tracks = ArtistTracks(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return artist_tracks_into_data(artist_tracks)
+    return artist_tracks.into_data()
 
 
 @v1.get(
@@ -97,6 +102,8 @@ async def get_artist_albums(
 
     items, count = counted
 
-    artist_albums = ArtistAlbums(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    artist_albums = ArtistAlbums(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return artist_albums_into_data(artist_albums)
+    return artist_albums.into_data()

@@ -7,13 +7,19 @@ from iters.iters import iter
 from typing_aliases import Predicate
 from yarl import URL
 
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
+from melody.kit.constants import (
+    DEFAULT_LIMIT,
+    DEFAULT_OFFSET,
+    MAX_LIMIT,
+    MIN_LIMIT,
+    MIN_OFFSET,
+)
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_access_token_dependency, url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.pagination import paginate
+from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import PartialPlaylist
 from melody.kit.models.user import (
     User,
@@ -32,14 +38,6 @@ from melody.kit.models.user import (
     UserPlaylistsData,
     UserTracks,
     UserTracksData,
-    user_albums_into_data,
-    user_artists_into_data,
-    user_followers_into_data,
-    user_following_into_data,
-    user_friends_into_data,
-    user_into_data,
-    user_playlists_into_data,
-    user_tracks_into_data,
 )
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
@@ -72,7 +70,7 @@ async def get_user(user_id: UUID) -> UserData:
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return user_into_data(user)
+    return user.into_data()
 
 
 @v1.get(
@@ -152,9 +150,11 @@ async def get_user_tracks(
 
         items, count = counted
 
-        user_tracks = UserTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+        user_tracks = UserTracks(
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        )
 
-        return user_tracks_into_data(user_tracks)
+        return user_tracks.into_data()
 
     raise Forbidden(INACCESSIBLE_TRACKS.format(user_id))
 
@@ -188,10 +188,10 @@ async def get_user_artists(
         items, count = counted
 
         user_artists = UserArtists(
-            items, paginate(url=url, offset=offset, limit=limit, count=count)
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
         )
 
-        return user_artists_into_data(user_artists)
+        return user_artists.into_data()
 
     raise Forbidden(INACCESSIBLE_ARTISTS.format(user_id))
 
@@ -224,9 +224,11 @@ async def get_user_albums(
 
         items, count = counted
 
-        user_albums = UserAlbums(items, paginate(url=url, offset=offset, limit=limit, count=count))
+        user_albums = UserAlbums(
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        )
 
-        return user_albums_into_data(user_albums)
+        return user_albums.into_data()
 
     raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
 
@@ -287,10 +289,10 @@ async def get_user_playlists(
         items = iter(items).filter(predicate).list()
 
         user_playlists = UserPlaylists(
-            items, paginate(url=url, offset=offset, limit=limit, count=count)
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
         )
 
-        return user_playlists_into_data(user_playlists)
+        return user_playlists.into_data()
 
     raise Forbidden(INACCESSIBLE_PLAYLISTS.format(user_id))
 
@@ -324,10 +326,10 @@ async def get_user_followers(
         items, count = counted
 
         user_followers = UserFollowers(
-            items, paginate(url=url, offset=offset, limit=limit, count=count)
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
         )
 
-        return user_followers_into_data(user_followers)
+        return user_followers.into_data()
 
     raise Forbidden(INACCESSIBLE_FOLLOWERS.format(user_id))
 
@@ -361,10 +363,10 @@ async def get_user_following(
         items, count = counted
 
         user_following = UserFollowing(
-            items, paginate(url=url, offset=offset, limit=limit, count=count)
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
         )
 
-        return user_following_into_data(user_following)
+        return user_following.into_data()
 
     raise Forbidden(INACCESSIBLE_FOLLOWING.format(user_id))
 
@@ -398,9 +400,9 @@ async def get_user_friends(
         items, count = counted
 
         user_friends = UserFriends(
-            items, paginate(url=url, offset=offset, limit=limit, count=count)
+            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
         )
 
-        return user_friends_into_data(user_friends)
+        return user_friends.into_data()
 
     raise Forbidden(INACCESSIBLE_FRIENDS.format(user_id))

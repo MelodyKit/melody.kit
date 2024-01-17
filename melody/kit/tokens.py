@@ -1,15 +1,21 @@
 from secrets import token_hex
-from typing import AsyncIterator, Optional, Type, TypeVar, overload
+from typing import AsyncIterator, Optional
 from uuid import UUID
 
 from attrs import define, field
 from pendulum import DateTime, Duration
-from typing_extensions import TypedDict as Data
+from typing_extensions import Self
 
 from melody.kit.core import config, redis
-from melody.shared.constants import ACCESS_TOKEN, REFRESH_TOKEN, STAR, VERIFICATION_TOKEN
+from melody.shared.constants import (
+    ACCESS_TOKEN,
+    REFRESH_TOKEN,
+    STAR,
+    VERIFICATION_TOKEN,
+)
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import utc_now
+from melody.shared.typing import Data
 
 __all__ = (
     "Tokens",
@@ -21,8 +27,6 @@ __all__ = (
     "refresh_expires_in_factory",
     "verification_token_factory",
     "verification_expires_in_factory",
-    "tokens_from_data",
-    "tokens_into_data",
     "generate_tokens_for",
     "generate_verification_token_for",
     "delete_access_token",
@@ -77,9 +81,6 @@ def verification_expires_in_factory() -> Duration:
     return config.token.verification.expires.duration
 
 
-T = TypeVar("T", bound="Tokens")
-
-
 @define()
 class Tokens:
     access_token: str = field(factory=access_token_factory)
@@ -99,36 +100,18 @@ class Tokens:
 
     @property
     def access_expires_at(self) -> DateTime:
-        return self.created_at + self.access_expires_in  # type: ignore
+        return self.created_at + self.access_expires_in
 
     @property
     def refresh_expires_at(self) -> DateTime:
-        return self.created_at + self.refresh_expires_in  # type: ignore
+        return self.created_at + self.refresh_expires_in
 
     @classmethod
-    def from_data(cls: Type[T], data: TokensData) -> T:
+    def from_data(cls, data: TokensData) -> Self:
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> TokensData:
         return CONVERTER.unstructure(self)  # type: ignore
-
-
-@overload
-def tokens_from_data(data: TokensData) -> Tokens:
-    ...
-
-
-@overload
-def tokens_from_data(data: TokensData, tokens_type: Type[T]) -> T:
-    ...
-
-
-def tokens_from_data(data: TokensData, tokens_type: Type[Tokens] = Tokens) -> Tokens:
-    return tokens_type.from_data(data)
-
-
-def tokens_into_data(tokens: Tokens) -> TokensData:
-    return tokens.into_data()
 
 
 NAME_SEPARATOR = ":"
@@ -164,14 +147,18 @@ def key_verification_token(key: str) -> Optional[str]:
 async def generate_tokens_for(user_id: UUID) -> Tokens:
     tokens = Tokens()
 
-    access_expires_seconds = tokens.access_expires_in.total_seconds()  # type: ignore
-    refresh_expires_seconds = tokens.refresh_expires_in.total_seconds()  # type: ignore
+    access_expires_seconds = tokens.access_expires_in.total_seconds()
+    refresh_expires_seconds = tokens.refresh_expires_in.total_seconds()
 
     await redis.set(
-        access_token_key(tokens.access_token), str(user_id), ex=int(access_expires_seconds)
+        access_token_key(tokens.access_token),
+        str(user_id),
+        ex=int(access_expires_seconds),
     )
     await redis.set(
-        refresh_token_key(tokens.refresh_token), str(user_id), ex=int(refresh_expires_seconds)
+        refresh_token_key(tokens.refresh_token),
+        str(user_id),
+        ex=int(refresh_expires_seconds),
     )
 
     return tokens
@@ -180,7 +167,7 @@ async def generate_tokens_for(user_id: UUID) -> Tokens:
 async def generate_verification_token_for(user_id: UUID) -> str:
     verification_token = verification_token_factory()
 
-    verification_expires_seconds = verification_expires_in_factory().total_seconds()  # type: ignore
+    verification_expires_seconds = verification_expires_in_factory().total_seconds()
 
     await redis.set(
         verification_token_key(verification_token),
@@ -240,7 +227,9 @@ async def fetch_user_id_by_refresh_token(refresh_token: str) -> Optional[UUID]:
     return user_id
 
 
-async def fetch_user_id_by_verification_token(verification_token: str) -> Optional[UUID]:
+async def fetch_user_id_by_verification_token(
+    verification_token: str,
+) -> Optional[UUID]:
     option = await redis.get(verification_token_key(verification_token))
 
     if option is None:

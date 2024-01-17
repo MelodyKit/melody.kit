@@ -1,7 +1,8 @@
-from typing import Optional, Type, TypeVar
+from typing import Optional
 
 from attrs import define
 from cattrs.gen import override
+from typing_extensions import Self
 
 from melody.shared.converter import CONVERTER, register_unstructure_hook
 from melody.spotify.models.base import Base, BaseData
@@ -21,9 +22,8 @@ register_unstructure_hook_omit_if_default = register_unstructure_hook(
     upc=override(omit_if_default=True),
 )
 
-E = TypeVar("E", bound="ExternalIDs")
 
-
+@register_unstructure_hook_omit_if_default
 @define()
 class ExternalIDs(Base):
     isrc: Optional[str] = None
@@ -31,7 +31,7 @@ class ExternalIDs(Base):
     upc: Optional[str] = None
 
     @classmethod
-    def from_data(cls: Type[E], data: ExternalIDsData) -> E:  # type: ignore
+    def from_data(cls, data: ExternalIDsData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> ExternalIDsData:

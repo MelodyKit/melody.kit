@@ -1,5 +1,5 @@
 from melody.kit.core import database, v1
-from melody.kit.models.statistics import StatisticsData, statistics_into_data
+from melody.kit.models.statistics import StatisticsData
 from melody.kit.tags import STATISTICS
 
 __all__ = ("get_statistics",)
@@ -13,4 +13,4 @@ __all__ = ("get_statistics",)
 async def get_statistics() -> StatisticsData:
     statistics = await database.query_statistics()
 
-    return statistics_into_data(statistics)
+    return statistics.into_data()

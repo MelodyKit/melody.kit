@@ -1,6 +1,5 @@
-from typing import Type, TypeVar
-
 from attrs import define
+from typing_extensions import Self
 
 from melody.shared.converter import CONVERTER
 from melody.spotify.enums import CopyrightType
@@ -14,16 +13,13 @@ class CopyrightData(BaseData):
     type: str
 
 
-C = TypeVar("C", bound="Copyright")
-
-
 @define()
 class Copyright(Base):
     text: str
     type: CopyrightType
 
     @classmethod
-    def from_data(cls: Type[C], data: CopyrightData) -> C:  # type: ignore
+    def from_data(cls, data: CopyrightData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> CopyrightData:

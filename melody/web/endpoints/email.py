@@ -18,5 +18,6 @@ def email_to(email: str) -> str:
 @app.get("/email/{name}")
 async def redirect_email(name: str) -> RedirectResponse:
     return RedirectResponse(
-        email_to(email(name=name, domain=config.domain)), status_code=status.HTTP_302_FOUND
+        email_to(email(name=name, domain=config.domain)),
+        status_code=status.HTTP_302_FOUND,
     )

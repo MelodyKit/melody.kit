@@ -17,7 +17,15 @@ WATCH = "-w"
 
 
 def build_command(input: Path, output: Path, watch: bool) -> Sequence[str]:
-    arguments = [EXECUTE, TAILWIND, INPUT, input.as_posix(), OUTPUT, output.as_posix(), MINIFY]
+    arguments = [
+        EXECUTE,
+        TAILWIND,
+        INPUT,
+        input.as_posix(),
+        OUTPUT,
+        output.as_posix(),
+        MINIFY,
+    ]
 
     if watch:
         arguments.append(WATCH)

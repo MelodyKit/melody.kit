@@ -1,13 +1,19 @@
 from __future__ import annotations
 
-from typing import List, Optional, Type, TypeVar, overload
+from typing import List, Optional
 
 from attrs import define, field
-from edgedb import Object  # type: ignore
+from edgedb import Object
 from iters.iters import iter
 from pendulum import DateTime
+from typing_extensions import Self
 
-from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION, DEFAULT_EXPLICIT, DEFAULT_POSITION
+from melody.kit.constants import (
+    DEFAULT_COUNT,
+    DEFAULT_DURATION,
+    DEFAULT_EXPLICIT,
+    DEFAULT_POSITION,
+)
 from melody.kit.enums import EntityType
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
@@ -15,21 +21,15 @@ from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 
 __all__ = (
+    # partial tracks
     "PartialTrack",
     "PartialTrackData",
-    "partial_track_from_object",
-    "partial_track_from_data",
-    "partial_track_into_data",
+    # tracks
     "Track",
     "TrackData",
-    "track_from_object",
-    "track_from_data",
-    "track_into_data",
+    # tracks with position
     "PositionTrack",
     "PositionTrackData",
-    "position_track_from_object",
-    "position_track_from_data",
-    "position_track_into_data",
 )
 
 
@@ -46,13 +46,6 @@ class PartialTrackData(EntityData):
     stream_duration_ms: int
 
     genres: List[str]
-
-
-class TrackData(PartialTrackData):
-    album: AlbumData
-
-
-P = TypeVar("P", bound="PartialTrack")
 
 
 @define()
@@ -81,11 +74,11 @@ class PartialTrack(Entity):
         return URI(type=EntityType.TRACK, id=self.id)
 
     @classmethod
-    def from_object(cls: Type[P], object: Object) -> P:  # type: ignore
+    def from_object(cls, object: Object) -> Self:
         return cls(
             id=object.id,
             name=object.name,
-            artists=iter(object.artists).map(artist_from_object).list(),
+            artists=iter(object.artists).map(Artist.from_object).list(),
             explicit=object.explicit,
             duration_ms=object.duration_ms,
             stream_count=object.stream_count,
@@ -98,50 +91,15 @@ class PartialTrack(Entity):
         )
 
     @classmethod
-    def from_data(cls: Type[P], data: PartialTrackData) -> P:  # type: ignore
+    def from_data(cls, data: PartialTrackData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> PartialTrackData:
         return CONVERTER.unstructure(self)  # type: ignore
 
 
-@overload
-def partial_track_from_object(object: Object) -> PartialTrack:  # type: ignore
-    ...
-
-
-@overload
-def partial_track_from_object(object: Object, partial_track_type: Type[P]) -> P:  # type: ignore
-    ...
-
-
-def partial_track_from_object(
-    object: Object, partial_track_type: Type[PartialTrack] = PartialTrack  # type: ignore
-) -> PartialTrack:
-    return partial_track_type.from_object(object)
-
-
-@overload
-def partial_track_from_data(data: PartialTrackData) -> PartialTrack:
-    ...
-
-
-@overload
-def partial_track_from_data(data: PartialTrackData, partial_track_type: Type[P]) -> P:
-    ...
-
-
-def partial_track_from_data(
-    data: PartialTrackData, partial_track_type: Type[PartialTrack] = PartialTrack
-) -> PartialTrack:
-    return partial_track_type.from_data(data)
-
-
-def partial_track_into_data(partial_track: PartialTrack) -> PartialTrackData:
-    return partial_track.into_data()
-
-
-T = TypeVar("T", bound="Track")
+class TrackData(PartialTrackData):
+    album: AlbumData
 
 
 @define()
@@ -171,12 +129,12 @@ class Track(PartialTrack):
         return URI(type=EntityType.TRACK, id=self.id)
 
     @classmethod
-    def from_object(cls: Type[T], object: Object) -> T:  # type: ignore
+    def from_object(cls, object: Object) -> Self:
         return cls(
             id=object.id,
             name=object.name,
-            album=album_from_object(object.album),
-            artists=iter(object.artists).map(artist_from_object).list(),
+            album=Album.from_object(object.album),
+            artists=iter(object.artists).map(Artist.from_object).list(),
             explicit=object.explicit,
             duration_ms=object.duration_ms,
             stream_count=object.stream_count,
@@ -189,43 +147,11 @@ class Track(PartialTrack):
         )
 
     @classmethod
-    def from_data(cls: Type[T], data: TrackData) -> T:  # type: ignore
+    def from_data(cls, data: TrackData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> TrackData:
         return CONVERTER.unstructure(self)  # type: ignore
-
-
-@overload
-def track_from_object(object: Object) -> Track:  # type: ignore
-    ...
-
-
-@overload
-def track_from_object(object: Object, track_type: Type[T]) -> T:  # type: ignore
-    ...
-
-
-def track_from_object(object: Object, track_type: Type[Track] = Track) -> Track:  # type: ignore
-    return track_type.from_object(object)
-
-
-@overload
-def track_from_data(data: TrackData) -> Track:
-    ...
-
-
-@overload
-def track_from_data(data: TrackData, track_type: Type[T]) -> T:
-    ...
-
-
-def track_from_data(data: TrackData, track_type: Type[Track] = Track) -> Track:
-    return track_type.from_data(data)
-
-
-def track_into_data(track: Track) -> TrackData:
-    return track.into_data()
 
 
 class PositionTrackData(TrackData):
@@ -234,26 +160,24 @@ class PositionTrackData(TrackData):
 
 AT_POSITION = "@position"
 
-PT = TypeVar("PT", bound="PositionTrack")
-
 
 @define()
 class PositionTrack(Track):
     position: int = DEFAULT_POSITION
 
     @classmethod
-    def from_object(cls: Type[PT], object: Object) -> PT:  # type: ignore
+    def from_object(cls, object: Object) -> Self:
         return cls(
             id=object.id,
             name=object.name,
-            album=album_from_object(object.album),
-            artists=iter(object.artists).map(artist_from_object).list(),
+            album=Album.from_object(object.album),
+            artists=iter(object.artists).map(Artist.from_object).list(),
             explicit=object.explicit,
             duration_ms=object.duration_ms,
             stream_count=object.stream_count,
             stream_duration_ms=object.stream_duration_ms,
             genres=object.genres,
-            position=object[AT_POSITION],
+            position=object[AT_POSITION],  # NOTE: can not be accessed through an attribute
             created_at=convert_standard_date_time(object.created_at),
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
@@ -261,48 +185,12 @@ class PositionTrack(Track):
         )
 
     @classmethod
-    def from_data(cls: Type[PT], data: PositionTrackData) -> PT:  # type: ignore
+    def from_data(cls, data: PositionTrackData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> PositionTrackData:
         return CONVERTER.unstructure(self)  # type: ignore
 
 
-@overload
-def position_track_from_object(object: Object) -> PositionTrack:  # type: ignore
-    ...
-
-
-@overload
-def position_track_from_object(object: Object, position_track_type: Type[PT]) -> PT:  # type: ignore
-    ...
-
-
-def position_track_from_object(
-    object: Object, position_track_type: Type[PositionTrack] = PositionTrack  # type: ignore
-) -> PositionTrack:
-    return position_track_type.from_object(object)
-
-
-@overload
-def position_track_from_data(data: PositionTrackData) -> PositionTrack:
-    ...
-
-
-@overload
-def position_track_from_data(data: PositionTrackData, position_track_type: Type[PT]) -> PT:
-    ...
-
-
-def position_track_from_data(
-    data: PositionTrackData, position_track_type: Type[PositionTrack] = PositionTrack
-) -> PositionTrack:
-    return position_track_type.from_data(data)
-
-
-def position_track_into_data(position_track: PositionTrack) -> PositionTrackData:
-    return position_track.into_data()
-
-
-from melody.kit.models.album import Album, AlbumData, album_from_object
-from melody.kit.models.artist import Artist, ArtistData, artist_from_object
+from melody.kit.models.album import Album, AlbumData
+from melody.kit.models.artist import Artist, ArtistData

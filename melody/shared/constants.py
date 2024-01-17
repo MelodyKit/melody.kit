@@ -81,6 +81,10 @@ CONNECT = "CONNECT"
 OPTIONS = "OPTIONS"
 TRACE = "TRACE"
 
+# HTTP timeout
+
+DEFAULT_TIMEOUT = 150.0
+
 # user agent names
 
 NAME = "MelodyKit"
@@ -93,6 +97,9 @@ IMAGE_TYPE = "png"
 
 # file modes
 
+READ: Literal["r"] = "r"
+WRITE: Literal["w"] = "w"
+READ_BINARY: Literal["rb"] = "rb"
 WRITE_BINARY: Literal["wb"] = "wb"
 
 # tokens
@@ -126,3 +133,5 @@ DEFAULT_RETRIES = 3
 
 DEFAULT_ENCODING = "utf-8"
 DEFAULT_ERRORS = "strict"
+
+DEFAULT_CLOSEFD = True

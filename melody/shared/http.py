@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+from asyncio import run
 from atexit import register as register_at_exit
 from typing import Any, ClassVar, List, Literal, Optional, Union, overload
 
-from async_extensions.run import run
-from attrs import define, field, frozen
-from httpx import AsyncClient, HTTPError
+from aiohttp import BasicAuth, ClientError, ClientSession, ClientTimeout
+from attrs import define, evolve, field, frozen
 from typing_aliases import Headers, Parameters, Payload
+from typing_extensions import Self
+from yarl import URL
 
-from melody.shared.constants import DEFAULT_RETRIES, NAME, PYTHON
+from melody.shared.constants import DEFAULT_RETRIES, DEFAULT_TIMEOUT, NAME, PYTHON
 from melody.shared.enums import ResponseType
+from melody.shared.typing import URLString
 from melody.versions import python_version_info, version_info
 
 __all__ = ("HTTPClient", "Route")
@@ -23,12 +26,12 @@ class Route:
     method: str
     path: str
 
-    def __init__(self, method: str, path: str, **parameters: Any) -> None:
-        self.__attrs_init__(method, path.format_map(parameters))  # type: ignore
-
     @property
     def key(self) -> str:
         return key(route=self)
+
+    def with_parameters(self, **parameters: Any) -> Self:
+        return evolve(self, path=self.path.format_map(parameters))
 
 
 Response = Union[Payload, str, bytes]
@@ -36,30 +39,71 @@ Response = Union[Payload, str, bytes]
 USER_AGENT_LITERAL = "User-Agent"
 USER_AGENT = f"{NAME}/{version_info} ({PYTHON}/{python_version_info})"
 
-HEADERS = {USER_AGENT_LITERAL: USER_AGENT}
+SESSION_NOT_ATTACHED = "`session` is not attached to the client"
 
 
 @define()
 class HTTPClient:
     USER_AGENT: ClassVar[str] = USER_AGENT
 
-    client: AsyncClient = field(factory=AsyncClient)
-
+    url: URL = field(converter=URL)
+    proxy: Optional[URLString] = field(default=None, repr=False)
+    proxy_auth: Optional[BasicAuth] = field(default=None, repr=False)
+    timeout: float = field(default=DEFAULT_TIMEOUT)
     retries: int = field(default=DEFAULT_RETRIES)
+
+    session_unchecked: Optional[ClientSession] = field(default=None, repr=False, init=False)
 
     def __attrs_post_init__(self) -> None:
         add_client(self)
 
-        self.client.headers.update(HEADERS)
+    @property
+    def session(self) -> ClientSession:
+        session = self.session_unchecked
+
+        if session is None:
+            raise ValueError(SESSION_NOT_ATTACHED)
+
+        return session
+
+    @session.setter
+    def session(self, session: ClientSession) -> None:
+        self.session_unchecked = session
+
+    @session.deleter
+    def session(self) -> None:
+        self.session_unchecked = None
+
+    def has_session(self) -> bool:
+        return self.session_unchecked is not None
+
+    def create_timeout(self) -> ClientTimeout:
+        return ClientTimeout(total=self.timeout)
 
     async def close(self) -> None:
-        await self.client.aclose()
+        if self.has_session():
+            await self.session.close()
+
+            del self.session
+
+    async def create_session(self) -> ClientSession:
+        return ClientSession(
+            headers={USER_AGENT_LITERAL: self.USER_AGENT}, timeout=self.create_timeout()
+        )
+
+    async def ensure_session(self) -> ClientSession:
+        if self.has_session():
+            return self.session
+
+        self.session = session = await self.create_session()
+
+        return session
 
     @overload
     async def request(
         self,
         method: str,
-        path: str,
+        url: URLString,
         response_type: Literal[ResponseType.JSON] = ...,
         payload: Optional[Payload] = ...,
         data: Optional[Parameters] = ...,
@@ -72,7 +116,7 @@ class HTTPClient:
     async def request(
         self,
         method: str,
-        path: str,
+        url: URLString,
         response_type: Literal[ResponseType.TEXT],
         payload: Optional[Payload] = ...,
         data: Optional[Parameters] = ...,
@@ -85,7 +129,7 @@ class HTTPClient:
     async def request(
         self,
         method: str,
-        path: str,
+        url: URLString,
         response_type: Literal[ResponseType.BYTES],
         payload: Optional[Payload] = ...,
         data: Optional[Parameters] = ...,
@@ -98,7 +142,7 @@ class HTTPClient:
     async def request(
         self,
         method: str,
-        path: str,
+        url: URLString,
         response_type: ResponseType,
         payload: Optional[Payload] = ...,
         data: Optional[Parameters] = ...,
@@ -110,7 +154,7 @@ class HTTPClient:
     async def request(
         self,
         method: str,
-        path: str,
+        url: URLString,
         response_type: ResponseType = ResponseType.JSON,
         payload: Optional[Payload] = None,
         data: Optional[Parameters] = None,
@@ -119,45 +163,35 @@ class HTTPClient:
     ) -> Response:
         attempts = self.retries + 1
 
-        if parameters is None:
-            parameters = {}
+        error: Optional[ClientError] = None
 
-        else:
-            parameters = {name: str(value) for name, value in parameters.items()}
-
-        if data is None:
-            data = {}
-
-        else:
-            data = {name: str(value) for name, value in data.items()}
-
-        if headers is None:
-            headers = {}
-
-        else:
-            headers = {name: str(value) for name, value in headers.items()}
-
-        error: Optional[HTTPError] = None
+        session = await self.ensure_session()
 
         while attempts:
             try:
-                response = await self.client.request(
-                    method, path, json=payload, data=data, params=parameters, headers=headers
-                )
+                async with session.request(
+                    method,
+                    url,
+                    params=parameters,
+                    data=data,
+                    json=payload,
+                    headers=headers,
+                    proxy=self.proxy,
+                    proxy_auth=self.proxy_auth,
+                ) as response:
+                    response.raise_for_status()
 
-                response.raise_for_status()
-
-            except HTTPError as origin:
+            except ClientError as origin:
                 error = origin
 
             else:
                 if response_type.is_json():
-                    return response.json()  # type: ignore
+                    return await response.json()  # type: ignore[no-any-return]
 
                 if response_type.is_text():
-                    return response.text
+                    return await response.text()
 
-                return response.read()
+                return await response.read()
 
             attempts -= 1
 
@@ -225,7 +259,7 @@ class HTTPClient:
     ) -> Response:
         return await self.request(
             route.method,
-            route.path,
+            self.url / route.path,
             response_type=response_type,
             payload=payload,
             data=data,

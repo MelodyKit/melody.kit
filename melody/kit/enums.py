@@ -1,9 +1,9 @@
 from enum import Enum
 
-from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH  # type: ignore
-from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW  # type: ignore
-from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM  # type: ignore
-from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER  # type: ignore
+from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH
+from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW
+from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM
+from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER
 
 __all__ = ("AlbumType", "PrivacyType", "Repeat", "Platform", "EntityType", "LogLevel")
 
@@ -104,7 +104,7 @@ class ErrorCorrection(Enum):
     HIGH = "high"
 
     def into_error_correction(self) -> int:
-        return ERROR_CORRECTION[self]  # type: ignore
+        return ERROR_CORRECTION[self]
 
 
 ERROR_CORRECTION = {

@@ -3,7 +3,7 @@ from typing import List
 from attrs import define
 from pendulum import Date
 
-from melody.shared.converter import CONVERTER, register_unstructure_hook_omit_client
+from melody.shared.converter import register_unstructure_hook_omit_client
 from melody.spotify.enums import AlbumType, DatePrecision
 from melody.spotify.models.artist import Artist, ArtistData
 from melody.spotify.models.copyright import Copyright, CopyrightData

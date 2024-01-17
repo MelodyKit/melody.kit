@@ -1,19 +1,12 @@
-from typing import Type, TypeVar, overload
-
 from attrs import define
-from edgedb import Object  # type: ignore
-from typing_extensions import TypedDict as Data
+from edgedb import Object
+from typing_extensions import Self
 
 from melody.kit.constants import DEFAULT_COUNT
 from melody.shared.converter import CONVERTER
+from melody.shared.typing import Data
 
-__all__ = (
-    "Statistics",
-    "StatisticsData",
-    "statistics_from_object",
-    "statistics_from_data",
-    "statistics_into_data",
-)
+__all__ = ("Statistics", "StatisticsData")
 
 
 class StatisticsData(Data):
@@ -23,9 +16,6 @@ class StatisticsData(Data):
     playlist_count: int
     user_count: int
     stream_count: int
-
-
-S = TypeVar("S", bound="Statistics")
 
 
 @define()
@@ -38,7 +28,7 @@ class Statistics:
     stream_count: int = DEFAULT_COUNT
 
     @classmethod
-    def from_object(cls: Type[S], object: Object) -> S:  # type: ignore
+    def from_object(cls, object: Object) -> Self:
         return cls(
             track_count=object.track_count,
             artist_count=object.artist_count,
@@ -49,44 +39,8 @@ class Statistics:
         )
 
     @classmethod
-    def from_data(cls: Type[S], data: StatisticsData) -> S:
+    def from_data(cls, data: StatisticsData) -> Self:
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> StatisticsData:
         return CONVERTER.unstructure(self)  # type: ignore
-
-
-@overload
-def statistics_from_object(object: Object) -> Statistics:  # type: ignore
-    ...
-
-
-@overload
-def statistics_from_object(object: Object, statistics_type: Type[S]) -> S:  # type: ignore
-    ...
-
-
-def statistics_from_object(
-    object: Object, statistics_type: Type[Statistics] = Statistics  # type: ignore
-) -> Statistics:
-    return statistics_type.from_object(object)
-
-
-@overload
-def statistics_from_data(data: StatisticsData) -> Statistics:
-    ...
-
-
-@overload
-def statistics_from_data(data: StatisticsData, statistics_type: Type[S]) -> S:
-    ...
-
-
-def statistics_from_data(
-    data: StatisticsData, statistics_type: Type[Statistics] = Statistics
-) -> Statistics:
-    return statistics_type.from_data(data)
-
-
-def statistics_into_data(statistics: Statistics) -> StatisticsData:
-    return statistics.into_data()

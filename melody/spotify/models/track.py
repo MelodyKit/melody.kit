@@ -1,7 +1,8 @@
-from typing import List, Optional, Type, TypeVar, overload
+from typing import List, Optional
 
 from attrs import define
 from cattrs.gen import override
+from typing_extensions import Self
 
 from melody.shared.converter import (
     CONVERTER,
@@ -53,9 +54,6 @@ register_structure_hook_rename = register_structure_hook(
 )
 
 
-T = TypeVar("T", bound="Track")
-
-
 @register_unstructure_hook_omit_client
 @register_unstructure_hook_rename
 @register_structure_hook_rename
@@ -78,7 +76,7 @@ class Track(Named):
     local: bool
 
     @classmethod
-    def from_data(cls: Type[T], data: TrackData) -> T:  # type: ignore
+    def from_data(cls, data: TrackData) -> Self:  # type: ignore
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> TrackData:
@@ -89,21 +87,3 @@ class Track(Named):
 
     def is_local(self) -> bool:
         return self.local
-
-
-@overload
-def track_from_data(data: TrackData) -> Track:
-    ...
-
-
-@overload
-def track_from_data(data: TrackData, track_type: Type[T]) -> T:
-    ...
-
-
-def track_from_data(data: TrackData, track_type: Type[Track] = Track) -> Track:
-    return track_type.from_data(data)
-
-
-def track_into_data(track: Track) -> TrackData:
-    return track.into_data()

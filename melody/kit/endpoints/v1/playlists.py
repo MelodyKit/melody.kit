@@ -6,21 +6,28 @@ from fastapi.requests import Request
 from fastapi.responses import FileResponse
 from yarl import URL
 
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
+from melody.kit.constants import (
+    DEFAULT_LIMIT,
+    DEFAULT_OFFSET,
+    MAX_LIMIT,
+    MIN_LIMIT,
+    MIN_OFFSET,
+)
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import access_token_dependency, optional_access_token_dependency
+from melody.kit.dependencies import (
+    access_token_dependency,
+    optional_access_token_dependency,
+)
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.base import BaseData, base_into_data
-from melody.kit.models.pagination import paginate
+from melody.kit.models.base import BaseData
+from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import (
     Playlist,
     PlaylistData,
     PlaylistTracks,
     PlaylistTracksData,
-    playlist_into_data,
-    playlist_tracks_into_data,
 )
 from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
@@ -83,7 +90,7 @@ async def create_playlist(
         name=name, description=description, privacy_type=privacy_type, user_id=user_id
     )
 
-    return base_into_data(base)
+    return base.into_data()
 
 
 @v1.get(
@@ -101,7 +108,7 @@ async def get_playlist(
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
     if await check_accessible(playlist, user_id_option):
-        return playlist_into_data(playlist)
+        return playlist.into_data()
 
     raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
@@ -139,7 +146,10 @@ async def update_playlist(
         privacy_type = playlist.privacy_type
 
     await database.update_playlist(
-        playlist_id=playlist_id, name=name, description=description, privacy_type=privacy_type
+        playlist_id=playlist_id,
+        name=name,
+        description=description,
+        privacy_type=privacy_type,
     )
 
 
@@ -201,7 +211,9 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     summary="Changes the playlist image with the given ID.",
 )
 async def change_playlist_image(
-    playlist_id: UUID, image: UploadFile = File(), user_id: UUID = Depends(access_token_dependency)
+    playlist_id: UUID,
+    image: UploadFile = File(),
+    user_id: UUID = Depends(access_token_dependency),
 ) -> None:
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
@@ -247,8 +259,10 @@ async def get_playlist_tracks(
 
         base = URL(str(request.url))
 
-        playlist_tracks = PlaylistTracks(items, paginate(base, count, offset, limit))
+        playlist_tracks = PlaylistTracks(
+            items, Pagination.paginate(url=base, count=count, offset=offset, limit=limit)
+        )
 
-        return playlist_tracks_into_data(playlist_tracks)
+        return playlist_tracks.into_data()
 
     raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))

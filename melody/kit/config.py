@@ -1,10 +1,11 @@
 from pathlib import Path
-from typing import Any, Type, TypeVar, cast
+from typing import Any, TypeVar, final
 
 from attrs import define
-from toml import loads as load_string
 from pendulum import Duration, duration
+from toml import loads as load_string
 from typing_aliases import IntoPath, StringDict
+from typing_extensions import Self
 from wraps.option import Option
 from wraps.wraps import wrap_optional
 
@@ -239,9 +240,8 @@ EXPECTED_MELODY_WEB_PORT = expected("melody.web.port")
 EXPECTED_MELODY_BOT = expected("melody.bot")
 EXPECTED_MELODY_BOT_TOKEN = expected("melody.bot.token")
 
-C = TypeVar("C", bound="Config")
 
-
+@final
 @define()
 class Config:
     name: str
@@ -258,7 +258,7 @@ class Config:
     web: WebConfig
     bot: BotConfig
 
-    def ensure_directories(self: C) -> C:
+    def ensure_directories(self) -> Self:
         self.images = expand_user_directory(self.images)
 
         link = self.link
@@ -268,21 +268,24 @@ class Config:
         return self
 
     @classmethod
-    def from_string(cls: Type[C], string: str) -> C:
+    def from_string(cls, string: str) -> Self:
         return cls.from_data(cls.parse(string))
 
     @classmethod
     def from_path(
-        cls: Type[C], path: IntoPath, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS
-    ) -> C:
+        cls,
+        path: IntoPath,
+        encoding: str = DEFAULT_ENCODING,
+        errors: str = DEFAULT_ERRORS,
+    ) -> Self:
         return cls.from_string(Path(path).read_text(encoding, errors))
 
     @staticmethod
     def parse(string: str) -> AnyConfigData:
-        return cast(AnyConfigData, load_string(string, AnyConfigData))
+        return load_string(string, AnyConfigData)
 
     @classmethod
-    def from_data(cls: Type[C], data: AnyConfigData) -> C:
+    def from_data(cls, data: AnyConfigData) -> Self:
         default_config = DEFAULT_CONFIG
 
         config_data = data.melody.unwrap_or_else(AnyConfigData)
@@ -448,26 +451,28 @@ class Config:
 
     @classmethod
     def unsafe_from_string(
-        cls: Type[C], string: str, ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE
-    ) -> C:
+        cls, string: str, ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE
+    ) -> Self:
         return cls.unsafe_from_data(cls.parse(string), ignore_sensitive=ignore_sensitive)
 
     @classmethod
     def unsafe_from_path(
-        cls: Type[C],
+        cls,
         path: IntoPath,
         encoding: str = DEFAULT_ENCODING,
         errors: str = DEFAULT_ERRORS,
         ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE,
-    ) -> C:
+    ) -> Self:
         return cls.unsafe_from_string(
             Path(path).read_text(encoding, errors), ignore_sensitive=ignore_sensitive
         )
 
     @classmethod
     def unsafe_from_data(
-        cls: Type[C], data: AnyConfigData, ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE
-    ) -> C:
+        cls,
+        data: AnyConfigData,
+        ignore_sensitive: bool = DEFAULT_IGNORE_SENSITIVE,
+    ) -> Self:
         config_data = data.melody.expect(EXPECTED_MELODY)
 
         email_data = config_data.email.expect(EXPECTED_MELODY_EMAIL)

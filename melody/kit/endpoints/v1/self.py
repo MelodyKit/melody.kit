@@ -5,14 +5,19 @@ from fastapi import Body, Depends, File, Query, UploadFile
 from fastapi.responses import FileResponse
 from yarl import URL
 
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET, MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
+from melody.kit.constants import (
+    DEFAULT_LIMIT,
+    DEFAULT_OFFSET,
+    MAX_LIMIT,
+    MIN_LIMIT,
+    MIN_OFFSET,
+)
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import access_token_dependency, url_dependency
 from melody.kit.enums import EntityType, Platform, PrivacyType
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.link import generate_code_for_uri
-from melody.kit.models.pagination import paginate
-from melody.kit.models.user_settings import UserSettingsData, user_settings_into_data
+from melody.kit.models.pagination import Pagination
 from melody.kit.models.user import (
     UserAlbums,
     UserAlbumsData,
@@ -33,17 +38,19 @@ from melody.kit.models.user import (
     UserStreamsData,
     UserTracks,
     UserTracksData,
-    user_albums_into_data,
-    user_artists_into_data,
-    user_followed_playlists_into_data,
-    user_followers_into_data,
-    user_following_into_data,
-    user_friends_into_data,
-    user_playlists_into_data,
-    user_streams_into_data,
-    user_tracks_into_data,
 )
-from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, SELF, SETTINGS, TRACKS, USERS
+from melody.kit.models.user_settings import UserSettingsData
+from melody.kit.tags import (
+    ALBUMS,
+    ARTISTS,
+    IMAGES,
+    LINKS,
+    PLAYLISTS,
+    SELF,
+    SETTINGS,
+    TRACKS,
+    USERS,
+)
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
@@ -97,7 +104,9 @@ async def get_self(user_id: UUID = Depends(access_token_dependency)) -> UserData
     tags=[SELF, LINKS],
     summary="Fetch self user link.",
 )
-async def get_self_link(user_id: UUID = Depends(access_token_dependency)) -> FileResponse:
+async def get_self_link(
+    user_id: UUID = Depends(access_token_dependency),
+) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
     path = await generate_code_for_uri(uri)
@@ -110,7 +119,9 @@ async def get_self_link(user_id: UUID = Depends(access_token_dependency)) -> Fil
     tags=[SELF, IMAGES],
     summary="Fetch self user image.",
 )
-async def get_self_image(user_id: UUID = Depends(access_token_dependency)) -> FileResponse:
+async def get_self_image(
+    user_id: UUID = Depends(access_token_dependency),
+) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
     path = config.images / uri.image_name
@@ -162,9 +173,11 @@ async def get_self_tracks(
 
     items, count = counted
 
-    self_tracks = UserTracks(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    self_tracks = UserTracks(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return user_tracks_into_data(self_tracks)
+    return self_tracks.into_data()
 
 
 @v1.put(
@@ -207,9 +220,11 @@ async def get_self_artists(
 
     items, count = counted
 
-    self_artists = UserArtists(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    self_artists = UserArtists(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return user_artists_into_data(self_artists)
+    return self_artists.into_data()
 
 
 @v1.put(
@@ -252,9 +267,11 @@ async def get_self_albums(
 
     items, count = counted
 
-    self_albums = UserAlbums(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    self_albums = UserAlbums(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return user_albums_into_data(self_albums)
+    return self_albums.into_data()
 
 
 @v1.put(
@@ -298,10 +315,10 @@ async def get_self_playlists(
     items, count = counted
 
     self_playlists = UserPlaylists(
-        items, paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
     )
 
-    return user_playlists_into_data(self_playlists)
+    return self_playlists.into_data()
 
 
 @v1.get(
@@ -322,9 +339,11 @@ async def get_self_streams(
 
     items, count = counted
 
-    self_streams = UserStreams(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    self_streams = UserStreams(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return user_streams_into_data(self_streams)
+    return self_streams.into_data()
 
 
 @v1.get(
@@ -345,9 +364,11 @@ async def get_self_friends(
 
     items, count = counted
 
-    self_friends = UserFriends(items, paginate(url=url, offset=offset, limit=limit, count=count))
+    self_friends = UserFriends(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    return user_friends_into_data(self_friends)
+    return self_friends.into_data()
 
 
 @v1.get(
@@ -369,10 +390,10 @@ async def get_self_followers(
     items, count = counted
 
     self_followers = UserFollowers(
-        items, paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
     )
 
-    return user_followers_into_data(self_followers)
+    return self_followers.into_data()
 
 
 @v1.get(
@@ -394,10 +415,10 @@ async def get_self_following(
     items, count = counted
 
     self_following = UserFollowing(
-        items, paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
     )
 
-    return user_following_into_data(self_following)
+    return self_following.into_data()
 
 
 @v1.put(
@@ -441,10 +462,10 @@ async def get_self_followed_playlists(
     items, count = counted
 
     self_followed_playlists = UserFollowedPlaylists(
-        items, paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
     )
 
-    return user_followed_playlists_into_data(self_followed_playlists)
+    return self_followed_playlists.into_data()
 
 
 @v1.put(
@@ -476,13 +497,15 @@ async def remove_self_followed_playlists(
     tags=[SELF, SETTINGS],
     summary="Fetch self settings.",
 )
-async def get_self_settings(user_id: UUID = Depends(access_token_dependency)) -> UserSettingsData:
-    settings = await database.query_user_settings(user_id=user_id)
+async def get_self_settings(
+    user_id: UUID = Depends(access_token_dependency),
+) -> UserSettingsData:
+    self_settings = await database.query_user_settings(user_id=user_id)
 
-    if settings is None:
+    if self_settings is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    return user_settings_into_data(settings)
+    return self_settings.into_data()
 
 
 @v1.put(
