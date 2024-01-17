@@ -48,6 +48,14 @@ module default {
         spotify_id: str;
         apple_music_id: str;
         yandex_music_id: str;
+
+        index fts::index on (
+            fts::with_options(
+                .name,
+                language := fts::Language.eng,
+                weight_category := fts::Weight.A,
+            )
+        );
     }
 
     abstract type Genres {
