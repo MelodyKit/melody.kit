@@ -52,10 +52,14 @@ def load_query(
 QUERY_TRACK = load_query("tracks/query")
 DELETE_TRACK = load_query("tracks/delete")
 
+SEARCH_TRACKS = load_query("tracks/search")
+
 # artists
 
 QUERY_ARTIST = load_query("artists/query")
 DELETE_ARTIST = load_query("artists/delete")
+
+SEARCH_ARTISTS = load_query("artists/search")
 
 QUERY_ARTIST_TRACKS = load_query("artists/tracks/query")
 QUERY_ARTIST_ALBUMS = load_query("artists/albums/query")
@@ -64,6 +68,8 @@ QUERY_ARTIST_ALBUMS = load_query("artists/albums/query")
 
 QUERY_ALBUM = load_query("albums/query")
 DELETE_ALBUM = load_query("albums/delete")
+
+SEARCH_ALBUMS = load_query("albums/search")
 
 QUERY_ALBUM_TRACKS = load_query("albums/tracks/query")
 
@@ -75,6 +81,8 @@ DELETE_PLAYLIST = load_query("playlists/delete")
 CHECK_PLAYLIST = load_query("playlists/check")
 UPDATE_PLAYLIST = load_query("playlists/update")
 
+SEARCH_PLAYLISTS = load_query("playlists/search")
+
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
 # users
@@ -85,6 +93,8 @@ INSERT_USER = load_query("users/insert")
 UPDATE_USER_PASSWORD_HASH = load_query("users/update_password_hash")
 UPDATE_USER_VERIFIED = load_query("users/update_verified")
 DELETE_USER = load_query("users/delete")
+
+SEARCH_USERS = load_query("users/search")
 
 QUERY_USER_TRACKS = load_query("users/tracks/query")
 SAVE_USER_TRACKS = load_query("users/tracks/save")
@@ -137,6 +147,13 @@ class Database:
     async def delete_track(self, track_id: UUID) -> None:
         await self.client.query_single(DELETE_TRACK, track_id=track_id)
 
+    async def search_tracks(
+        self, query: str, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> List[Track]:
+        result = await self.client.query(SEARCH_TRACKS, fts_query=query, offset=offset, limit=limit)
+
+        return iter(result).map(Track.from_object).list()
+
     async def query_artist(self, artist_id: UUID) -> Optional[Artist]:
         option = await self.client.query_single(QUERY_ARTIST, artist_id=artist_id)
 
@@ -171,6 +188,15 @@ class Database:
     async def delete_artist(self, artist_id: UUID) -> None:
         await self.client.query_single(DELETE_ARTIST, artist_id=artist_id)
 
+    async def search_artists(
+        self, query: str, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> List[Artist]:
+        result = await self.client.query(
+            SEARCH_ARTISTS, fts_query=query, offset=offset, limit=limit
+        )
+
+        return iter(result).map(Artist.from_object).list()
+
     async def query_album(self, album_id: UUID) -> Optional[Album]:
         option = await self.client.query_single(QUERY_ALBUM, album_id=album_id)
 
@@ -194,6 +220,13 @@ class Database:
 
     async def delete_album(self, album_id: UUID) -> None:
         await self.client.query_single(DELETE_ALBUM, album_id=album_id)
+
+    async def search_albums(
+        self, query: str, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> List[Album]:
+        result = await self.client.query(SEARCH_ALBUMS, fts_query=query, offset=offset, limit=limit)
+
+        return iter(result).map(Album.from_object).list()
 
     async def insert_playlist(
         self,
@@ -237,6 +270,15 @@ class Database:
             description=description,
             privacy_type=privacy_type.value,
         )
+
+    async def search_playlists(
+        self, query: str, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> List[Playlist]:
+        result = await self.client.query(
+            SEARCH_PLAYLISTS, fts_query=query, offset=offset, limit=limit
+        )
+
+        return iter(result).map(Playlist.from_object).list()
 
     async def add_user_followed_playlists(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(ADD_USER_FOLLOWED_PLAYLISTS, user_id=user_id, ids=ids)
@@ -285,6 +327,13 @@ class Database:
 
     async def delete_user(self, user_id: UUID) -> None:
         await self.client.query_single(DELETE_USER, user_id=user_id)
+
+    async def search_users(
+        self, query: str, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
+    ) -> List[User]:
+        result = await self.client.query(SEARCH_USERS, fts_query=query, offset=offset, limit=limit)
+
+        return iter(result).map(User.from_object).list()
 
     async def query_user_tracks(
         self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT

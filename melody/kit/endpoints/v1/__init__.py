@@ -24,6 +24,7 @@ from melody.kit.endpoints.v1.playlists import (
     get_playlist_tracks,
     update_playlist,
 )
+from melody.kit.endpoints.v1.search import search_items
 from melody.kit.endpoints.v1.self import (
     add_self_followed_playlists,
     add_self_following,
@@ -135,4 +136,6 @@ __all__ = (
     "verify",
     "reset",
     "forgot",
+    # search
+    "search_items",
 )

@@ -1,0 +1,14 @@
+with result := (
+    select fts::search(User, <str>$fts_query)
+) select result.object {
+    id,
+    name,
+    follower_count,
+    stream_count,
+    stream_duration_ms,
+    privacy_type,
+    created_at,
+    spotify_id,
+    apple_music_id,
+    yandex_music_id
+} order by result.score desc offset <expression>$offset limit <expression>$limit;

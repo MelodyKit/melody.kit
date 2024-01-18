@@ -1,11 +1,13 @@
-from typing import Optional
+from typing import Optional, Set
 from uuid import UUID
 
 from attrs import define
 from email_validator import EmailNotValidError, validate_email
 from fastapi import Body
 from fastapi.requests import Request
+from iters.iters import iter
 from yarl import URL
+from melody.kit.enums import EntityType
 
 from melody.kit.errors import (
     AuthenticationError,
@@ -34,6 +36,7 @@ __all__ = (
     "email_dependency",
     "email_deliverability_dependency",
     "url_dependency",
+    "types_dependency",
 )
 
 
@@ -136,7 +139,7 @@ def email_dependency(email: str = Body()) -> str:
         result = validate_email(email, check_deliverability=False)
 
     except EmailNotValidError:
-        raise ValidationError(INVALID_EMAIL.format(email))
+        raise ValidationError(INVALID_EMAIL.format(email)) from None
 
     return result.email  # type: ignore[no-any-return]
 
@@ -146,10 +149,25 @@ async def email_deliverability_dependency(email: str = Body()) -> str:
         result = await run_blocking(validate_email, email, check_deliverability=True)
 
     except EmailNotValidError:
-        raise ValidationError(INVALID_EMAIL.format(email))
+        raise ValidationError(INVALID_EMAIL.format(email)) from None
 
     return result.email  # type: ignore[no-any-return]
 
 
 def url_dependency(request: Request) -> URL:
     return URL(str(request.url))
+
+
+INVALID_TYPES = "types `{}` are invalid"
+TYPES_SEPARATOR = ","
+
+
+def types_dependency(types: Optional[str] = None) -> Set[EntityType]:
+    if types is None:
+        return set(EntityType)
+
+    try:
+        return iter(types.split(TYPES_SEPARATOR)).map(EntityType).set()
+
+    except ValueError:
+        raise ValidationError(INVALID_TYPES.format(types)) from None

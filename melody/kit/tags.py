@@ -26,6 +26,8 @@ SELF = "self"
 
 SETTINGS = "settings"
 
+SEARCH = "search"
+
 AUTHENTICATION = "authentication"
 STATISTICS = "statistics"
 LINKS = "links"
