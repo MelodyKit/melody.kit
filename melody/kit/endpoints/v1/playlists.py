@@ -17,6 +17,7 @@ from melody.kit.core import config, database, v1
 from melody.kit.dependencies import (
     access_token_dependency,
     optional_access_token_dependency,
+    url_dependency,
 )
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
@@ -239,10 +240,10 @@ async def change_playlist_image(
 )
 async def get_playlist_tracks(
     playlist_id: UUID,
-    request: Request,
     user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    url: URL = Depends(url_dependency),
 ) -> PlaylistTracksData:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
@@ -257,10 +258,8 @@ async def get_playlist_tracks(
 
         items, count = counted
 
-        base = URL(str(request.url))
-
         playlist_tracks = PlaylistTracks(
-            items, Pagination.paginate(url=base, count=count, offset=offset, limit=limit)
+            items, Pagination.paginate(url=url, count=count, offset=offset, limit=limit)
         )
 
         return playlist_tracks.into_data()

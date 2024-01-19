@@ -29,7 +29,7 @@ include = "melody"
 
 [tool.poetry.scripts]
 "melody.bot" = "melody.bot.main:bot"
-"melody.kit" = "melody.kit.main:kit"
+"melody.kit" = "melody.kit.main:run"
 "melody.web" = "melody.web.main:web"
 
 [tool.poetry.dependencies]
