@@ -5,6 +5,7 @@ from fastapi import Body, Depends, File, Query, UploadFile
 from fastapi.responses import FileResponse
 from yarl import URL
 
+from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -20,7 +21,6 @@ from melody.kit.dependencies import (
 )
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
-from melody.kit.code import generate_code_for_uri
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import (

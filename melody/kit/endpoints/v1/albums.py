@@ -4,6 +4,7 @@ from fastapi import Depends, Query
 from fastapi.responses import FileResponse
 from yarl import URL
 
+from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -15,7 +16,6 @@ from melody.kit.core import database, v1
 from melody.kit.dependencies import url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
-from melody.kit.code import generate_code_for_uri
 from melody.kit.models.album import (
     AlbumData,
     AlbumTracks,

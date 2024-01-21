@@ -7,6 +7,7 @@ from iters.iters import iter
 from typing_aliases import Predicate
 from yarl import URL
 
+from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -18,7 +19,6 @@ from melody.kit.core import config, database, v1
 from melody.kit.dependencies import optional_access_token_dependency, url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
-from melody.kit.code import generate_code_for_uri
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import PartialPlaylist
 from melody.kit.models.user import (
