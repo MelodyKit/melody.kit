@@ -1,3 +1,5 @@
-__all__ = ("INLINE",)
+__all__ = ("INLINE", "SEPARATOR")
 
 INLINE = False
+
+SEPARATOR = ", "

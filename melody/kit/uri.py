@@ -17,7 +17,7 @@ image_name = IMAGE_NAME.format
 
 # URI constants
 
-URI_HEADER = "melody.link"
+URI_HEADER = "melody.kit"
 
 URI_SEPARATOR = ":"
 

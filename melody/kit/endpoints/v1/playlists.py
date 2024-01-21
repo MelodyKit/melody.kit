@@ -20,7 +20,7 @@ from melody.kit.dependencies import (
 )
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
-from melody.kit.link import generate_code_for_uri
+from melody.kit.code import generate_code_for_uri
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import (

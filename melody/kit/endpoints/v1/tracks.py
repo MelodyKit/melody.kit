@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from melody.kit.core import database, v1
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
-from melody.kit.link import generate_code_for_uri
+from melody.kit.code import generate_code_for_uri
 from melody.kit.models.tracks import TrackData
 from melody.kit.tags import LINKS, TRACKS
 from melody.kit.uri import URI

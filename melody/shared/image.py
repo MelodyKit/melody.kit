@@ -26,8 +26,7 @@ async def validate_and_save_image(upload_file: UploadFile, path: Path) -> bool:
     if check:
         file = await open_file(path, WRITE_BINARY)
 
-        await file.write(data)
-
-        await file.close()
+        async with file:
+            await file.write(data)
 
     return check
