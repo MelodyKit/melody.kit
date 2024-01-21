@@ -36,6 +36,20 @@ from melody.kit.models.playlist import (
     PlaylistTracks,
     PlaylistTracksData,
 )
+from melody.kit.models.search import (
+    Search,
+    SearchAlbums,
+    SearchAlbumsData,
+    SearchArtists,
+    SearchArtistsData,
+    SearchData,
+    SearchPlaylists,
+    SearchPlaylistsData,
+    SearchTracks,
+    SearchTracksData,
+    SearchUsers,
+    SearchUsersData,
+)
 from melody.kit.models.statistics import (
     Statistics,
     StatisticsData,
@@ -186,4 +200,22 @@ __all__ = (
     # pagination
     "Pagination",
     "PaginationData",
+    # search albums
+    "SearchAlbums",
+    "SearchAlbumsData",
+    # search artists
+    "SearchArtists",
+    "SearchArtistsData",
+    # search playlists
+    "SearchPlaylists",
+    "SearchPlaylistsData",
+    # search tracks
+    "SearchTracks",
+    "SearchTracksData",
+    # search users
+    "SearchUsers",
+    "SearchUsersData",
+    # search results
+    "Search",
+    "SearchData",
 )

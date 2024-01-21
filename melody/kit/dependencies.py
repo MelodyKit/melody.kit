@@ -7,8 +7,8 @@ from fastapi import Body
 from fastapi.requests import Request
 from iters.iters import iter
 from yarl import URL
-from melody.kit.enums import EntityType
 
+from melody.kit.enums import EntityType
 from melody.kit.errors import (
     AuthenticationError,
     AuthenticationInvalid,
