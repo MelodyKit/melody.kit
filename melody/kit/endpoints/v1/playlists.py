@@ -2,7 +2,6 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Body, Depends, File, Query, UploadFile
-from fastapi.requests import Request
 from fastapi.responses import FileResponse
 from yarl import URL
 

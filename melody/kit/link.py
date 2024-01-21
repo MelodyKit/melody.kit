@@ -48,8 +48,8 @@ def generate_code_sync(string: str, image_name: str) -> Path:
         image_factory=StyledPILImage,  # type: ignore[type-abstract]
         color_mask=VerticalGradiantColorMask(
             back_color=TRANSPARENT,
-            top_color=MELODY_PURPLE,
-            bottom_color=MELODY_BLUE,
+            top_color=TOP_COLOR,
+            bottom_color=BOTTOM_COLOR,
         ),
     )
 
