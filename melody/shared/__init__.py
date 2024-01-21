@@ -7,7 +7,7 @@ from melody.shared.date_time import (
     utc_today,
 )
 from melody.shared.enums import ResponseType
-from melody.shared.http import HTTPClient, Route
+from melody.shared.http import Route, SharedHTTPClient
 
 __all__ = (
     # converter
@@ -21,6 +21,6 @@ __all__ = (
     # enums
     "ResponseType",
     # HTTP
-    "HTTPClient",
+    "SharedHTTPClient",
     "Route",
 )

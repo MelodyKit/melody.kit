@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from asyncio import run
+from asyncio import run, sleep
 from atexit import register as register_at_exit
 from typing import Any, ClassVar, List, Literal, Optional, Union, overload
 
@@ -10,12 +10,12 @@ from typing_aliases import Headers, Parameters, Payload
 from typing_extensions import Self
 from yarl import URL
 
-from melody.shared.constants import DEFAULT_RETRIES, DEFAULT_TIMEOUT, NAME, PYTHON
+from melody.shared.constants import DEFAULT_RETRIES, DEFAULT_TIMEOUT, NAME, PYTHON, SLASH, ZERO
 from melody.shared.enums import ResponseType
 from melody.shared.typing import URLString
 from melody.versions import python_version_info, version_info
 
-__all__ = ("HTTPClient", "Route")
+__all__ = ("SharedHTTPClient", "Route")
 
 KEY = "{route.method} {route.path}"
 key = KEY.format
@@ -43,7 +43,7 @@ SESSION_NOT_ATTACHED = "`session` is not attached to the client"
 
 
 @define()
-class HTTPClient:
+class SharedHTTPClient:
     USER_AGENT: ClassVar[str] = USER_AGENT
 
     url: URL = field(converter=URL)
@@ -87,9 +87,7 @@ class HTTPClient:
             del self.session
 
     async def create_session(self) -> ClientSession:
-        return ClientSession(
-            headers={USER_AGENT_LITERAL: self.USER_AGENT}, timeout=self.create_timeout()
-        )
+        return ClientSession(headers={USER_AGENT_LITERAL: self.USER_AGENT})
 
     async def ensure_session(self) -> ClientSession:
         if self.has_session():
@@ -178,20 +176,23 @@ class HTTPClient:
                     headers=headers,
                     proxy=self.proxy,
                     proxy_auth=self.proxy_auth,
+                    timeout=self.create_timeout(),
                 ) as response:
                     response.raise_for_status()
+
+                    if response_type.is_json():
+                        return await response.json()  # type: ignore[no-any-return]
+
+                    if response_type.is_text():
+                        return await response.text()
+
+                    return await response.read()
 
             except ClientError as origin:
                 error = origin
 
-            else:
-                if response_type.is_json():
-                    return await response.json()  # type: ignore[no-any-return]
-
-                if response_type.is_text():
-                    return await response.text()
-
-                return await response.read()
+            finally:
+                await sleep(ZERO)
 
             attempts -= 1
 
@@ -259,7 +260,7 @@ class HTTPClient:
     ) -> Response:
         return await self.request(
             route.method,
-            self.url / route.path,
+            self.url / route.path.strip(SLASH),
             response_type=response_type,
             payload=payload,
             data=data,
@@ -268,14 +269,14 @@ class HTTPClient:
         )
 
 
-CLIENTS: List[HTTPClient] = []
+CLIENTS: List[SharedHTTPClient] = []
 
 
-def add_client(client: HTTPClient) -> None:
+def add_client(client: SharedHTTPClient) -> None:
     CLIENTS.append(client)
 
 
-def remove_client(client: HTTPClient) -> None:
+def remove_client(client: SharedHTTPClient) -> None:
     CLIENTS.remove(client)
 
 

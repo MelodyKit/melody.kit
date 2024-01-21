@@ -158,6 +158,12 @@ class BotConfig:
     token: str
 
 
+@define()
+class SpotifyConfig:
+    client_id: str
+    client_secret: str
+
+
 EXPECTED = "expected `{}`"
 expected = EXPECTED.format
 
@@ -239,6 +245,9 @@ EXPECTED_MELODY_WEB_HOST = expected("melody.web.host")
 EXPECTED_MELODY_WEB_PORT = expected("melody.web.port")
 EXPECTED_MELODY_BOT = expected("melody.bot")
 EXPECTED_MELODY_BOT_TOKEN = expected("melody.bot.token")
+EXPECTED_MELODY_SPOTIFY = expected("melody.spotify")
+EXPECTED_MELODY_SPOTIFY_CLIENT_ID = expected("melody.spotify.client_id")
+EXPECTED_MELODY_SPOTIFY_CLIENT_SECRET = expected("melody.spotify.client_secret")
 
 
 @final
@@ -257,6 +266,7 @@ class Config:
     token: TokenConfig
     web: WebConfig
     bot: BotConfig
+    spotify: SpotifyConfig
 
     def ensure_directories(self) -> Self:
         self.images = expand_user_directory(self.images)
@@ -428,6 +438,13 @@ class Config:
             port=web_data.port.unwrap_or(web_config.port),
         )
 
+        spotify_data = config_data.spotify.unwrap_or_else(AnyConfigData)
+
+        spotify = SpotifyConfig(
+            client_id=spotify_data.client_id.expect(EXPECTED_MELODY_SPOTIFY_CLIENT_ID),
+            client_secret=spotify_data.client_secret.expect(EXPECTED_MELODY_SPOTIFY_CLIENT_SECRET),
+        )
+
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
         open = config_data.open.unwrap_or(default_config.open)
@@ -447,6 +464,7 @@ class Config:
             token=token,
             web=web,
             bot=bot,
+            spotify=spotify,
         )
 
     @classmethod
@@ -640,6 +658,21 @@ class Config:
             ),
         )
 
+        spotify_data = config_data.spotify.expect(EXPECTED_MELODY_SPOTIFY)
+
+        spotify = SpotifyConfig(
+            client_id=(
+                spotify_data.client_id.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else spotify_data.client_id.expect(EXPECTED_MELODY_SPOTIFY_CLIENT_ID)
+            ),
+            client_secret=(
+                spotify_data.client_secret.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else spotify_data.client_secret.expect(EXPECTED_MELODY_SPOTIFY_CLIENT_SECRET)
+            ),
+        )
+
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
         open = config_data.open.expect(EXPECTED_MELODY_OPEN)
@@ -659,6 +692,7 @@ class Config:
             token=token,
             web=web,
             bot=bot,
+            spotify=spotify,
         )
 
 

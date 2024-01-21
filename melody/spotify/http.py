@@ -2,8 +2,7 @@ from attrs import define, field
 from yarl import URL
 
 from melody.shared.constants import CLIENT_CREDENTIALS, GET, POST
-from melody.shared.http import HTTPClient as SharedHTTPClient
-from melody.shared.http import Route
+from melody.shared.http import Route, SharedHTTPClient
 from melody.shared.typing import Data
 from melody.spotify.models.tokens import Tokens, TokensData
 from melody.spotify.models.track import TrackData

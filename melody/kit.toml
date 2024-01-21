@@ -4,6 +4,8 @@
 # - `melody.email.name`
 # - `melody.email.password`
 # - `melody.bot.token`
+# - `melody.spotify.client_id`
+# - `melody.spotify.client_secret`
 
 [melody]
 name = "MelodyKit"
@@ -83,3 +85,5 @@ host = "127.0.0.1"
 port = 4269
 
 [melody.bot]
+
+[melody.spotify]

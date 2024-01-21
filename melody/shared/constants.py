@@ -12,6 +12,7 @@ __all__ = (
     "EMPTY_BYTES",
     "SPACE",
     "STAR",
+    "SLASH",
     # HTTP methods
     "HEAD",
     "GET",
@@ -65,6 +66,8 @@ EMPTY_BYTES = bytes()
 SPACE = " "
 
 STAR = "*"
+
+SLASH = "/"
 
 # HTTP methods
 

@@ -33,6 +33,7 @@ __all__ = (
     "SearchData",
 )
 
+
 class SearchAlbumsData(Data):
     items: List[AlbumData]
     pagination: PaginationData

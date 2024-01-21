@@ -12,10 +12,22 @@ from melody.kit.constants import (
     MIN_OFFSET,
 )
 from melody.kit.core import database, v1
-from melody.kit.dependencies import optional_access_token_dependency, types_dependency, url_dependency
+from melody.kit.dependencies import (
+    optional_access_token_dependency,
+    types_dependency,
+    url_dependency,
+)
 from melody.kit.enums import EntityType
 from melody.kit.models.pagination import Pagination
-from melody.kit.models.search import Search, SearchAlbums, SearchArtists, SearchData, SearchPlaylists, SearchTracks, SearchUsers
+from melody.kit.models.search import (
+    Search,
+    SearchAlbums,
+    SearchArtists,
+    SearchData,
+    SearchPlaylists,
+    SearchTracks,
+    SearchUsers,
+)
 from melody.kit.tags import SEARCH
 
 __all__ = ("search_items",)
