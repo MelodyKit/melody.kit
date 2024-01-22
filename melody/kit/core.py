@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 from typing_aliases import NormalError
 
-from melody.kit.config import get_config
+from melody.kit.config import CONFIG
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors import Error, InternalError
@@ -16,7 +16,7 @@ __all__ = ("config", "database", "redis", "hasher", "app", "v1")
 
 database = Database()
 
-config = get_config()
+config = CONFIG
 
 redis = Redis(
     host=config.redis.host,

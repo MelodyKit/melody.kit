@@ -7,9 +7,18 @@ from edgedb import Object
 from iters.iters import iter
 from pendulum import Date, DateTime
 from typing_extensions import Self
+from yarl import URL
 
+from melody.kit.config import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import AlbumType, EntityType
+from melody.kit.links import (
+    Linked,
+    apple_music_album,
+    self_album,
+    spotify_album,
+    yandex_music_album,
+)
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
@@ -50,7 +59,7 @@ class AlbumData(EntityData):
 
 
 @define()
-class Album(Entity):
+class Album(Linked, Entity):
     artists: List[Artist] = field()
 
     album_type: AlbumType = field(default=AlbumType.DEFAULT)
@@ -103,6 +112,28 @@ class Album(Entity):
 
     def into_data(self) -> AlbumData:
         return CONVERTER.unstructure(self)  # type: ignore
+
+    @property
+    def spotify_url(self) -> Optional[URL]:
+        spotify_id = self.spotify_id
+
+        return None if spotify_id is None else URL(spotify_album(id=spotify_id))
+
+    @property
+    def apple_music_url(self) -> Optional[URL]:
+        apple_music_id = self.apple_music_id
+
+        return None if apple_music_id is None else URL(apple_music_album(id=apple_music_id))
+
+    @property
+    def yandex_music_url(self) -> Optional[URL]:
+        yandex_music_id = self.yandex_music_id
+
+        return None if yandex_music_id is None else URL(yandex_music_album(id=yandex_music_id))
+
+    @property
+    def url(self) -> URL:
+        return URL(self_album(config=CONFIG, id=self.id))
 
 
 from melody.kit.models.artist import Artist, ArtistData

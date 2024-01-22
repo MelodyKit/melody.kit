@@ -13,7 +13,7 @@ from melody.kit.constants import DEFAULT_IGNORE_SENSITIVE
 from melody.kit.enums import ErrorCorrection, LogLevel
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, EMPTY, HOME, ROOT
 
-__all__ = ("Config", "ConfigData", "get_config", "get_default_config")
+__all__ = ("CONFIG", "Config", "ConfigData", "get_config", "get_default_config")
 
 T = TypeVar("T")
 
@@ -707,3 +707,6 @@ DEFAULT_CONFIG = get_default_config()
 
 def get_config(encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS) -> Config:
     return Config.from_path(PATH, encoding=encoding, errors=errors).ensure_directories()
+
+
+CONFIG = get_config()

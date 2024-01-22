@@ -6,9 +6,18 @@ from attrs import define, field
 from edgedb import Object
 from pendulum import DateTime
 from typing_extensions import Self
+from yarl import URL
 
+from melody.kit.config import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
+from melody.kit.links import (
+    Linked,
+    apple_music_playlist,
+    self_playlist,
+    spotify_playlist,
+    yandex_music_playlist,
+)
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
@@ -96,7 +105,7 @@ class PlaylistData(PartialPlaylistData):
 
 
 @define()
-class Playlist(PartialPlaylist):
+class Playlist(Linked, PartialPlaylist):
     user: User = field()
 
     follower_count: int = field(default=DEFAULT_COUNT)
@@ -144,6 +153,33 @@ class Playlist(PartialPlaylist):
 
     def into_data(self) -> PlaylistData:
         return CONVERTER.unstructure(self)  # type: ignore
+
+    @property
+    def spotify_url(self) -> Optional[URL]:
+        spotify_id = self.spotify_id
+
+        return None if spotify_id is None else URL(spotify_playlist(id=spotify_id))
+
+    @property
+    def apple_music_url(self) -> Optional[URL]:
+        apple_music_id = self.apple_music_id
+
+        return None if apple_music_id is None else URL(apple_music_playlist(id=apple_music_id))
+
+    @property
+    def yandex_music_url(self) -> Optional[URL]:
+        yandex_music_id = self.yandex_music_id
+        yandex_music_user_id = self.user.yandex_music_id
+
+        return (
+            None
+            if yandex_music_id is None or yandex_music_user_id is None
+            else URL(yandex_music_playlist(user_id=yandex_music_user_id, id=yandex_music_id))
+        )
+
+    @property
+    def url(self) -> URL:
+        return URL(self_playlist(config=CONFIG, id=self.id))
 
 
 from melody.kit.models.tracks import PositionTrack, PositionTrackData

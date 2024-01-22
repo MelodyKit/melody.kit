@@ -7,7 +7,9 @@ from edgedb import Object
 from iters.iters import iter
 from pendulum import DateTime
 from typing_extensions import Self
+from yarl import URL
 
+from melody.kit.config import CONFIG
 from melody.kit.constants import (
     DEFAULT_COUNT,
     DEFAULT_DURATION,
@@ -15,6 +17,13 @@ from melody.kit.constants import (
     DEFAULT_POSITION,
 )
 from melody.kit.enums import EntityType
+from melody.kit.links import (
+    Linked,
+    apple_music_track,
+    self_track,
+    spotify_track,
+    yandex_music_track,
+)
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
@@ -103,7 +112,7 @@ class TrackData(PartialTrackData):
 
 
 @define()
-class Track(PartialTrack):
+class Track(Linked, PartialTrack):
     album: Album = field()
     artists: List[Artist] = field()
 
@@ -152,6 +161,38 @@ class Track(PartialTrack):
 
     def into_data(self) -> TrackData:
         return CONVERTER.unstructure(self)  # type: ignore
+
+    @property
+    def spotify_url(self) -> Optional[URL]:
+        spotify_id = self.spotify_id
+
+        return None if spotify_id is None else URL(spotify_track(id=spotify_id))
+
+    @property
+    def apple_music_url(self) -> Optional[URL]:
+        apple_music_id = self.apple_music_id
+        apple_music_album_id = self.album.apple_music_id
+
+        return (
+            None
+            if apple_music_id is None or apple_music_album_id is None
+            else URL(apple_music_track(album_id=apple_music_album_id, id=apple_music_id))
+        )
+
+    @property
+    def yandex_music_url(self) -> Optional[URL]:
+        yandex_music_id = self.yandex_music_id
+        yandex_music_album_id = self.album.yandex_music_id
+
+        return (
+            None
+            if yandex_music_id is None or yandex_music_album_id is None
+            else URL(yandex_music_track(album_id=yandex_music_album_id, id=yandex_music_id))
+        )
+
+    @property
+    def url(self) -> URL:
+        return URL(self_track(config=CONFIG, id=self.id))
 
 
 class PositionTrackData(TrackData):
