@@ -7,7 +7,7 @@ __all__ = ("error_embed", "not_found_embed")
 
 ERROR_COLOR = Color(0xFF0000)
 
-NOT_FOUND = "Not found"
+NOT_FOUND = "Not Found"
 
 
 def error_embed(title: str, description: str) -> Embed:
