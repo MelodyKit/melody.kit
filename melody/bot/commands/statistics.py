@@ -3,13 +3,11 @@ from discord import Embed, Interaction
 from melody.bot.colors import color_into_discord, random_melody_color
 from melody.bot.constants import INLINE
 from melody.bot.core import Melody, client
+from melody.bot.utils import count
 from melody.kit.core import database
 from melody.kit.models.statistics import Statistics
 
 __all__ = ("get_statistics",)
-
-COUNT = "{:,}"
-count = COUNT.format
 
 STATISTICS = "Statistics"
 USERS = "Users"
