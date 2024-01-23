@@ -78,7 +78,6 @@ QUERY_ALBUM_TRACKS = load_query("albums/tracks/query")
 INSERT_PLAYLIST = load_query("playlists/insert")
 QUERY_PLAYLIST = load_query("playlists/query")
 DELETE_PLAYLIST = load_query("playlists/delete")
-CHECK_PLAYLIST = load_query("playlists/check")
 UPDATE_PLAYLIST = load_query("playlists/update")
 
 SEARCH_PLAYLISTS = load_query("playlists/search")
@@ -256,13 +255,6 @@ class Database:
 
     async def delete_playlist(self, playlist_id: UUID) -> None:
         await self.client.query_single(DELETE_PLAYLIST, playlist_id=playlist_id)
-
-    async def check_playlist(self, playlist_id: UUID, user_id: UUID) -> bool:
-        option = await self.client.query_single(
-            CHECK_PLAYLIST, playlist_id=playlist_id, user_id=user_id
-        )
-
-        return option is not None
 
     async def update_playlist(
         self, playlist_id: UUID, name: str, description: str, privacy_type: PrivacyType

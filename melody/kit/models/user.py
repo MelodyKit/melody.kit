@@ -61,6 +61,8 @@ class UserData(EntityData):
 
     privacy_type: str
 
+    discord_id: str
+
 
 @define()
 class User(Linked, Entity):
@@ -76,6 +78,7 @@ class User(Linked, Entity):
     spotify_id: Optional[str] = field(default=None)
     apple_music_id: Optional[str] = field(default=None)
     yandex_music_id: Optional[str] = field(default=None)
+    discord_id: Optional[str] = field(default=None)
 
     uri: URI = field()
 
@@ -96,6 +99,7 @@ class User(Linked, Entity):
             spotify_id=object.spotify_id,
             apple_music_id=object.apple_music_id,
             yandex_music_id=object.yandex_music_id,
+            discord_id=object.discord_id,
         )
 
     @classmethod
