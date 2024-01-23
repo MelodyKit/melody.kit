@@ -4,6 +4,8 @@ from yarl import URL
 
 from melody.discord.models.entity import EntityData
 from melody.discord.models.tokens import Tokens, TokensData
+from melody.kit.connections import callback_url
+from melody.kit.enums import Connection
 from melody.shared.constants import AUTHORIZATION_CODE, GET, POST
 from melody.shared.http import Route, SharedHTTPClient
 from melody.shared.typing import Data
@@ -39,7 +41,11 @@ class HTTPClient(SharedHTTPClient):
     async def get_tokens(self, code: str, client_id: str, client_secret: str) -> TokensData:
         route = Route(POST, "/oauth2/token")
 
-        data = dict(grant_type=AUTHORIZATION_CODE, code=code)
+        data = dict(
+            grant_type=AUTHORIZATION_CODE,
+            code=code,
+            redirect_uri=str(callback_url(Connection.DISCORD)),
+        )
 
         auth = BasicAuth(client_id, client_secret)
 
