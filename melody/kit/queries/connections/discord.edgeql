@@ -1,5 +1,5 @@
 update User
-filter .id = <uuid>$user_id;
+filter .id = <uuid>$user_id
 set {
-    discord_id := <str>$discord_id;
+    discord_id := <str>$discord_id
 };

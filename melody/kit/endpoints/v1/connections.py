@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 
 from melody.discord.authorization import authorize_url
 from melody.discord.client import Client
-from melody.kit.connections import fetch_user_id_by_state, generate_state_for
+from melody.kit.connections import delete_state, fetch_user_id_by_state, generate_state_for
 from melody.kit.core import database, v1
 from melody.kit.dependencies import access_token_dependency
 from melody.kit.enums import Connection
@@ -28,6 +28,8 @@ async def discord_callback(code: str, state: str) -> None:
 
     if user_id is None:
         raise Unauthorized(user_id_not_found(state))
+
+    await delete_state(Connection.DISCORD, state)
 
     client = Client()
 
