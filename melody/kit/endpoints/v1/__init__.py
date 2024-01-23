@@ -14,6 +14,10 @@ from melody.kit.endpoints.v1.authentication import (
     revoke,
     verify,
 )
+from melody.kit.endpoints.v1.connections import (
+    connect_discord,
+    discord_callback,
+)
 from melody.kit.endpoints.v1.playlists import (
     change_playlist_image,
     create_playlist,
@@ -138,4 +142,7 @@ __all__ = (
     "forgot",
     # search
     "search_items",
+    # connections
+    "connect_discord",
+    "discord_callback",
 )
