@@ -14,11 +14,13 @@ from melody.spotify.models.base import Base, BaseData
 
 class TokensData(BaseData):
     access_token: str
+    refresh_token: str
     token_type: str
     expires_in: int
 
 
 ACCESS_TOKEN = "access_token"
+REFRESH_TOKEN = "refresh_token"
 TOKEN_TYPE = "token_type"
 EXPIRES_IN = "expires_in"
 
@@ -41,6 +43,8 @@ register_structure_hook_rename = register_structure_hook(
 @define()
 class Tokens(Base):
     token: str = field()
+    refresh_token: str = field()
+
     type: str = field()
     expires_seconds: int = field()
 

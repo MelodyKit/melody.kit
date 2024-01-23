@@ -107,6 +107,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> Payload:
         ...
 
@@ -120,6 +121,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> str:
         ...
 
@@ -133,6 +135,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> bytes:
         ...
 
@@ -146,6 +149,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> Response:
         ...
 
@@ -158,6 +162,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = None,
         parameters: Optional[Parameters] = None,
         headers: Optional[Headers] = None,
+        auth: Optional[BasicAuth] = None,
     ) -> Response:
         attempts = self.retries + 1
 
@@ -176,6 +181,7 @@ class SharedHTTPClient:
                     headers=headers,
                     proxy=self.proxy,
                     proxy_auth=self.proxy_auth,
+                    auth=auth,
                     timeout=self.create_timeout(),
                 ) as response:
                     response.raise_for_status()
@@ -210,6 +216,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> Payload:
         ...
 
@@ -222,6 +229,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> str:
         ...
 
@@ -234,6 +242,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> bytes:
         ...
 
@@ -246,6 +255,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = ...,
         parameters: Optional[Parameters] = ...,
         headers: Optional[Headers] = ...,
+        auth: Optional[BasicAuth] = ...,
     ) -> Response:
         ...
 
@@ -257,6 +267,7 @@ class SharedHTTPClient:
         data: Optional[Parameters] = None,
         parameters: Optional[Parameters] = None,
         headers: Optional[Headers] = None,
+        auth: Optional[BasicAuth] = None,
     ) -> Response:
         return await self.request(
             route.method,
@@ -266,6 +277,7 @@ class SharedHTTPClient:
             data=data,
             parameters=parameters,
             headers=headers,
+            auth=auth,
         )
 
 
