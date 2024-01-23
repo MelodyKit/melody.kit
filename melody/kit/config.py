@@ -159,7 +159,7 @@ class BotConfig:
 
 
 @define()
-class SpotifyConfig:
+class ClientConfig:
     client_id: str
     client_secret: str
 
@@ -245,6 +245,9 @@ EXPECTED_MELODY_WEB_HOST = expected("melody.web.host")
 EXPECTED_MELODY_WEB_PORT = expected("melody.web.port")
 EXPECTED_MELODY_BOT = expected("melody.bot")
 EXPECTED_MELODY_BOT_TOKEN = expected("melody.bot.token")
+EXPECTED_MELODY_DISCORD = expected("melody.discord")
+EXPECTED_MELODY_DISCORD_CLIENT_ID = expected("melody.discord.client_id")
+EXPECTED_MELODY_DISCORD_CLIENT_SECRET = expected("melody.discord.client_secret")
 EXPECTED_MELODY_SPOTIFY = expected("melody.spotify")
 EXPECTED_MELODY_SPOTIFY_CLIENT_ID = expected("melody.spotify.client_id")
 EXPECTED_MELODY_SPOTIFY_CLIENT_SECRET = expected("melody.spotify.client_secret")
@@ -266,7 +269,8 @@ class Config:
     token: TokenConfig
     web: WebConfig
     bot: BotConfig
-    spotify: SpotifyConfig
+    discord: ClientConfig
+    spotify: ClientConfig
 
     def ensure_directories(self) -> Self:
         self.images = expand_user_directory(self.images)
@@ -438,9 +442,16 @@ class Config:
             port=web_data.port.unwrap_or(web_config.port),
         )
 
+        discord_data = config_data.discord.unwrap_or_else(AnyConfigData)
+
+        discord = ClientConfig(
+            client_id=discord_data.client_id.expect(EXPECTED_MELODY_DISCORD_CLIENT_ID),
+            client_secret=discord_data.client_secret.expect(EXPECTED_MELODY_DISCORD_CLIENT_SECRET),
+        )
+
         spotify_data = config_data.spotify.unwrap_or_else(AnyConfigData)
 
-        spotify = SpotifyConfig(
+        spotify = ClientConfig(
             client_id=spotify_data.client_id.expect(EXPECTED_MELODY_SPOTIFY_CLIENT_ID),
             client_secret=spotify_data.client_secret.expect(EXPECTED_MELODY_SPOTIFY_CLIENT_SECRET),
         )
@@ -464,6 +475,7 @@ class Config:
             token=token,
             web=web,
             bot=bot,
+            discord=discord,
             spotify=spotify,
         )
 
@@ -658,9 +670,24 @@ class Config:
             ),
         )
 
+        discord_data = config_data.discord.expect(EXPECTED_MELODY_DISCORD)
+
+        discord = ClientConfig(
+            client_id=(
+                discord_data.client_id.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else discord_data.client_id.expect(EXPECTED_MELODY_DISCORD_CLIENT_ID)
+            ),
+            client_secret=(
+                discord_data.client_secret.unwrap_or(EMPTY)
+                if ignore_sensitive
+                else discord_data.client_secret.expect(EXPECTED_MELODY_DISCORD_CLIENT_SECRET)
+            ),
+        )
+
         spotify_data = config_data.spotify.expect(EXPECTED_MELODY_SPOTIFY)
 
-        spotify = SpotifyConfig(
+        spotify = ClientConfig(
             client_id=(
                 spotify_data.client_id.unwrap_or(EMPTY)
                 if ignore_sensitive
@@ -692,6 +719,7 @@ class Config:
             token=token,
             web=web,
             bot=bot,
+            discord=discord,
             spotify=spotify,
         )
 

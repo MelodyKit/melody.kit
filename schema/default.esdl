@@ -228,5 +228,11 @@ module default {
             constraint exclusive;
         };
         required password_hash: str;
+
+        discord_id: str;
+
+        spotify_token: str;
+        apple_music_token: str;
+        yandex_music_token: str;
     }
 }

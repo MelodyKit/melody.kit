@@ -134,6 +134,10 @@ UPDATE_USER_SETTINGS = load_query("users/settings/update")
 
 QUERY_STATISTICS = load_query("statistics/query")
 
+# connections
+
+CONNECT_DISCORD = load_query("connections/discord")
+
 
 @define()
 class Database:
@@ -537,3 +541,6 @@ class Database:
         object = await self.client.query_required_single(QUERY_STATISTICS)
 
         return Statistics.from_object(object)
+
+    async def connect_discord(self, user_id: UUID, discord_id: str) -> None:
+        await self.client.query_single(CONNECT_DISCORD, user_id=user_id, discord_id=discord_id)

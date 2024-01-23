@@ -4,6 +4,8 @@
 # - `melody.email.name`
 # - `melody.email.password`
 # - `melody.bot.token`
+# - `melody.discord.client_id`
+# - `melody.discord.client_secret`
 # - `melody.spotify.client_id`
 # - `melody.spotify.client_secret`
 
@@ -85,5 +87,7 @@ host = "127.0.0.1"
 port = 4269
 
 [melody.bot]
+
+[melody.discord]
 
 [melody.spotify]
