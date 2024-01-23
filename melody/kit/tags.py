@@ -14,6 +14,8 @@ __all__ = (
     "STATISTICS",
     "LINKS",
     "IMAGES",
+    # connections
+    "CONNECTIONS",
 )
 
 TRACKS = "tracks"
@@ -32,3 +34,5 @@ AUTHENTICATION = "authentication"
 STATISTICS = "statistics"
 LINKS = "links"
 IMAGES = "images"
+
+CONNECTIONS = "connections"
