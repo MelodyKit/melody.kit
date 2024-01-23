@@ -9,6 +9,7 @@ from typing_extensions import Self
 from melody.kit.core import config, redis
 from melody.shared.constants import (
     ACCESS_TOKEN,
+    NAME_SEPARATOR,
     REFRESH_TOKEN,
     STAR,
     VERIFICATION_TOKEN,
@@ -114,8 +115,6 @@ class Tokens:
         return CONVERTER.unstructure(self)  # type: ignore
 
 
-NAME_SEPARATOR = ":"
-
 ACCESS_TOKEN_KEY = f"{ACCESS_TOKEN}{NAME_SEPARATOR}{{}}"
 access_token_key = ACCESS_TOKEN_KEY.format
 
@@ -208,23 +207,13 @@ async def delete_verification_tokens_for(user_id: UUID) -> None:
 async def fetch_user_id_by_access_token(access_token: str) -> Optional[UUID]:
     option = await redis.get(access_token_key(access_token))
 
-    if option is None:
-        return None
-
-    user_id = UUID(option)
-
-    return user_id
+    return None if option is None else UUID(option)
 
 
 async def fetch_user_id_by_refresh_token(refresh_token: str) -> Optional[UUID]:
     option = await redis.get(refresh_token_key(refresh_token))
 
-    if option is None:
-        return None
-
-    user_id = UUID(option)
-
-    return user_id
+    return None if option is None else UUID(option)
 
 
 async def fetch_user_id_by_verification_token(
@@ -232,12 +221,7 @@ async def fetch_user_id_by_verification_token(
 ) -> Optional[UUID]:
     option = await redis.get(verification_token_key(verification_token))
 
-    if option is None:
-        return None
-
-    user_id = UUID(option)
-
-    return user_id
+    return None if option is None else UUID(option)
 
 
 async def fetch_access_tokens_for(user_id: UUID) -> AsyncIterator[str]:

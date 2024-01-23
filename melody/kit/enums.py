@@ -5,7 +5,7 @@ from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW
 from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM
 from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER
 
-__all__ = ("AlbumType", "PrivacyType", "Repeat", "Platform", "EntityType", "LogLevel")
+__all__ = ("AlbumType", "PrivacyType", "Repeat", "Platform", "Connection", "EntityType", "LogLevel")
 
 
 class AlbumType(Enum):
@@ -63,6 +63,13 @@ class Platform(Enum):
     YANDEX_MUSIC = "yandex_music"
 
     DEFAULT = ANY
+
+
+class Connection(Enum):
+    DISCORD = "discord"
+    SPOTIFY = "spotify"
+    APPLE_MUSIC = "apple_music"
+    YANDEX_MUSIC = "yandex_music"
 
 
 class EntityType(Enum):

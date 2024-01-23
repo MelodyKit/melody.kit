@@ -2,13 +2,12 @@
 
 > *All your music, in one place.*
 
-This project consists of 9 parts:
+This project consists of 8 parts:
 
 - [`melody.kit`][melody.kit] is the core API of MelodyKit;
 - [`melody.web`][melody.web] is the web interface of MelodyKit;
 - [`melody.shared`][melody.shared] contains shared functionality;
 - [`melody.bot`][melody.bot] is the Discord bot which interacts with MelodyKit;
-- [`melody.discord`][melody.discord] is the minimal API wrapper for Discord;
 - [`melody.match`][melody.match] matches identical tracks;
 - [`melody.spotify`][melody.spotify] is the API wrapper for Spotify;
 - [`melody.apple_music`][melody.apple_music] is the API wrapper for Apple Music;
@@ -20,7 +19,6 @@ This project consists of 9 parts:
 [melody.web]: https://github.com/MelodyKit/melody.web/tree/main/melody/web
 [melody.shared]: https://github.com/MelodyKit/melody.web/tree/main/melody/shared
 [melody.bot]: https://github.com/MelodyKit/melody.web/tree/main/melody/bot
-[melody.discord]: https://github.com/MelodyKit/melody.web/tree/main/melody/discord
 [melody.match]: https://github.com/MelodyKit/melody.web/tree/main/melody/match
 [melody.spotify]: https://github.com/MelodyKit/melody.web/tree/main/melody/spotify
 [melody.apple_music]: https://github.com/MelodyKit/melody.web/tree/main/melody/apple_music

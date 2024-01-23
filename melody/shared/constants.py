@@ -27,6 +27,9 @@ __all__ = (
     "IMAGE_CONTENT_TYPE",
     "IMAGE_TYPE",
     # file modes
+    "READ",
+    "WRITE",
+    "READ_BINARY",
     "WRITE_BINARY",
     # tokens
     "ACCESS_TOKEN",
@@ -138,3 +141,7 @@ DEFAULT_ENCODING = "utf-8"
 DEFAULT_ERRORS = "strict"
 
 DEFAULT_CLOSEFD = True
+
+# redis
+
+NAME_SEPARATOR = ":"
