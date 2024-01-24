@@ -33,7 +33,7 @@ T = TypeVar("T")
 
 Counted = Tuple[List[T], int]
 
-# NOTE: any is everywhere! we need to be cautious!
+# NOTE: `Any` is everywhere! we need to be cautious!
 
 QUERIES_NAME = "queries"
 QUERIES = KIT_ROOT / QUERIES_NAME
@@ -129,13 +129,11 @@ QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
 QUERY_USER_SETTINGS = load_query("users/settings/query")
 UPDATE_USER_SETTINGS = load_query("users/settings/update")
 
+CONNECT_DISCORD = load_query("users/connections/discord")
+
 # statistics
 
 QUERY_STATISTICS = load_query("statistics/query")
-
-# connections
-
-CONNECT_DISCORD = load_query("connections/discord")
 
 
 @define()
