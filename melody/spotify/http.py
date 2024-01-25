@@ -3,8 +3,8 @@ from yarl import URL
 
 from melody.shared.constants import CLIENT_CREDENTIALS, GET, POST
 from melody.shared.http import Route, SharedHTTPClient
+from melody.shared.tokens import Tokens, TokensData
 from melody.shared.typing import Data
-from melody.spotify.models.tokens import Tokens, TokensData
 from melody.spotify.models.track import TrackData
 
 BASE_URL = URL("https://api.spotify.com/v1")

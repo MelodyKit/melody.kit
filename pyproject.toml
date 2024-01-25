@@ -38,6 +38,9 @@ python = ">= 3.8"
 versions = "^2.0.0"
 attrs = "^23.2.0"
 # melody.kit
+authlib = "^1.3.0"
+httpx = "^0.26.0"  # for `authlib`
+itsdangerous = "^2.1.2"  # for `starlette`
 fastapi = "^0.109.0"
 toml = "^0.10.2"
 pendulum = "^3.0.0"
@@ -52,7 +55,6 @@ colors-core = "^1.0.1"
 typing-extensions = "^4.9.0"
 # melody.web
 jinja2 = "^3.1.3"
-python-multipart = "^0.0.6"
 # melody.shared
 aiohttp = "^3.9.1"
 cattrs = "^23.2.3"

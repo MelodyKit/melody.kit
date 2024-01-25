@@ -1,9 +1,12 @@
 from argon2 import PasswordHasher
+from authlib.integrations.starlette_client import OAuth  # type: ignore[import-untyped]
 from fastapi.applications import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2AuthorizationCodeBearer
 from redis.asyncio import Redis
+from starlette.middleware.sessions import SessionMiddleware
 from typing_aliases import NormalError
 
 from melody.kit.config import CONFIG
@@ -12,7 +15,7 @@ from melody.kit.database import Database
 from melody.kit.errors import UNHANDLED_ERROR, Error, InternalError
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, STAR
 
-__all__ = ("config", "database", "redis", "hasher", "app", "v1")
+__all__ = ("config", "database", "redis", "hasher", "oauth", "app", "v1")
 
 database = Database()
 
@@ -32,7 +35,25 @@ hasher = PasswordHasher(
     parallelism=config.hash.parallelism,
 )
 
+oauth = OAuth()
+
+DISCORD = "discord"
+DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
+DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
+DISCORD_SCOPE = "identify"
+
+oauth.register(
+    DISCORD,
+    authorize_url=DISCORD_AUTHORIZE_URL,
+    access_token_url=DISCORD_TOKEN_URL,
+    scope=DISCORD_SCOPE,
+    client_id=config.discord.client_id,
+    client_secret=config.discord.client_secret,
+)
+
 app = FastAPI(openapi_url=None, redoc_url=None)
+
+app.add_middleware(SessionMiddleware, secret_key=config.session_key)
 
 ORIGIN = f"https://{config.open}.{config.domain}"
 
@@ -68,6 +89,8 @@ def register_error_handlers(app: FastAPI) -> None:
 
 
 v1 = FastAPI(title=config.name, version=VERSION_1)
+
+oauth2_scheme = OAuth2AuthorizationCodeBearer("authorize", "token", "refresh")
 
 app.mount(V1, v1)
 

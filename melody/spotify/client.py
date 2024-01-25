@@ -3,8 +3,8 @@ from typing import Optional
 from attrs import define, field
 from typing_extensions import Self
 
+from melody.shared.tokens import Tokens
 from melody.spotify.http import HTTPClient
-from melody.spotify.models.tokens import Tokens
 from melody.spotify.models.track import Track
 
 __all__ = ("Client",)

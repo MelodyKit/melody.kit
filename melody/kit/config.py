@@ -173,6 +173,7 @@ EXPECTED_MELODY_NAME = expected("melody.name")
 EXPECTED_MELODY_DOMAIN = expected("melody.domain")
 EXPECTED_MELODY_OPEN = expected("melody.open")
 EXPECTED_MELODY_IMAGES = expected("melody.images")
+EXPECTED_MELODY_SESSION_KEY = expected("melody.session_key")
 EXPECTED_MELODY_EMAIL = expected("melody.email")
 EXPECTED_MELODY_EMAIL_HOST = expected("melody.email.host")
 EXPECTED_MELODY_EMAIL_PORT = expected("melody.email.port")
@@ -260,6 +261,7 @@ class Config:
     domain: str
     open: str
     images: Path
+    session_key: str
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
@@ -461,11 +463,14 @@ class Config:
         open = config_data.open.unwrap_or(default_config.open)
         images = config_data.images.map_or(default_config.images, Path)
 
+        session_key = config_data.session_key.expect(EXPECTED_MELODY_SESSION_KEY)
+
         return cls(
             name=name,
             domain=domain,
             open=open,
             images=images,
+            session_key=session_key,
             email=email,
             hash=hash,
             kit=kit,
@@ -705,11 +710,18 @@ class Config:
         open = config_data.open.expect(EXPECTED_MELODY_OPEN)
         images = config_data.images.map(Path).expect(EXPECTED_MELODY_IMAGES)
 
+        session_key = (
+            config_data.session_key.unwrap_or(EMPTY)
+            if ignore_sensitive
+            else config_data.secret_key.expect(EXPECTED_MELODY_SESSION_KEY)
+        )
+
         return cls(
             name=name,
             domain=domain,
             open=open,
             images=images,
+            session_key=session_key,
             email=email,
             hash=hash,
             kit=kit,
