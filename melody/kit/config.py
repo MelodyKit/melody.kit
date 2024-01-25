@@ -118,33 +118,18 @@ class ExpiresConfig:
 
 
 @define()
-class BaseTokenConfig:
+class SpecificTokenConfig:
     size: int
     expires: ExpiresConfig
-
-
-@define()
-class AccessTokenConfig(BaseTokenConfig):
-    pass
-
-
-@define()
-class RefreshTokenConfig(BaseTokenConfig):
-    pass
-
-
-@define()
-class VerificationTokenConfig(BaseTokenConfig):
-    pass
 
 
 @define()
 class TokenConfig:
     type: str
 
-    access: AccessTokenConfig
-    refresh: RefreshTokenConfig
-    verification: VerificationTokenConfig
+    access: SpecificTokenConfig
+    refresh: SpecificTokenConfig
+    verification: SpecificTokenConfig
 
 
 @define()
@@ -382,7 +367,7 @@ class Config:
 
         token = TokenConfig(
             type=token_data.type.unwrap_or(token_config.type),
-            access=AccessTokenConfig(
+            access=SpecificTokenConfig(
                 size=access_data.size.unwrap_or(access_config.size),
                 expires=ExpiresConfig(
                     years=access_expires_data.years.unwrap_or(access_expires_config.years),
@@ -394,7 +379,7 @@ class Config:
                     seconds=access_expires_data.seconds.unwrap_or(access_expires_config.seconds),
                 ),
             ),
-            refresh=RefreshTokenConfig(
+            refresh=SpecificTokenConfig(
                 size=refresh_data.size.unwrap_or(refresh_config.size),
                 expires=ExpiresConfig(
                     years=refresh_expires_data.years.unwrap_or(refresh_expires_config.years),
@@ -406,7 +391,7 @@ class Config:
                     seconds=refresh_expires_data.seconds.unwrap_or(refresh_expires_config.seconds),
                 ),
             ),
-            verification=VerificationTokenConfig(
+            verification=SpecificTokenConfig(
                 size=verification_data.size.unwrap_or(verification_config.size),
                 expires=ExpiresConfig(
                     years=verification_expires_data.years.unwrap_or(
@@ -580,7 +565,7 @@ class Config:
 
         token = TokenConfig(
             type=token_data.type.expect(EXPECTED_MELODY_TOKEN_TYPE),
-            access=AccessTokenConfig(
+            access=SpecificTokenConfig(
                 size=access_data.size.expect(EXPECTED_MELODY_TOKEN_ACCESS_SIZE),
                 expires=ExpiresConfig(
                     years=access_expires_data.years.expect(
@@ -604,7 +589,7 @@ class Config:
                     ),
                 ),
             ),
-            refresh=RefreshTokenConfig(
+            refresh=SpecificTokenConfig(
                 size=refresh_data.size.expect(EXPECTED_MELODY_TOKEN_REFRESH_SIZE),
                 expires=ExpiresConfig(
                     years=refresh_expires_data.years.expect(
@@ -630,7 +615,7 @@ class Config:
                     ),
                 ),
             ),
-            verification=VerificationTokenConfig(
+            verification=SpecificTokenConfig(
                 size=verification_data.size.expect(EXPECTED_MELODY_TOKEN_VERIFICATION_SIZE),
                 expires=ExpiresConfig(
                     years=verification_expires_data.years.expect(

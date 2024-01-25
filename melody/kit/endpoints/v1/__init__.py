@@ -14,11 +14,6 @@ from melody.kit.endpoints.v1.authentication import (
     revoke,
     verify,
 )
-from melody.kit.endpoints.v1.connections import (
-    connect_discord,
-    disconnect_discord,
-    discord_callback,
-)
 from melody.kit.endpoints.v1.playlists import (
     change_playlist_image,
     create_playlist,

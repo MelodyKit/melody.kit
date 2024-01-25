@@ -1,7 +1,7 @@
 from typing import List, Type, TypeVar
 from attrs import define, field
 from cattrs.gen import override
-from pendulum import DateTime
+from pendulum import DateTime, Duration
 from typing_extensions import Self
 
 from melody.shared.converter import (
@@ -12,7 +12,7 @@ from melody.shared.converter import (
 from melody.shared.date_time import utc_now
 from melody.shared.typing import Data
 
-__all__ = ("Scopes", "TokensData", "Tokens")
+__all__ = ("Scopes", "TokensData", "Tokens", "AuthorizationData", "authorization")
 
 SCOPE_SEPARATOR = " "
 concat_scopes = SCOPE_SEPARATOR.join
@@ -68,31 +68,20 @@ EXPIRES_IN = "expires_in"
 SCOPE = "scope"
 
 
-register_unstructure_hook_tokens = register_unstructure_hook(
-    token=override(rename=ACCESS_TOKEN),
-    type=override(rename=TOKEN_TYPE),
-    expires_seconds=override(rename=EXPIRES_IN),
-    scopes=override(rename=SCOPE),
-    created_at=override(omit=True),
-)
-
-register_structure_hook_tokens = register_structure_hook(
-    token=override(rename=ACCESS_TOKEN),
-    type=override(rename=TOKEN_TYPE),
-    expires_seconds=override(rename=EXPIRES_IN),
-    scopes=override(rename=SCOPE),
-)
+register_unstructure_hook_rename = register_unstructure_hook(scopes=override(rename=SCOPE))
+register_structure_hook_rename = register_structure_hook(scopes=override(rename=SCOPE))
 
 
-@register_unstructure_hook_tokens
-@register_structure_hook_tokens
+@register_unstructure_hook_rename
+@register_structure_hook_rename
 @define()
 class Tokens:
-    token: str = field()
+    access_token: str = field()
     refresh_token: str = field()
 
-    type: str = field()
-    expires_seconds: int = field()
+    token_type: str = field()
+
+    expires_in: Duration = field()
 
     scopes: Scopes = field(factory=Scopes)
 
@@ -100,7 +89,7 @@ class Tokens:
 
     @property
     def expires_at(self) -> DateTime:
-        return self.created_at.add(seconds=self.expires_seconds)
+        return self.created_at + self.expires_in
 
     @classmethod
     def from_data(cls, data: TokensData) -> Self:
@@ -108,3 +97,17 @@ class Tokens:
 
     def into_data(self) -> TokensData:
         return CONVERTER.unstructure(self)  # type: ignore[no-any-return]
+
+
+AUTHORIZATION_FORMAT = "{type} {content}"
+authorization_format = AUTHORIZATION_FORMAT.format
+
+
+class AuthorizationData(Data):
+    Authorization: str
+
+
+def authorization(tokens: Tokens) -> AuthorizationData:
+    return AuthorizationData(
+        Authorization=authorization_format(type=tokens.token_type, content=tokens.access_token)
+    )

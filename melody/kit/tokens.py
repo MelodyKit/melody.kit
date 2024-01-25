@@ -3,8 +3,7 @@ from typing import AsyncIterator, Optional
 from uuid import UUID
 
 from attrs import define, field
-from pendulum import DateTime, Duration
-from typing_extensions import Self
+from pendulum import Duration
 
 from melody.kit.core import config, redis
 from melody.shared.constants import (
@@ -14,15 +13,12 @@ from melody.shared.constants import (
     STAR,
     VERIFICATION_TOKEN,
 )
-from melody.shared.converter import CONVERTER
-from melody.shared.date_time import utc_now
-from melody.shared.typing import Data
+from melody.shared.tokens import Tokens as SharedTokens
 
 __all__ = (
     "Tokens",
-    "TokensData",
     "access_token_factory",
-    "access_expires_in_factory",
+    "expires_in_factory",
     "token_type_factory",
     "refresh_token_factory",
     "refresh_expires_in_factory",
@@ -45,20 +41,11 @@ __all__ = (
 )
 
 
-class TokensData(Data):
-    access_token: str
-    token_type: str
-    refresh_token: str
-    created_at: str
-    access_expires_in: float
-    refresh_expires_in: float
-
-
 def access_token_factory() -> str:
     return token_hex(config.token.access.size)
 
 
-def access_expires_in_factory() -> Duration:
+def expires_in_factory() -> Duration:
     return config.token.access.expires.duration
 
 
@@ -70,10 +57,6 @@ def refresh_token_factory() -> str:
     return token_hex(config.token.refresh.size)
 
 
-def refresh_expires_in_factory() -> Duration:
-    return config.token.refresh.expires.duration
-
-
 def verification_token_factory() -> str:
     return token_hex(config.token.verification.size)
 
@@ -83,36 +66,13 @@ def verification_expires_in_factory() -> Duration:
 
 
 @define()
-class Tokens:
+class Tokens(SharedTokens):
+    # NOTE: here we simply provide defaults to fields in `melody.shared` without them
+
     access_token: str = field(factory=access_token_factory)
+    expires_in: Duration = field(factory=expires_in_factory)
     token_type: str = field(factory=token_type_factory)
     refresh_token: str = field(factory=refresh_token_factory)
-    created_at: DateTime = field(factory=utc_now)
-    access_expires_in: Duration = field()
-    refresh_expires_in: Duration = field()
-
-    @access_expires_in.default
-    def default_access_expires_in(self) -> Duration:
-        return access_expires_in_factory()
-
-    @refresh_expires_in.default
-    def default_refresh_expires_in(self) -> Duration:
-        return refresh_expires_in_factory()
-
-    @property
-    def access_expires_at(self) -> DateTime:
-        return self.created_at + self.access_expires_in
-
-    @property
-    def refresh_expires_at(self) -> DateTime:
-        return self.created_at + self.refresh_expires_in
-
-    @classmethod
-    def from_data(cls, data: TokensData) -> Self:
-        return CONVERTER.structure(data, cls)
-
-    def into_data(self) -> TokensData:
-        return CONVERTER.unstructure(self)  # type: ignore
 
 
 ACCESS_TOKEN_KEY = f"{ACCESS_TOKEN}{NAME_SEPARATOR}{{}}"
@@ -143,21 +103,25 @@ def key_verification_token(key: str) -> Optional[str]:
     return verification_token if verification_token else None
 
 
+def refresh_expires_in_factory() -> Duration:
+    return config.token.refresh.expires.duration
+
+
 async def generate_tokens_for(user_id: UUID) -> Tokens:
     tokens = Tokens()
 
-    access_expires_seconds = tokens.access_expires_in.total_seconds()
-    refresh_expires_seconds = tokens.refresh_expires_in.total_seconds()
+    expires = int(tokens.expires_in.total_seconds())
+    refresh_expires = int(refresh_expires_in_factory().total_seconds())
 
     await redis.set(
         access_token_key(tokens.access_token),
         str(user_id),
-        ex=int(access_expires_seconds),
+        ex=expires,
     )
     await redis.set(
         refresh_token_key(tokens.refresh_token),
         str(user_id),
-        ex=int(refresh_expires_seconds),
+        ex=refresh_expires,
     )
 
     return tokens
@@ -166,12 +130,12 @@ async def generate_tokens_for(user_id: UUID) -> Tokens:
 async def generate_verification_token_for(user_id: UUID) -> str:
     verification_token = verification_token_factory()
 
-    verification_expires_seconds = verification_expires_in_factory().total_seconds()
+    verification_expires = int(verification_expires_in_factory().total_seconds())
 
     await redis.set(
         verification_token_key(verification_token),
         str(user_id),
-        ex=int(verification_expires_seconds),
+        ex=verification_expires,
     )
 
     return verification_token

@@ -4,9 +4,8 @@ from fastapi.applications import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2AuthorizationCodeBearer
 from redis.asyncio import Redis
-from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.sessions import SessionMiddleware  # XXX: use `fastapi` when implemented
 from typing_aliases import NormalError
 
 from melody.kit.config import CONFIG
@@ -89,8 +88,6 @@ def register_error_handlers(app: FastAPI) -> None:
 
 
 v1 = FastAPI(title=config.name, version=VERSION_1)
-
-oauth2_scheme = OAuth2AuthorizationCodeBearer("authorize", "token", "refresh")
 
 app.mount(V1, v1)
 

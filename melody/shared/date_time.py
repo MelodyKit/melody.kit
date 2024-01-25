@@ -61,12 +61,12 @@ def unstructure_date(date: Date) -> str:
     return str(date)
 
 
-def structure_duration_ignore_type(seconds: float, duration_type: Type[Duration]) -> Duration:
+def structure_duration_ignore_type(seconds: int, duration_type: Type[Duration]) -> Duration:
     return duration(seconds=seconds)
 
 
-def unstructure_duration(duration: Duration) -> float:
-    return duration.total_seconds()
+def unstructure_duration(duration: Duration) -> int:
+    return int(duration.total_seconds())
 
 
 CONVERTER.register_structure_hook(DateTime, structure_date_time_ignore_type)

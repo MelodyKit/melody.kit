@@ -21,7 +21,6 @@ from melody.kit.errors import Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
 from melody.kit.tags import AUTHENTICATION
 from melody.kit.tokens import (
-    TokensData,
     delete_access_token,
     delete_access_tokens_for,
     delete_refresh_token,
@@ -30,6 +29,7 @@ from melody.kit.tokens import (
     generate_tokens_for,
     generate_verification_token_for,
 )
+from melody.shared.tokens import TokensData
 
 __all__ = (
     "login",

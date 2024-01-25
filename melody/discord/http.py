@@ -4,24 +4,9 @@ from yarl import URL
 from melody.discord.models.entity import EntityData
 from melody.shared.constants import GET
 from melody.shared.http import Route, SharedHTTPClient
-from melody.shared.tokens import Tokens
-from melody.shared.typing import Data
+from melody.shared.tokens import Tokens, authorization
 
 BASE_URL = URL("https://discord.com/api/v10")
-
-
-class AuthorizationData(Data):
-    Authorization: str
-
-
-AUTHORIZATION_HEADER = "{type} {content}"
-authorization_header = AUTHORIZATION_HEADER.format
-
-
-def authorization(tokens: Tokens) -> AuthorizationData:
-    return AuthorizationData(
-        Authorization=authorization_header(type=tokens.type, content=tokens.token)
-    )
 
 
 @define()

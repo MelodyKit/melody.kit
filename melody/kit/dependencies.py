@@ -5,6 +5,7 @@ from attrs import define
 from email_validator import EmailNotValidError, validate_email
 from fastapi import Body
 from fastapi.requests import Request
+from fastapi.security import OAuth2AuthorizationCodeBearer
 from iters.iters import iter
 from yarl import URL
 
