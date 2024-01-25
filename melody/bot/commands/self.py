@@ -9,7 +9,7 @@ NOT_LINKED = "User with ID `{}` is not linked to MelodyKit."
 not_linked = NOT_LINKED.format
 
 
-@client.tree.command(name="me", description="Fetches self users.")
+@client.tree.command(name="self", description="Fetches self users.")
 async def get_self(interaction: Interaction[Melody]) -> None:
     discord_id = str(interaction.user.id)
 
