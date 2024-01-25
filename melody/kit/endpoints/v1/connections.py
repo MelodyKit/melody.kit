@@ -9,22 +9,27 @@ from yarl import URL
 
 from melody.discord.client import Client
 from melody.kit.core import database, oauth, v1
-from melody.kit.dependencies import access_token_dependency, url_dependency
+from melody.kit.dependencies import access_token_dependency
 from melody.kit.errors import InternalError
+from melody.shared.tokens import Tokens
 
 USER_ID_NOT_FOUND = "can not find user ID for state `{}`"
 user_id_not_found = USER_ID_NOT_FOUND.format
 
+USER_ID = "user_id"
+
 DISCORD_CALLBACK = "discord_callback"
 
 
-@v1.get("/me/connections/discord", dependencies=[Depends(access_token_dependency)])
-async def connect_discord(request: Request) -> RedirectResponse:
-    redirect_url = request.url_for(DISCORD_CALLBACK)
+@v1.get("/me/connections/discord")
+async def connect_discord(
+    request: Request, user_id: UUID = Depends(access_token_dependency)
+) -> RedirectResponse:
+    callback_url = request.url_for(DISCORD_CALLBACK)
 
-    return await oauth.discord.authorize_redirect(  # type: ignore[no-any-return]
-        request, redirect_url
-    )
+    request.session[USER_ID] = user_id
+
+    return await oauth.discord.authorize_redirect(request, callback_url)
 
 
 @v1.delete("/me/connections/discord")
@@ -41,9 +46,19 @@ OAUTH_ERROR = "oauth error"
 @v1.get("/me/connections/discord/callback")
 async def discord_callback(request: Request) -> None:
     try:
-        token = await oauth.discord.authorize_access_token(request)
+        data = await oauth.discord.authorize_access_token(request)
 
     except OAuthError:
         raise InternalError(OAUTH_ERROR) from None
 
-    print(token)
+    tokens = Tokens.from_data(data)
+
+    client = Client().attach_tokens(tokens)
+
+    entity = await client.get_self()
+
+    discord_id = str(entity.id)
+
+    user_id = request.session[USER_ID]
+
+    await database.update_user_discord_id(user_id=user_id, discord_id=discord_id)

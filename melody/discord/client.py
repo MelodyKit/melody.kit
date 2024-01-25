@@ -22,11 +22,11 @@ def client_secret_factory() -> str:
 @define()
 class Client:
     client_id: str = field(factory=client_id_factory)
-    client_secret: str = field(factory=client_secret_factory)
-
-    tokens_unchecked: Optional[Tokens] = field(default=None)
+    client_secret: str = field(factory=client_secret_factory, repr=False)
 
     http: HTTPClient = field(factory=HTTPClient)
+
+    tokens_unchecked: Optional[Tokens] = field(default=None, init=False, repr=False)
 
     @property
     def tokens(self) -> Tokens:
@@ -59,10 +59,3 @@ class Client:
         data = await self.http.get_self(tokens=self.tokens)
 
         return Entity.from_data(data)
-
-    async def get_tokens(self, code: str) -> Tokens:
-        data = await self.http.get_tokens(
-            code=code, client_id=self.client_id, client_secret=self.client_secret
-        )
-
-        return Tokens.from_data(data)
