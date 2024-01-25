@@ -229,7 +229,9 @@ module default {
         };
         required password_hash: str;
 
-        discord_id: str;
+        discord_id: str {
+            constraint exclusive;
+        }
 
         spotify_token: str;
         apple_music_token: str;

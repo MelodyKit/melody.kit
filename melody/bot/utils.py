@@ -1,4 +1,5 @@
 from melody.bot.constants import (
+    ATTACHMENT,
     BULLET,
     COUNT,
     HOURS_TO_MINUTES,
@@ -17,6 +18,7 @@ from melody.kit.models.tracks import Track
 from melody.kit.models.user import User
 
 __all__ = (
+    "attachment",
     "count",
     "bullet",
     "concat_new_line",
@@ -29,6 +31,8 @@ __all__ = (
     "links",
     "duration_ms",
 )
+
+attachment = ATTACHMENT.format
 
 count = COUNT.format
 

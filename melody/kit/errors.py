@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import ClassVar
 
-from attrs import frozen
 from fastapi import status
-from typing_aliases import NormalError, Payload
+from typing_aliases import NormalError
 
 from melody.shared.typing import Data
 
@@ -63,136 +63,127 @@ class ErrorCode(Enum):
 
 
 class ErrorData(Data):
-    detail: Payload
     code: int
+    message: str
 
 
-@frozen()
 class Error(NormalError):
-    detail: Payload
-    code: ErrorCode = ErrorCode.DEFAULT
-    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
+    CODE: ClassVar[ErrorCode] = ErrorCode.DEFAULT
+    STATUS_CODE: ClassVar[int] = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+        self._message = message
+
+    @property
+    def message(self) -> str:
+        return self._message
 
     def into_data(self) -> ErrorData:
-        return ErrorData(code=self.code.value, detail=self.detail)
+        return ErrorData(code=self.CODE.value, message=self.message)
 
 
-@frozen()
 class AuthenticationError(Error):
     """Authentication has failed."""
 
-    code: ErrorCode = ErrorCode.AUTHENTICATION_ERROR
-    status_code: int = status.HTTP_401_UNAUTHORIZED
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_ERROR
+    STATUS_CODE: ClassVar[int] = status.HTTP_401_UNAUTHORIZED
 
 
-@frozen()
 class AuthenticationInvalid(AuthenticationError):
     """Authentication is invalid."""
 
-    code: ErrorCode = ErrorCode.AUTHENTICATION_INVALID
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_INVALID
 
 
-@frozen()
 class AuthenticationMissing(AuthenticationError):
     """Authentication is missing."""
 
-    code: ErrorCode = ErrorCode.AUTHENTICATION_MISSING
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_MISSING
 
 
-@frozen()
 class AuthenticationNotFound(AuthenticationError):
     """Authentication was not found."""
 
-    code: ErrorCode = ErrorCode.AUTHENTICATION_NOT_FOUND
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_NOT_FOUND
 
 
-@frozen()
 class ValidationError(Error):
     """Validation has failed."""
 
-    code: ErrorCode = ErrorCode.UNPROCESSABLE_ENTITY
-    status_code: int = status.HTTP_422_UNPROCESSABLE_ENTITY
+    CODE: ClassVar[ErrorCode] = ErrorCode.UNPROCESSABLE_ENTITY
+    STATUS_CODE: ClassVar[int] = status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-@frozen()
 class BadRequest(Error):
     """Bad request."""
 
-    code: ErrorCode = ErrorCode.BAD_REQUEST
-    status_code: int = status.HTTP_400_BAD_REQUEST
+    CODE: ClassVar[ErrorCode] = ErrorCode.BAD_REQUEST
+    STATUS_CODE: ClassVar[int] = status.HTTP_400_BAD_REQUEST
 
 
-@frozen()
 class Unauthorized(Error):
     """User is unauthorized."""
 
-    code: ErrorCode = ErrorCode.UNAUTHORIZED
-    status_code: int = status.HTTP_401_UNAUTHORIZED
+    CODE: ClassVar[ErrorCode] = ErrorCode.UNAUTHORIZED
+    STATUS_CODE: ClassVar[int] = status.HTTP_401_UNAUTHORIZED
 
 
-@frozen()
 class Forbidden(Error):
     """Access is forbidden."""
 
-    code: ErrorCode = ErrorCode.FORBIDDEN
-    status_code: int = status.HTTP_403_FORBIDDEN
+    CODE: ClassVar[ErrorCode] = ErrorCode.FORBIDDEN
+    STATUS_CODE: ClassVar[int] = status.HTTP_403_FORBIDDEN
 
 
-@frozen()
 class NotFound(Error):
     """Item was not found."""
 
-    code: ErrorCode = ErrorCode.NOT_FOUND
-    status_code: int = status.HTTP_404_NOT_FOUND
+    CODE: ClassVar[ErrorCode] = ErrorCode.NOT_FOUND
+    STATUS_CODE: ClassVar[int] = status.HTTP_404_NOT_FOUND
 
 
-@frozen()
 class MethodNotAllowed(Error):
     """Method is not allowed."""
 
-    code: ErrorCode = ErrorCode.METHOD_NOT_ALLOWED
-    status_code: int = status.HTTP_405_METHOD_NOT_ALLOWED
+    CODE: ClassVar[ErrorCode] = ErrorCode.METHOD_NOT_ALLOWED
+    STATUS_CODE: ClassVar[int] = status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-@frozen()
 class Conflict(Error):
     """Conflict has occured."""
 
-    code: ErrorCode = ErrorCode.CONFLICT
-    status_code: int = status.HTTP_409_CONFLICT
+    CODE: ClassVar[ErrorCode] = ErrorCode.CONFLICT
+    STATUS_CODE: ClassVar[int] = status.HTTP_409_CONFLICT
 
 
-@frozen()
 class Gone(Error):
     """Item is gone."""
 
-    code: ErrorCode = ErrorCode.GONE
-    status_code: int = status.HTTP_410_GONE
+    CODE: ClassVar[ErrorCode] = ErrorCode.GONE
+    STATUS_CODE: ClassVar[int] = status.HTTP_410_GONE
 
 
-@frozen()
 class PayloadTooLarge(Error):
     """Payload is too large."""
 
-    code: ErrorCode = ErrorCode.PAYLOAD_TOO_LARGE
-    status_code: int = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    CODE: ClassVar[ErrorCode] = ErrorCode.PAYLOAD_TOO_LARGE
+    STATUS_CODE: ClassVar[int] = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
 
 
-@frozen()
 class RateLimited(Error):
     """Rate limit has occured."""
 
-    code: ErrorCode = ErrorCode.TOO_MANY_REQUESTS
-    status_code: int = status.HTTP_429_TOO_MANY_REQUESTS
+    CODE: ClassVar[ErrorCode] = ErrorCode.TOO_MANY_REQUESTS
+    STATUS_CODE: ClassVar[int] = status.HTTP_429_TOO_MANY_REQUESTS
 
 
-INTERNAL_ERROR = "internal error"
+UNHANDLED_ERROR = "unhandled error"
 
 
-@frozen()
 class InternalError(Error):
     """Internal error has occured."""
 
-    detail: str = INTERNAL_ERROR
-    code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR
-    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
+    CODE: ClassVar[ErrorCode] = ErrorCode.INTERNAL_SERVER_ERROR
+    STATUS_CODE: ClassVar[int] = status.HTTP_500_INTERNAL_SERVER_ERROR

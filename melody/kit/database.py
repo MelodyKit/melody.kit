@@ -129,7 +129,8 @@ QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
 QUERY_USER_SETTINGS = load_query("users/settings/query")
 UPDATE_USER_SETTINGS = load_query("users/settings/update")
 
-CONNECT_DISCORD = load_query("users/connections/discord")
+UPDATE_USER_DISCORD_ID = load_query("users/connections/update_discord_id")
+QUERY_USER_BY_DISCORD_ID = load_query("users/connections/query_by_discord_id")
 
 # statistics
 
@@ -255,7 +256,7 @@ class Database:
         await self.client.query_single(DELETE_PLAYLIST, playlist_id=playlist_id)
 
     async def update_playlist(
-        self, playlist_id: UUID, name: str, description: str, privacy_type: PrivacyType
+        self, playlist_id: UUID, name: str, description: Optional[str], privacy_type: PrivacyType
     ) -> None:
         await self.client.query_single(
             UPDATE_PLAYLIST,
@@ -532,5 +533,12 @@ class Database:
 
         return Statistics.from_object(object)
 
-    async def connect_discord(self, user_id: UUID, discord_id: str) -> None:
-        await self.client.query_single(CONNECT_DISCORD, user_id=user_id, discord_id=discord_id)
+    async def update_user_discord_id(self, user_id: UUID, discord_id: Optional[str]) -> None:
+        await self.client.query_single(
+            UPDATE_USER_DISCORD_ID, user_id=user_id, discord_id=discord_id
+        )
+
+    async def query_user_by_discord_id(self, discord_id: str) -> Optional[User]:
+        option = await self.client.query_single(QUERY_USER_BY_DISCORD_ID, discord_id=discord_id)
+
+        return None if option is None else User.from_object(option)

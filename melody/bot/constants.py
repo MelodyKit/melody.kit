@@ -12,6 +12,8 @@ TICK = "`{}`"
 
 NEW_LINE = "\n"
 
+ATTACHMENT = "attachment://{}"
+
 WITH_URL = "[{content}]({url})"
 
 MILLISECONDS_TO_SECONDS = 1000

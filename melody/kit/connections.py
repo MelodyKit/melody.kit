@@ -9,12 +9,16 @@ from melody.kit.enums import Connection
 from melody.shared.constants import NAME_SEPARATOR
 
 __all__ = (
+    "redirect_url",
     "callback_url",
     "generate_state",
     "generate_state_for",
     "delete_state",
     "fetch_user_id_by_state",
 )
+
+REDIRECT = "https://{config.domain}/api/v1/me/connections/{connection}"
+redirect = REDIRECT.format
 
 CALLBACK = "https://{config.domain}/api/v1/me/connections/{connection}/callback"
 callback = CALLBACK.format
@@ -29,6 +33,10 @@ def generate_key(connection: Connection, state: str) -> str:
 
 def generate_state() -> str:
     return str(generate_uuid())
+
+
+def redirect_url(connection: Connection) -> URL:
+    return URL(redirect(config=config, connection=connection.value))
 
 
 def callback_url(connection: Connection) -> URL:

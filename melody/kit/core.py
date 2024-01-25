@@ -9,8 +9,8 @@ from typing_aliases import NormalError
 from melody.kit.config import CONFIG
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
-from melody.kit.errors import Error, InternalError
-from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS
+from melody.kit.errors import UNHANDLED_ERROR, Error, InternalError
+from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, STAR
 
 __all__ = ("config", "database", "redis", "hasher", "app", "v1")
 
@@ -47,8 +47,8 @@ def register_cors_middleware(app: FastAPI) -> None:
         CORSMiddleware,
         allow_origins=[ORIGIN, LOCAL_ORIGIN, TAURI_ORIGIN, OTHER_TAURI_ORIGIN],
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=[STAR],
+        allow_headers=[STAR],
     )
 
 
@@ -58,11 +58,11 @@ register_cors_middleware(app)
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Error)
     async def error_handler(request: Request, error: Error) -> JSONResponse:
-        return JSONResponse(error.into_data(), status_code=error.status_code)
+        return JSONResponse(error.into_data(), status_code=error.STATUS_CODE)
 
     @app.exception_handler(NormalError)
     async def internal_error_handler(request: Request, error: NormalError) -> JSONResponse:
-        internal_error = InternalError()
+        internal_error = InternalError(UNHANDLED_ERROR)
 
         return await error_handler(request, internal_error)
 

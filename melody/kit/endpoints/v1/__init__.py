@@ -16,6 +16,7 @@ from melody.kit.endpoints.v1.authentication import (
 )
 from melody.kit.endpoints.v1.connections import (
     connect_discord,
+    disconnect_discord,
     discord_callback,
 )
 from melody.kit.endpoints.v1.playlists import (
@@ -144,5 +145,6 @@ __all__ = (
     "search_items",
     # connections
     "connect_discord",
+    "disconnect_discord",
     "discord_callback",
 )

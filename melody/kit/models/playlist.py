@@ -21,7 +21,6 @@ from melody.kit.links import (
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
-from melody.shared.constants import EMPTY
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date_time, utc_now
 from melody.shared.typing import Data
@@ -110,7 +109,7 @@ class Playlist(Linked, PartialPlaylist):
 
     follower_count: int = field(default=DEFAULT_COUNT)
 
-    description: str = field(default=EMPTY)
+    description: Optional[str] = field(default=None)
 
     duration_ms: int = field(default=DEFAULT_DURATION)
 
