@@ -13,18 +13,18 @@ not_linked = NOT_LINKED.format
 async def get_self(interaction: Interaction[Melody]) -> None:
     discord_id = str(interaction.user.id)
 
-    me = await database.query_user_by_discord_id(discord_id=discord_id)
+    self = await database.query_user_by_discord_id(discord_id=discord_id)
 
-    if me is None:
+    if self is None:
         return await interaction.response.send_message(
             embed=not_linked_embed(not_linked(discord_id))
         )
 
-    result = at_path(config.images / me.uri.image_name)
+    result = at_path(config.images / self.uri.image_name)
 
     if result is None:
-        return await interaction.response.send_message(embed=user_embed(me))
+        return await interaction.response.send_message(embed=user_embed(self))
 
     file, url = result
 
-    return await interaction.response.send_message(embed=user_embed(me, url), file=file)
+    return await interaction.response.send_message(embed=user_embed(self, url), file=file)
