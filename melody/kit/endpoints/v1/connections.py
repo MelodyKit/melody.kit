@@ -27,7 +27,7 @@ async def connect_discord(
 ) -> RedirectResponse:
     callback_url = request.url_for(DISCORD_CALLBACK)
 
-    request.session[USER_ID] = user_id
+    request.session[USER_ID] = str(user_id)
 
     return await oauth.discord.authorize_redirect(request, callback_url)
 
@@ -59,6 +59,6 @@ async def discord_callback(request: Request) -> None:
 
     discord_id = str(entity.id)
 
-    user_id = request.session[USER_ID]
+    user_id = UUID(request.session[USER_ID])
 
     await database.update_user_discord_id(user_id=user_id, discord_id=discord_id)
