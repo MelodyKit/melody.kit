@@ -87,6 +87,10 @@ def register_error_handlers(app: FastAPI) -> None:
         return await error_handler(request, internal_error)
 
 
+AUTHORIZE = "/authorize"
+TOKEN = "/token"
+REFRESH = "/refresh"
+
 v1 = FastAPI(title=config.name, version=VERSION_1)
 
 app.mount(V1, v1)

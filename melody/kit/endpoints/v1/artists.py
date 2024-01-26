@@ -13,7 +13,7 @@ from melody.kit.constants import (
     MIN_OFFSET,
 )
 from melody.kit.core import database, v1
-from melody.kit.dependencies import url_dependency
+from melody.kit.dependencies import request_url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
 from melody.kit.models.artist import (
@@ -66,7 +66,7 @@ async def get_artist_link(artist_id: UUID) -> FileResponse:
 )
 async def get_artist_tracks(
     artist_id: UUID,
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> ArtistTracksData:
@@ -91,7 +91,7 @@ async def get_artist_tracks(
 )
 async def get_artist_albums(
     artist_id: UUID,
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> ArtistAlbumsData:

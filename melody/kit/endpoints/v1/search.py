@@ -14,8 +14,8 @@ from melody.kit.constants import (
 from melody.kit.core import database, v1
 from melody.kit.dependencies import (
     optional_access_token_dependency,
+    request_url_dependency,
     types_dependency,
-    url_dependency,
 )
 from melody.kit.enums import EntityType
 from melody.kit.models.pagination import Pagination
@@ -43,7 +43,7 @@ async def search_items(
     types: Set[EntityType] = Depends(types_dependency),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
 ) -> SearchData:
     albums = []

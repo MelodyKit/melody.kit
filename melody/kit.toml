@@ -1,5 +1,6 @@
 # This is the default configuration file for MelodyKit.
 # Configuration file is located at `~/.config/melody/kit.toml`.
+# You can read more about it here: `https://docs.melodykit.app/dev/config`.
 # There are some sensitive fields that need to be manually defined:
 # - `melody.session_key`
 # - `melody.email.name`
@@ -55,7 +56,7 @@ years = 0
 months = 0
 weeks = 0
 days = 0
-hours = 1
+hours = 0
 minutes = 0
 seconds = 0
 
@@ -64,7 +65,7 @@ size = 32
 
 [melody.token.refresh.expires]
 years = 0
-months = 1
+months = 0
 weeks = 0
 days = 0
 hours = 0
@@ -78,7 +79,7 @@ size = 32
 years = 0
 months = 0
 weeks = 0
-days = 1
+days = 0
 hours = 0
 minutes = 0
 seconds = 0

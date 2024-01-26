@@ -5,7 +5,7 @@ from melody.kit.endpoints.v1.artists import (
     get_artist_link,
     get_artist_tracks,
 )
-from melody.kit.endpoints.v1.authentication import (
+from melody.kit.endpoints.v1.auth import (
     forgot,
     login,
     logout,

@@ -14,7 +14,7 @@ from melody.kit.constants import (
     MIN_OFFSET,
 )
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import access_token_dependency, url_dependency
+from melody.kit.dependencies import access_token_dependency, request_url_dependency
 from melody.kit.enums import EntityType, Platform, PrivacyType
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.pagination import Pagination
@@ -162,7 +162,7 @@ async def change_self_image(
 )
 async def get_self_tracks(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserTracksData:
@@ -209,7 +209,7 @@ async def remove_self_tracks(
 )
 async def get_self_artists(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserArtistsData:
@@ -256,7 +256,7 @@ async def remove_self_artists(
 )
 async def get_self_albums(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserAlbumsData:
@@ -303,7 +303,7 @@ async def remove_self_albums(
 )
 async def get_self_playlists(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserPlaylistsData:
@@ -328,7 +328,7 @@ async def get_self_playlists(
 )
 async def get_self_streams(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserStreamsData:
@@ -353,7 +353,7 @@ async def get_self_streams(
 )
 async def get_self_friends(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFriendsData:
@@ -378,7 +378,7 @@ async def get_self_friends(
 )
 async def get_self_followers(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFollowersData:
@@ -403,7 +403,7 @@ async def get_self_followers(
 )
 async def get_self_following(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFollowingData:
@@ -450,7 +450,7 @@ async def remove_self_following(
 )
 async def get_self_followed_playlists(
     user_id: UUID = Depends(access_token_dependency),
-    url: URL = Depends(url_dependency),
+    url: URL = Depends(request_url_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFollowedPlaylistsData:

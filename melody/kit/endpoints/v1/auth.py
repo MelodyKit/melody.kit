@@ -19,7 +19,7 @@ from melody.kit.dependencies import (
 )
 from melody.kit.errors import Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
-from melody.kit.tags import AUTHENTICATION
+from melody.kit.tags import AUTH
 from melody.kit.tokens import (
     delete_access_token,
     delete_access_tokens_for,
@@ -50,7 +50,7 @@ UNVERIFIED = "user with ID `{}` is not verified"
 
 @v1.post(
     "/login",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Logs in the user with the given email and password.",
 )
 async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokensData:
@@ -85,7 +85,7 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
 
 @v1.post(
     "/logout",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Logs out the user, revoking the current token.",
 )
 async def logout(
@@ -96,7 +96,7 @@ async def logout(
 
 @v1.post(
     "/refresh",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Refreshes the access token.",
 )
 async def refresh(
@@ -111,7 +111,7 @@ async def refresh(
 
 @v1.post(
     "/revoke",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Revokes all tokens of the user.",
 )
 async def revoke(user_id: UUID = Depends(access_token_dependency)) -> None:
@@ -139,7 +139,7 @@ verification_content = VERIFICATION_CONTENT.format
 
 @v1.post(
     "/register",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Registers the user with the given name, email and password.",
 )
 async def register(
@@ -206,7 +206,7 @@ VERIFICATION_NOT_FOUND = "verification for the user not found"
 
 @v1.post(
     "/verify/{verification_token}",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Verifies the user with the given ID.",
 )
 async def verify(
@@ -219,7 +219,7 @@ async def verify(
 
 @v1.post(
     "/reset",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Resets the password of the user, revoking all tokens.",
 )
 async def reset(user_id: UUID = Depends(access_token_dependency), password: str = Body()) -> None:
@@ -244,7 +244,7 @@ temporary_token_content = TEMPORARY_TOKEN_CONTENT.format
 
 @v1.post(
     "/forgot",
-    tags=[AUTHENTICATION],
+    tags=[AUTH],
     summary="Allows the user to reset their password via the email.",
 )
 async def forgot(email: str = Depends(email_dependency)) -> None:

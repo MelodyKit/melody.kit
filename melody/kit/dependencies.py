@@ -5,7 +5,6 @@ from attrs import define
 from email_validator import EmailNotValidError, validate_email
 from fastapi import Body
 from fastapi.requests import Request
-from fastapi.security import OAuth2AuthorizationCodeBearer
 from iters.iters import iter
 from yarl import URL
 
@@ -36,7 +35,7 @@ __all__ = (
     "verification_token_dependency",
     "email_dependency",
     "email_deliverability_dependency",
-    "url_dependency",
+    "request_url_dependency",
     "types_dependency",
 )
 
@@ -155,7 +154,7 @@ async def email_deliverability_dependency(email: str = Body()) -> str:
     return result.email  # type: ignore[no-any-return]
 
 
-def url_dependency(request: Request) -> URL:
+def request_url_dependency(request: Request) -> URL:
     return URL(str(request.url))
 
 

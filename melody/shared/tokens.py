@@ -1,4 +1,5 @@
-from typing import List, Type, TypeVar
+from typing import List, Optional, Type, TypeVar
+
 from attrs import define, field
 from cattrs.gen import override
 from pendulum import DateTime, Duration
@@ -9,7 +10,7 @@ from melody.shared.converter import (
     register_structure_hook,
     register_unstructure_hook,
 )
-from melody.shared.date_time import utc_now
+from melody.shared.date_time import unstructure_duration, utc_now
 from melody.shared.typing import Data
 
 __all__ = ("Scopes", "TokensData", "Tokens", "AuthorizationData", "authorization")
@@ -19,6 +20,9 @@ concat_scopes = SCOPE_SEPARATOR.join
 
 
 def split_scope(scope: str) -> List[str]:
+    if not scope:
+        return []
+
     return scope.split(SCOPE_SEPARATOR)
 
 
@@ -88,8 +92,15 @@ class Tokens:
     created_at: DateTime = field(factory=utc_now)
 
     @property
-    def expires_at(self) -> DateTime:
-        return self.created_at + self.expires_in
+    def expires_at(self) -> Optional[DateTime]:
+        # `expires_in = 0` means no expiration
+
+        expires_in = self.expires_in
+
+        if unstructure_duration(expires_in):
+            return self.created_at + expires_in
+
+        return None
 
     @classmethod
     def from_data(cls, data: TokensData) -> Self:

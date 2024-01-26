@@ -10,7 +10,7 @@ __all__ = (
     # settings
     "SETTINGS",
     # others
-    "AUTHENTICATION",
+    "AUTH",
     "STATISTICS",
     "LINKS",
     "IMAGES",
@@ -30,8 +30,10 @@ SETTINGS = "settings"
 
 SEARCH = "search"
 
-AUTHENTICATION = "authentication"
+AUTH = "auth"
+
 STATISTICS = "statistics"
+
 LINKS = "links"
 IMAGES = "images"
 
