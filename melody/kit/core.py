@@ -52,8 +52,6 @@ oauth.register(
 
 app = FastAPI(openapi_url=None, redoc_url=None)
 
-app.add_middleware(SessionMiddleware, secret_key=config.session_key)
-
 ORIGIN = f"https://{config.open}.{config.domain}"
 
 LOCAL_ORIGIN = f"http://{config.web.host}:{config.web.port}"
@@ -72,7 +70,12 @@ def register_cors_middleware(app: FastAPI) -> None:
     )
 
 
+def register_session_middleware(app: FastAPI) -> None:
+    app.add_middleware(SessionMiddleware, secret_key=config.session_key)
+
+
 register_cors_middleware(app)
+register_session_middleware(app)
 
 
 def register_error_handlers(app: FastAPI) -> None:
