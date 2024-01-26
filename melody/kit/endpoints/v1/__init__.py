@@ -14,6 +14,11 @@ from melody.kit.endpoints.v1.auth import (
     revoke,
     verify,
 )
+from melody.kit.endpoints.v1.connections import (
+    connect_discord,
+    disconnect_discord,
+    discord_callback,
+)
 from melody.kit.endpoints.v1.playlists import (
     change_playlist_image,
     create_playlist,
@@ -128,7 +133,7 @@ __all__ = (
     "update_self_settings",
     # statistics
     "get_statistics",
-    # authentication
+    # auth
     "login",
     "logout",
     "revoke",
