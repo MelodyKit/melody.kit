@@ -1,13 +1,11 @@
-from email.message import EmailMessage
 from uuid import UUID
 
-from aiosmtplib import SMTP
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import Body, Depends
 from typing_aliases import NormalError
 
-from melody.kit.core import config, database, hasher, v1
+from melody.kit.core import database, hasher, v1
 from melody.kit.dependencies import (
     BoundToken,
     access_token_dependency,
@@ -17,6 +15,7 @@ from melody.kit.dependencies import (
     email_deliverability_dependency,
     email_dependency,
 )
+from melody.kit.email import email_message, send_email_message, support
 from melody.kit.errors import Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
 from melody.kit.tags import AUTH
@@ -121,13 +120,6 @@ async def revoke(user_id: UUID = Depends(access_token_dependency)) -> None:
 
 EMAIL_TAKEN = "the email `{}` is taken"
 
-FROM = "From"
-TO = "To"
-SUBJECT = "Subject"
-
-FROM_FORMAT = "{name} <{email}>"
-from_format = FROM_FORMAT.format
-
 VERIFICATION = "MelodyKit verification token"
 VERIFICATION_CONTENT = """
 Here is your verification token:
@@ -161,11 +153,13 @@ async def register(
         verification_token = await generate_verification_token_for(user_id)
 
         try:
-            await send_email(
-                author=from_format(name=config.name, email=config.email.support),
-                target=email,
-                subject=VERIFICATION,
-                content=verification_content(verification_token=verification_token),
+            await send_email_message(
+                email_message(
+                    author=support(),
+                    target=email,
+                    subject=VERIFICATION,
+                    content=verification_content(verification_token=verification_token),
+                )
             )
 
         except NormalError:
@@ -175,30 +169,6 @@ async def register(
             raise
 
         return base.into_data()
-
-
-async def send_email(author: str, target: str, subject: str, content: str) -> None:
-    message = EmailMessage()
-
-    message[FROM] = author
-    message[TO] = target
-
-    message[SUBJECT] = subject
-
-    message.set_content(content)
-
-    email = config.email
-
-    client = SMTP(
-        hostname=email.host,
-        port=email.port,
-        username=email.name,
-        password=email.password,
-        start_tls=True,
-    )
-
-    async with client:
-        await client.send_message(message)
 
 
 VERIFICATION_NOT_FOUND = "verification for the user not found"
@@ -257,9 +227,11 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
 
     temporary_token = tokens.access_token
 
-    await send_email(
-        author=from_format(name=config.name, email=config.email.support),
-        target=email,
-        subject=TEMPORARY_TOKEN,
-        content=temporary_token_content(temporary_token=temporary_token),
+    await send_email_message(
+        email_message(
+            author=support(),
+            target=email,
+            subject=TEMPORARY_TOKEN,
+            content=temporary_token_content(temporary_token=temporary_token),
+        )
     )
