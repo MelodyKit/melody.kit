@@ -50,6 +50,9 @@ NOT_LINKED = "Not Linked"
 not_linked_embed = partial(error_embed, NOT_LINKED)
 
 
+ID = "ID"
+
+
 ARTISTS = "Artists"
 TYPE = "Type"
 DURATION = "Duration"
@@ -64,6 +67,7 @@ def album_embed(album: Album, inline: bool = INLINE) -> Embed:
 
     embed = (
         Embed(color=color_into_discord(random_melody_color()), title=album.name, url=album.url)
+        .add_field(name=ID, value=tick(album.id), inline=inline)
         .add_field(
             name=ARTISTS,
             value=iter(album.artists).map(artist_with_url).join(SEPARATOR),
@@ -74,7 +78,6 @@ def album_embed(album: Album, inline: bool = INLINE) -> Embed:
         .add_field(name=DURATION, value=tick(duration_ms(album.duration_ms)), inline=inline)
         .add_field(name=RELEASE_DATE, value=tick(album.release_date), inline=inline)
         .add_field(name=LABEL, value=album.label, inline=inline)
-        .set_footer(text=tick(album.id))
     )
 
     if album_links:
@@ -92,9 +95,9 @@ def artist_embed(artist: Artist, inline: bool = INLINE) -> Embed:
 
     embed = (
         Embed(color=color_into_discord(random_melody_color()), title=artist.name, url=artist.url)
+        .add_field(name=ID, value=tick(artist.id), inline=inline)
         .add_field(name=FOLLOWERS, value=count(artist.follower_count), inline=inline)
         .add_field(name=STREAMS, value=count(artist.stream_count), inline=inline)
-        .set_footer(text=tick(artist.id))
     )
 
     if artist_links:
@@ -111,6 +114,7 @@ def track_embed(track: Track, inline: bool = INLINE) -> Embed:
 
     embed = (
         Embed(color=color_into_discord(random_melody_color()), title=track.name, url=track.url)
+        .add_field(name=ID, value=tick(track.id), inline=inline)
         .add_field(
             name=ARTISTS,
             value=iter(track.artists).map(artist_with_url).join(SEPARATOR),
@@ -119,7 +123,6 @@ def track_embed(track: Track, inline: bool = INLINE) -> Embed:
         .add_field(name=ALBUM, value=album_with_url(track.album), inline=inline)
         .add_field(name=DURATION, value=tick(duration_ms(track.duration_ms)), inline=inline)
         .add_field(name=STREAMS, value=count(track.stream_count), inline=inline)
-        .set_footer(text=tick(track.id))
     )
 
     if track_links:
@@ -144,11 +147,11 @@ def playlist_embed(
             url=playlist.url,
             description=playlist.description,
         )
+        .add_field(name=ID, value=tick(playlist.id), inline=inline)
         .add_field(name=PRIVACY_TYPE, value=tick(playlist.privacy_type.value), inline=inline)
         .add_field(name=FOLLOWERS, value=count(playlist.follower_count), inline=inline)
         .add_field(name=TRACKS, value=count(playlist.track_count), inline=inline)
         .add_field(name=DURATION, value=tick(duration_ms(playlist.duration_ms)), inline=inline)
-        .set_footer(text=tick(playlist.id))
     )
 
     if playlist_links:
@@ -165,10 +168,10 @@ def user_embed(user: User, image_url: Optional[URL] = None, inline: bool = INLIN
 
     embed = (
         Embed(color=color_into_discord(random_melody_color()), title=user.name, url=user.url)
+        .add_field(name=ID, value=tick(user.id), inline=inline)
         .add_field(name=PRIVACY_TYPE, value=tick(user.privacy_type.value), inline=inline)
         .add_field(name=FOLLOWERS, value=count(user.follower_count), inline=inline)
         .add_field(name=STREAMS, value=count(user.stream_count), inline=inline)
-        .set_footer(text=tick(user.id))
     )
 
     if user_links:
