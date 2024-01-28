@@ -45,9 +45,15 @@ module default {
     abstract type Entity extending CreatedAt {
         required name: str;
 
-        spotify_id: str;
-        apple_music_id: str;
-        yandex_music_id: str;
+        spotify_id: str {
+            constraint exclusive;
+        };
+        apple_music_id: str {
+            constraint exclusive;
+        };
+        yandex_music_id: str {
+            constraint exclusive
+        };
 
         index fts::index on (
             fts::with_options(
