@@ -238,9 +238,5 @@ module default {
         discord_id: str {
             constraint exclusive;
         }
-
-        spotify_token: str;
-        apple_music_token: str;
-        yandex_music_token: str;
     }
 }
