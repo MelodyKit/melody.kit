@@ -3,8 +3,8 @@ from uuid import UUID
 
 from fastapi import Depends, Query
 from fastapi.responses import FileResponse
-from iters.async_iters import async_iter
-from typing_aliases import Unary
+from iters.iters import iter
+from typing_aliases import Predicate
 from yarl import URL
 
 from melody.kit.code import generate_code_for_uri
@@ -20,7 +20,7 @@ from melody.kit.dependencies import optional_access_token_dependency, request_ur
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.pagination import Pagination
-from melody.kit.models.playlist import PartialPlaylist, Playlist
+from melody.kit.models.playlist import PartialPlaylist
 from melody.kit.models.user import (
     User,
     UserAlbums,
@@ -39,7 +39,13 @@ from melody.kit.models.user import (
     UserTracks,
     UserTracksData,
 )
-from melody.kit.predicates import playlist_predicate, user_predicate
+from melody.kit.privacy import (
+    are_friends,
+    is_playlist_accessible,
+    is_playlist_public,
+    is_user_accessible,
+    is_user_public,
+)
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
 
@@ -104,6 +110,7 @@ async def get_user_image(user_id: UUID) -> FileResponse:
 
 
 INACCESSIBLE_TRACKS = "the tracks of the user with ID `{}` are inaccessible"
+inaccessible_tracks = INACCESSIBLE_TRACKS.format
 
 
 @v1.get(
@@ -123,23 +130,29 @@ async def get_user_tracks(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    predicate = user_predicate(user_id_option)
+    if user_id_option is None:
+        accessible = is_user_public(user)
 
-    if await predicate(user):
-        counted = await database.query_user_tracks(user_id=user_id)
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+        accessible = is_user_accessible(user_id_option, user, friends)
 
-        items, count = counted
+    if not accessible:
+        raise Forbidden(inaccessible_tracks(user_id))
 
-        user_tracks = UserTracks(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+    counted = await database.query_user_tracks(user_id=user_id)
 
-        return user_tracks.into_data()
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    raise Forbidden(INACCESSIBLE_TRACKS.format(user_id))
+    items, count = counted
+
+    user_tracks = UserTracks(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_tracks.into_data()
 
 
 INACCESSIBLE_ARTISTS = "the artists of the user with ID `{}` are inaccessible"
@@ -162,23 +175,29 @@ async def get_user_artists(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    predicate = user_predicate(user_id_option)
+    if user_id_option is None:
+        accessible = is_user_public(user)
 
-    if await predicate(user):
-        counted = await database.query_user_artists(user_id=user_id)
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+        accessible = is_user_accessible(user_id_option, user, friends)
 
-        items, count = counted
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_ARTISTS.format(user_id))
 
-        user_artists = UserArtists(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+    counted = await database.query_user_artists(user_id=user_id)
 
-        return user_artists.into_data()
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    raise Forbidden(INACCESSIBLE_ARTISTS.format(user_id))
+    items, count = counted
+
+    user_artists = UserArtists(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_artists.into_data()
 
 
 INACCESSIBLE_ALBUMS = "the albums of the user with ID `{}` are inaccessible"
@@ -201,37 +220,41 @@ async def get_user_albums(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    predicate = user_predicate(user_id_option)
+    if user_id_option is None:
+        accessible = is_user_public(user)
 
-    if await predicate(user):
-        counted = await database.query_user_albums(user_id=user_id)
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+        accessible = is_user_accessible(user_id_option, user, friends)
 
-        items, count = counted
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
 
-        user_albums = UserAlbums(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+    counted = await database.query_user_albums(user_id=user_id)
 
-        return user_albums.into_data()
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
+    items, count = counted
+
+    user_albums = UserAlbums(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_albums.into_data()
 
 
 INACCESSIBLE_PLAYLISTS = "the playlists of the user with ID `{}` are inaccessible"
 
 
-def partial_playlist_with_user(user: User) -> Unary[PartialPlaylist, Playlist]:
-    def with_user(playlist: PartialPlaylist) -> Playlist:
-        return playlist.with_user(user)
+def is_playlist_accessible_by(
+    self_id: UUID, user: User, friends: bool
+) -> Predicate[PartialPlaylist]:
+    def is_playlist_accessible_predicate(playlist: PartialPlaylist) -> bool:
+        return is_playlist_accessible(self_id, playlist, user, friends)
 
-    return with_user
-
-
-def playlist_without_user(playlist: Playlist) -> PartialPlaylist:
-    return playlist.without_user()
+    return is_playlist_accessible_predicate
 
 
 @v1.get(
@@ -251,32 +274,26 @@ async def get_user_playlists(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    outer_predicate = user_predicate(user_id_option)
-    inner_predicate = playlist_predicate(user_id_option)
+    counted = await database.query_user_playlists(user_id=user_id)
 
-    if await outer_predicate(user):
-        counted = await database.query_user_playlists(user_id=user_id)
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+    items, count = counted
 
-        items, count = counted
+    if user_id_option is None:
+        items = iter(items).filter(is_playlist_public).list()
 
-        items = (
-            await async_iter(items)
-            .map(partial_playlist_with_user(user))
-            .filter_await(inner_predicate)
-            .map(playlist_without_user)
-            .list()
-        )
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        user_playlists = UserPlaylists(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+        items = iter(items).filter(is_playlist_accessible_by(user_id_option, user, friends)).list()
 
-        return user_playlists.into_data()
+    user_playlists = UserPlaylists(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
 
-    raise Forbidden(INACCESSIBLE_PLAYLISTS.format(user_id))
+    return user_playlists.into_data()
 
 
 INACCESSIBLE_FOLLOWERS = "the followers of the user with ID `{}` are inaccessible"
@@ -299,23 +316,29 @@ async def get_user_followers(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    predicate = user_predicate(user_id_option)
+    if user_id_option is None:
+        accessible = is_user_public(user)
 
-    if await predicate(user):
-        counted = await database.query_user_followers(user_id=user_id)
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+        accessible = is_user_accessible(user_id_option, user, friends)
 
-        items, count = counted
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_FOLLOWERS.format(user_id))
 
-        user_followers = UserFollowers(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+    counted = await database.query_user_followers(user_id=user_id)
 
-        return user_followers.into_data()
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    raise Forbidden(INACCESSIBLE_FOLLOWERS.format(user_id))
+    items, count = counted
+
+    user_followers = UserFollowers(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_followers.into_data()
 
 
 INACCESSIBLE_FOLLOWING = "the following of the user with ID `{}` are inaccessible"
@@ -338,23 +361,29 @@ async def get_user_following(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    predicate = user_predicate(user_id_option)
+    if user_id_option is None:
+        accessible = is_user_public(user)
 
-    if await predicate(user):
-        counted = await database.query_user_following(user_id=user_id)
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+        accessible = is_user_accessible(user_id_option, user, friends)
 
-        items, count = counted
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_FOLLOWING.format(user_id))
 
-        user_following = UserFollowing(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+    counted = await database.query_user_following(user_id=user_id)
 
-        return user_following.into_data()
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    raise Forbidden(INACCESSIBLE_FOLLOWING.format(user_id))
+    items, count = counted
+
+    user_following = UserFollowing(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_following.into_data()
 
 
 INACCESSIBLE_FRIENDS = "the friends of the user with ID `{}` are inaccessible"
@@ -377,20 +406,26 @@ async def get_user_friends(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    predicate = user_predicate(user_id_option)
+    if user_id_option is None:
+        accessible = is_user_public(user)
 
-    if await predicate(user):
-        counted = await database.query_user_friends(user_id=user_id)
+    else:
+        friends = await are_friends(user_id_option, user_id)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_USER.format(user_id))
+        accessible = is_user_accessible(user_id_option, user, friends)
 
-        items, count = counted
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_FRIENDS.format(user_id))
 
-        user_friends = UserFriends(
-            items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
-        )
+    counted = await database.query_user_friends(user_id=user_id)
 
-        return user_friends.into_data()
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    raise Forbidden(INACCESSIBLE_FRIENDS.format(user_id))
+    items, count = counted
+
+    user_friends = UserFriends(
+        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+    )
+
+    return user_friends.into_data()

@@ -24,11 +24,11 @@ from melody.kit.errors import Forbidden, NotFound, ValidationError
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import (
-    Playlist,
     PlaylistData,
     PlaylistTracks,
     PlaylistTracksData,
 )
+from melody.kit.privacy import are_friends, is_playlist_accessible, is_playlist_public
 from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
 from melody.shared.constants import EMPTY, IMAGE_TYPE
@@ -48,31 +48,6 @@ __all__ = (
 CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
 CAN_NOT_FIND_PLAYLIST_IMAGE = "can not find the image for the playlist with ID `{}`"
 INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
-
-
-async def check_accessible(playlist: Playlist, user_id_option: Optional[UUID]) -> bool:
-    playlist_user = playlist.user
-    playlist_user_id = playlist_user.id
-
-    if user_id_option is not None:
-        if user_id_option == playlist_user_id:
-            return True
-
-    playlist_privacy_type = playlist.privacy_type
-    playlist_user_privacy_type = playlist_user.privacy_type
-
-    private = playlist_privacy_type.is_private() or playlist_user_privacy_type.is_private()
-    friends = playlist_privacy_type.is_friends() or playlist_user_privacy_type.is_friends()
-
-    if private:
-        return False
-
-    if friends:
-        return user_id_option is not None and await database.check_user_friends(
-            user_id=playlist_user_id, target_id=user_id_option
-        )
-
-    return True
 
 
 @v1.post(
@@ -107,10 +82,20 @@ async def get_playlist(
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
-    if await check_accessible(playlist, user_id_option):
-        return playlist.into_data()
+    if user_id_option is None:
+        accessible = is_playlist_public(playlist)
 
-    raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+    else:
+        playlist_user = playlist.user
+
+        friends = await are_friends(user_id_option, playlist_user.id)
+
+        accessible = is_playlist_accessible(user_id_option, playlist, playlist_user, friends)
+
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+
+    return playlist.into_data()
 
 
 @v1.put(
@@ -249,18 +234,28 @@ async def get_playlist_tracks(
     if playlist is None:
         raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
 
-    if await check_accessible(playlist, user_id_option):
-        counted = await database.query_playlist_tracks(playlist_id=playlist_id)
+    if user_id_option is None:
+        accessible = is_playlist_public(playlist)
 
-        if counted is None:
-            raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+    else:
+        playlist_user = playlist.user
 
-        items, count = counted
+        friends = await are_friends(user_id_option, playlist_user.id)
 
-        playlist_tracks = PlaylistTracks(
-            items, Pagination.paginate(url=url, count=count, offset=offset, limit=limit)
-        )
+        accessible = is_playlist_accessible(user_id_option, playlist, playlist_user, friends)
 
-        return playlist_tracks.into_data()
+    if not accessible:
+        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
 
-    raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+    counted = await database.query_playlist_tracks(playlist_id=playlist_id)
+
+    if counted is None:
+        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+
+    items, count = counted
+
+    playlist_tracks = PlaylistTracks(
+        items, Pagination.paginate(url=url, count=count, offset=offset, limit=limit)
+    )
+
+    return playlist_tracks.into_data()

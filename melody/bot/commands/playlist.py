@@ -5,7 +5,7 @@ from melody.bot.embeds import inaccessible_embed, not_found_embed, playlist_embe
 from melody.bot.files import at_path
 from melody.bot.transformers import UUIDTransform
 from melody.kit.core import config, database
-from melody.kit.predicates import playlist_predicate
+from melody.kit.privacy import are_friends, is_playlist_accessible, is_playlist_public
 
 NOT_FOUND = "Playlist with ID `{}` not found."
 not_found = NOT_FOUND.format
@@ -25,13 +25,21 @@ async def get_playlist(interaction: Interaction[Melody], playlist_id: UUIDTransf
 
     discord_id = str(interaction.user.id)
 
-    user = await database.query_user_by_discord_id(discord_id=discord_id)
+    self = await database.query_user_by_discord_id(discord_id=discord_id)
 
-    user_id_option = None if user is None else user.id
+    if self is None:
+        accessible = is_playlist_public(playlist)
 
-    predicate = playlist_predicate(user_id_option)
+    else:
+        self_id = self.id
 
-    if not await predicate(playlist):
+        playlist_user = playlist.user
+
+        friends = await are_friends(self_id, playlist_user.id)
+
+        accessible = is_playlist_accessible(self_id, playlist, playlist_user, friends)
+
+    if not accessible:
         return await interaction.response.send_message(
             embed=inaccessible_embed(inaccessible(playlist_id))
         )

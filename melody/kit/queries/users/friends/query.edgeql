@@ -1,4 +1,3 @@
-
 select User {
     friends: {
         id,

@@ -2,7 +2,8 @@ from typing import Optional, Set
 from uuid import UUID
 
 from fastapi import Depends, Query
-from iters.async_iters import async_iter
+from iters.iters import iter
+from typing_aliases import Predicate
 from yarl import URL
 
 from melody.kit.constants import (
@@ -19,7 +20,9 @@ from melody.kit.dependencies import (
     types_dependency,
 )
 from melody.kit.enums import EntityType
+from melody.kit.errors import NotFound
 from melody.kit.models.pagination import Pagination
+from melody.kit.models.playlist import Playlist
 from melody.kit.models.search import (
     Search,
     SearchAlbums,
@@ -29,10 +32,23 @@ from melody.kit.models.search import (
     SearchTracks,
     SearchUsers,
 )
-from melody.kit.predicates import playlist_predicate
+from melody.kit.privacy import friends_set, is_playlist_accessible, is_playlist_public
 from melody.kit.tags import SEARCH
 
 __all__ = ("search_items",)
+
+
+def is_playlist_accessible_by(self_id: UUID, friends: Set[UUID]) -> Predicate[Playlist]:
+    def is_playlist_accessible_predicate(playlist: Playlist) -> bool:
+        playlist_user = playlist.user
+
+        return is_playlist_accessible(self_id, playlist, playlist_user, playlist_user.id in friends)
+
+    return is_playlist_accessible_predicate
+
+
+NOT_FOUND = "can not find the user with ID `{}`"
+not_found = NOT_FOUND.format
 
 
 @v1.get(
@@ -63,9 +79,20 @@ async def search_items(
     if EntityType.PLAYLIST in types:
         all_playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
 
-        predicate = playlist_predicate(user_id_option)
+        if user_id_option is None:
+            playlists = iter(all_playlists).filter(is_playlist_public).list()
 
-        playlists = await async_iter(all_playlists).filter_await(predicate).list()
+        else:
+            user_id = user_id_option
+
+            friends = await friends_set(user_id)
+
+            if friends is None:
+                raise NotFound(not_found(user_id))
+
+            playlists = (
+                iter(all_playlists).filter(is_playlist_accessible_by(user_id, friends)).list()
+            )
 
     if EntityType.TRACK in types:
         tracks = await database.search_tracks(query=query, offset=offset, limit=limit)

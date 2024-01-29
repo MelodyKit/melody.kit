@@ -25,6 +25,7 @@ URI_STRING = f"{{header}}{URI_SEPARATOR}{{type}}{URI_SEPARATOR}{{id}}"
 uri_string = URI_STRING.format
 
 INVALID_URI_HEADER = f"invalid header `{{}}`; expected `{URI_HEADER}`"
+invalid_uri_header = INVALID_URI_HEADER.format
 
 U = TypeVar("U", bound="URI")
 
@@ -42,7 +43,7 @@ class URI:
         header, type_string, id_string = string.split(URI_SEPARATOR)
 
         if header != URI_HEADER:
-            raise ValueError(INVALID_URI_HEADER.format(header))
+            raise ValueError(invalid_uri_header(header))
 
         type = EntityType(type_string)
 

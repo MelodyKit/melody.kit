@@ -11,7 +11,6 @@ from melody.bot.constants import INLINE, SEPARATOR
 from melody.bot.utils import (
     album_with_url,
     artist_with_url,
-    attachment,
     count,
     duration_ms,
     links,

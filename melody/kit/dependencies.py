@@ -132,6 +132,7 @@ async def verification_token_dependency(verification_token: str) -> UUID:
 
 
 INVALID_EMAIL = "email `{}` is invalid"
+invalid_email = INVALID_EMAIL.format
 
 
 def email_dependency(email: str = Body()) -> str:
@@ -139,7 +140,7 @@ def email_dependency(email: str = Body()) -> str:
         result = validate_email(email, check_deliverability=False)
 
     except EmailNotValidError:
-        raise ValidationError(INVALID_EMAIL.format(email)) from None
+        raise ValidationError(invalid_email(email)) from None
 
     return result.email  # type: ignore[no-any-return]
 
@@ -149,7 +150,7 @@ async def email_deliverability_dependency(email: str = Body()) -> str:
         result = await run_blocking(validate_email, email, check_deliverability=True)
 
     except EmailNotValidError:
-        raise ValidationError(INVALID_EMAIL.format(email)) from None
+        raise ValidationError(invalid_email(email)) from None
 
     return result.email  # type: ignore[no-any-return]
 
@@ -159,6 +160,8 @@ def request_url_dependency(request: Request) -> URL:
 
 
 INVALID_TYPES = "types `{}` are invalid"
+invalid_types = INVALID_TYPES.format
+
 TYPES_SEPARATOR = ","
 
 
@@ -170,4 +173,4 @@ def types_dependency(types: Optional[str] = None) -> Set[EntityType]:
         return iter(types.split(TYPES_SEPARATOR)).map(EntityType).set()
 
     except ValueError:
-        raise ValidationError(INVALID_TYPES.format(types)) from None
+        raise ValidationError(invalid_types(types)) from None

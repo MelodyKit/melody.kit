@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, TypeVar
+from typing import List, Optional, Set, Tuple, TypeVar
 from uuid import UUID
 
 from attrs import define, field
@@ -122,6 +122,7 @@ ADD_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/add")
 REMOVE_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/remove")
 
 QUERY_USER_FRIENDS = load_query("users/friends/query")
+QUERY_USER_FRIEND_IDS = load_query("users/friends/query_ids")
 CHECK_USER_FRIENDS = load_query("users/friends/check")
 
 QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
@@ -492,9 +493,14 @@ class Database:
             )
         )
 
-    async def check_user_friends(self, user_id: UUID, target_id: UUID) -> bool:
+    async def query_user_friend_ids(self, user_id: UUID) -> Optional[Set[UUID]]:
+        option = await self.client.query_single(QUERY_USER_FRIEND_IDS, user_id=user_id)
+
+        return None if option is None else set(option.friends)
+
+    async def check_user_friends(self, self_id: UUID, user_id: UUID) -> bool:
         option = await self.client.query_single(
-            CHECK_USER_FRIENDS, user_id=user_id, target_id=target_id
+            CHECK_USER_FRIENDS, self_id=self_id, user_id=user_id
         )
 
         return option is not None
