@@ -28,9 +28,13 @@ async def get_playlist(interaction: Interaction[Melody], playlist_id: UUIDTransf
     self = await database.query_user_by_discord_id(discord_id=discord_id)
 
     if self is None:
+        ephemeral = False
+
         accessible = is_playlist_public(playlist)
 
     else:
+        ephemeral = True
+
         self_id = self.id
 
         playlist_user = playlist.user
@@ -47,8 +51,12 @@ async def get_playlist(interaction: Interaction[Melody], playlist_id: UUIDTransf
     result = at_path(config.images / playlist.uri.image_name)
 
     if result is None:
-        return await interaction.response.send_message(embed=playlist_embed(playlist))
+        return await interaction.response.send_message(
+            embed=playlist_embed(playlist), ephemeral=ephemeral
+        )
 
     file, url = result
 
-    return await interaction.response.send_message(embed=playlist_embed(playlist, url), file=file)
+    return await interaction.response.send_message(
+        embed=playlist_embed(playlist, url), file=file, ephemeral=ephemeral
+    )
