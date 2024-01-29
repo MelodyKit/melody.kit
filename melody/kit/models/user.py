@@ -61,7 +61,7 @@ class UserData(EntityData):
 
     privacy_type: str
 
-    discord_id: str
+    discord_id: Optional[str]
 
 
 @define()
