@@ -28,6 +28,7 @@ __all__ = (
     "error_embed",
     "not_found_embed",
     "not_linked_embed",
+    "inaccessible_embed",
     "album_embed",
     "artist_embed",
     "track_embed",
@@ -49,6 +50,8 @@ not_found_embed = partial(error_embed, NOT_FOUND)
 NOT_LINKED = "Not Linked"
 not_linked_embed = partial(error_embed, NOT_LINKED)
 
+INACCESSIBLE = "Inaccessible"
+inaccessible_embed = partial(error_embed, INACCESSIBLE)
 
 ID = "ID"
 
@@ -136,7 +139,7 @@ USER = "User"
 
 
 def playlist_embed(
-    playlist: Playlist, image_name: Optional[str] = None, inline: bool = INLINE
+    playlist: Playlist, image_url: Optional[URL] = None, inline: bool = INLINE
 ) -> Embed:
     playlist_links = links(playlist)
 
@@ -157,10 +160,10 @@ def playlist_embed(
     if playlist_links:
         embed = embed.add_field(name=LINKS, value=playlist_links, inline=inline)
 
-    if image_name is None:
+    if image_url is None:
         return embed
 
-    return embed.set_image(url=attachment(image_name))
+    return embed.set_image(url=image_url)
 
 
 def user_embed(user: User, image_url: Optional[URL] = None, inline: bool = INLINE) -> Embed:
