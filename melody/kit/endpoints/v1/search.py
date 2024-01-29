@@ -2,6 +2,7 @@ from typing import Optional, Set
 from uuid import UUID
 
 from fastapi import Depends, Query
+from iters.async_iters import async_iter
 from yarl import URL
 
 from melody.kit.constants import (
@@ -28,6 +29,7 @@ from melody.kit.models.search import (
     SearchTracks,
     SearchUsers,
 )
+from melody.kit.predicates import playlist_predicate
 from melody.kit.tags import SEARCH
 
 __all__ = ("search_items",)
@@ -60,6 +62,10 @@ async def search_items(
 
     if EntityType.PLAYLIST in types:
         all_playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
+
+        predicate = playlist_predicate(user_id_option)
+
+        playlists = await async_iter(all_playlists).filter_await(predicate).list()
 
     if EntityType.TRACK in types:
         tracks = await database.search_tracks(query=query, offset=offset, limit=limit)

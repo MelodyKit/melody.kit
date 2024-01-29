@@ -98,6 +98,22 @@ class PartialPlaylist(Entity):
     def into_data(self) -> PartialPlaylistData:
         return CONVERTER.unstructure(self)  # type: ignore
 
+    def with_user(self, user: User) -> Playlist:
+        return Playlist(
+            id=self.id,
+            name=self.name,
+            user=user,
+            follower_count=self.follower_count,
+            description=self.description,
+            duration_ms=self.duration_ms,
+            track_count=self.track_count,
+            privacy_type=self.privacy_type,
+            created_at=self.created_at,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+        )
+
 
 class PlaylistData(PartialPlaylistData):
     user: UserData
@@ -179,6 +195,21 @@ class Playlist(Linked, PartialPlaylist):
     @property
     def url(self) -> URL:
         return URL(self_playlist(config=CONFIG, id=self.id))
+
+    def without_user(self) -> PartialPlaylist:
+        return PartialPlaylist(
+            id=self.id,
+            name=self.name,
+            follower_count=self.follower_count,
+            description=self.description,
+            duration_ms=self.duration_ms,
+            track_count=self.track_count,
+            privacy_type=self.privacy_type,
+            created_at=self.created_at,
+            spotify_id=self.spotify_id,
+            apple_music_id=self.apple_music_id,
+            yandex_music_id=self.yandex_music_id,
+        )
 
 
 from melody.kit.models.tracks import PositionTrack, PositionTrackData

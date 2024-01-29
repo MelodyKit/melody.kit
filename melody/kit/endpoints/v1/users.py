@@ -3,8 +3,8 @@ from uuid import UUID
 
 from fastapi import Depends, Query
 from fastapi.responses import FileResponse
-from iters.iters import iter
-from typing_aliases import Predicate
+from iters.async_iters import async_iter
+from typing_aliases import Unary
 from yarl import URL
 
 from melody.kit.code import generate_code_for_uri
@@ -20,7 +20,7 @@ from melody.kit.dependencies import optional_access_token_dependency, request_ur
 from melody.kit.enums import EntityType
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.pagination import Pagination
-from melody.kit.models.playlist import PartialPlaylist
+from melody.kit.models.playlist import PartialPlaylist, Playlist
 from melody.kit.models.user import (
     User,
     UserAlbums,
@@ -39,6 +39,7 @@ from melody.kit.models.user import (
     UserTracks,
     UserTracksData,
 )
+from melody.kit.predicates import playlist_predicate, user_predicate
 from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
 
@@ -102,26 +103,6 @@ async def get_user_image(user_id: UUID) -> FileResponse:
     return FileResponse(path)
 
 
-async def check_accessible(user: User, user_id_option: Optional[UUID]) -> bool:
-    user_id = user.id
-
-    if user_id_option is not None:
-        if user_id_option == user_id:
-            return True
-
-    user_privacy_type = user.privacy_type
-
-    if user_privacy_type.is_private():
-        return False
-
-    if user_privacy_type.is_friends():
-        return user_id_option is not None and await database.check_user_friends(
-            user_id=user_id, target_id=user_id_option
-        )
-
-    return True
-
-
 INACCESSIBLE_TRACKS = "the tracks of the user with ID `{}` are inaccessible"
 
 
@@ -142,7 +123,9 @@ async def get_user_tracks(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    predicate = user_predicate(user_id_option)
+
+    if await predicate(user):
         counted = await database.query_user_tracks(user_id=user_id)
 
         if counted is None:
@@ -179,7 +162,9 @@ async def get_user_artists(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    predicate = user_predicate(user_id_option)
+
+    if await predicate(user):
         counted = await database.query_user_artists(user_id=user_id)
 
         if counted is None:
@@ -216,7 +201,9 @@ async def get_user_albums(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    predicate = user_predicate(user_id_option)
+
+    if await predicate(user):
         counted = await database.query_user_albums(user_id=user_id)
 
         if counted is None:
@@ -233,30 +220,18 @@ async def get_user_albums(
     raise Forbidden(INACCESSIBLE_ALBUMS.format(user_id))
 
 
-async def create_partial_playlist_predicate(
-    user_id: UUID, user_id_option: Optional[UUID]
-) -> Predicate[PartialPlaylist]:
-    if user_id_option is None:
-        friends = False
-
-    else:
-        friends = await database.check_user_friends(user_id=user_id, target_id=user_id_option)
-
-    def predicate(playlist: PartialPlaylist) -> bool:
-        privacy_type = playlist.privacy_type
-
-        if privacy_type.is_private():
-            return False
-
-        if privacy_type.is_friends():
-            return friends
-
-        return True
-
-    return predicate
-
-
 INACCESSIBLE_PLAYLISTS = "the playlists of the user with ID `{}` are inaccessible"
+
+
+def partial_playlist_with_user(user: User) -> Unary[PartialPlaylist, Playlist]:
+    def with_user(playlist: PartialPlaylist) -> Playlist:
+        return playlist.with_user(user)
+
+    return with_user
+
+
+def playlist_without_user(playlist: Playlist) -> PartialPlaylist:
+    return playlist.without_user()
 
 
 @v1.get(
@@ -276,7 +251,10 @@ async def get_user_playlists(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    outer_predicate = user_predicate(user_id_option)
+    inner_predicate = playlist_predicate(user_id_option)
+
+    if await outer_predicate(user):
         counted = await database.query_user_playlists(user_id=user_id)
 
         if counted is None:
@@ -284,9 +262,13 @@ async def get_user_playlists(
 
         items, count = counted
 
-        predicate = await create_partial_playlist_predicate(user_id, user_id_option)
-
-        items = iter(items).filter(predicate).list()
+        items = (
+            await async_iter(items)
+            .map(partial_playlist_with_user(user))
+            .filter_await(inner_predicate)
+            .map(playlist_without_user)
+            .list()
+        )
 
         user_playlists = UserPlaylists(
             items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
@@ -317,7 +299,9 @@ async def get_user_followers(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    predicate = user_predicate(user_id_option)
+
+    if await predicate(user):
         counted = await database.query_user_followers(user_id=user_id)
 
         if counted is None:
@@ -354,7 +338,9 @@ async def get_user_following(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    predicate = user_predicate(user_id_option)
+
+    if await predicate(user):
         counted = await database.query_user_following(user_id=user_id)
 
         if counted is None:
@@ -391,7 +377,9 @@ async def get_user_friends(
     if user is None:
         raise NotFound(CAN_NOT_FIND_USER.format(user_id))
 
-    if await check_accessible(user, user_id_option):
+    predicate = user_predicate(user_id_option)
+
+    if await predicate(user):
         counted = await database.query_user_friends(user_id=user_id)
 
         if counted is None:
