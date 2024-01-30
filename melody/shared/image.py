@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from PIL.Image import open as open_image
 
-from melody.shared.asyncio import open_file
+from melody.shared.asyncio import async_open, wrap_file
 from melody.shared.constants import IMAGE_CONTENT_TYPE, WRITE_BINARY
 
 __all__ = ("check_image_type", "validate_and_save_image")
@@ -24,7 +24,7 @@ async def validate_and_save_image(upload_file: UploadFile, path: Path) -> bool:
     check = image.width == image.height
 
     if check:
-        file = await open_file(path, WRITE_BINARY)
+        file = wrap_file(await async_open(path, WRITE_BINARY))
 
         async with file:
             await file.write(data)

@@ -2,7 +2,6 @@ from asyncio import get_running_loop
 from types import TracebackType as Traceback
 from typing import (
     IO,
-    Any,
     AnyStr,
     Callable,
     Generic,
@@ -10,28 +9,19 @@ from typing import (
     Type,
     TypeVar,
     final,
-    overload,
 )
 
 from attrs import frozen
-from typing_aliases import AnyError, Nullary
+from typing_aliases import AnyError, AsyncCallable, Nullary
 from typing_extensions import ParamSpec, Self
 
-from melody.shared.constants import (
-    DEFAULT_CLOSEFD,
-    DEFAULT_ENCODING,
-    DEFAULT_ERRORS,
-    READ,
+__all__ = (
+    "run_blocking",
+    "run_blocking_factory",
+    "AsyncFile",
+    "async_open",
+    "wrap_file",
 )
-from melody.shared.typing import (
-    FileDescriptorOrIntoPath,
-    FileOpener,
-    OpenBinaryMode,
-    OpenMode,
-    OpenTextMode,
-)
-
-__all__ = ("run_blocking", "call_function")
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -46,6 +36,13 @@ def call_function(function: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -
         return function(*args, **kwargs)
 
     return call
+
+
+def run_blocking_factory(function: Callable[P, T]) -> AsyncCallable[P, T]:
+    async def run(*args: P.args, **kwargs: P.kwargs) -> T:
+        return await run_blocking(function, *args, **kwargs)
+
+    return run
 
 
 E = TypeVar("E", bound=AnyError)
@@ -79,53 +76,7 @@ class AsyncFile(Generic[AnyStr]):
         return await run_blocking(self.file.write, data)
 
 
-@overload
-async def open_file(
-    file: FileDescriptorOrIntoPath,
-    mode: OpenBinaryMode,
-    buffering: int = ...,
-    encoding: str = ...,
-    errors: str = ...,
-    closefd: bool = ...,
-    opener: Optional[FileOpener] = ...,
-) -> AsyncFile[bytes]:
-    ...
-
-
-@overload
-async def open_file(
-    file: FileDescriptorOrIntoPath,
-    mode: OpenTextMode = ...,
-    buffering: int = ...,
-    encoding: str = ...,
-    errors: str = ...,
-    closefd: bool = ...,
-    opener: Optional[FileOpener] = ...,
-) -> AsyncFile[str]:
-    ...
-
-
-async def open_file(
-    file: FileDescriptorOrIntoPath,
-    mode: OpenMode = READ,
-    buffering: int = ALL,
-    encoding: str = DEFAULT_ENCODING,
-    errors: str = DEFAULT_ERRORS,
-    closefd: bool = DEFAULT_CLOSEFD,
-    opener: Optional[FileOpener] = None,
-) -> AsyncFile[Any]:
-    result = await run_blocking(
-        open,
-        file,
-        mode,
-        buffering=buffering,
-        encoding=encoding,
-        errors=errors,
-        closefd=closefd,
-        opener=opener,
-    )
-
-    return wrap_file(result)
+async_open = run_blocking_factory(open)
 
 
 def wrap_file(file: IO[AnyStr]) -> AsyncFile[AnyStr]:

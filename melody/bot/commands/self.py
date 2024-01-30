@@ -23,9 +23,7 @@ async def get_self(interaction: Interaction[Melody]) -> None:
     result = at_path(config.images / self.uri.image_name)
 
     if result is None:
-        return await interaction.response.send_message(
-            embed=user_embed(self), ephemeral=True
-        )
+        return await interaction.response.send_message(embed=user_embed(self), ephemeral=True)
 
     file, url = result
 
