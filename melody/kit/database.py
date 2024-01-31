@@ -93,6 +93,8 @@ UPDATE_USER_PASSWORD_HASH = load_query("users/update_password_hash")
 UPDATE_USER_VERIFIED = load_query("users/update_verified")
 DELETE_USER = load_query("users/delete")
 
+UPDATE_USER_SECRET = load_query("users/update_secret")
+
 SEARCH_USERS = load_query("users/search")
 
 QUERY_USER_TRACKS = load_query("users/tracks/query")
@@ -125,6 +127,7 @@ QUERY_USER_FRIENDS = load_query("users/friends/query")
 QUERY_USER_FRIEND_IDS = load_query("users/friends/query_ids")
 CHECK_USER_FRIENDS = load_query("users/friends/check")
 
+QUERY_USER_INFO = load_query("users/info/query")
 QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
 
 QUERY_USER_SETTINGS = load_query("users/settings/query")
@@ -505,6 +508,11 @@ class Database:
 
         return option is not None
 
+    async def query_user_info(self, user_id: UUID) -> Optional[UserInfo]:
+        option = await self.client.query_single(QUERY_USER_INFO, user_id=user_id)
+
+        return None if option is None else UserInfo.from_object(option)
+
     async def query_user_info_by_email(self, email: str) -> Optional[UserInfo]:
         option = await self.client.query_single(QUERY_USER_INFO_BY_EMAIL, email=email)
 
@@ -548,3 +556,6 @@ class Database:
         option = await self.client.query_single(QUERY_USER_BY_DISCORD_ID, discord_id=discord_id)
 
         return None if option is None else User.from_object(option)
+
+    async def update_user_secret(self, user_id: UUID, secret: Optional[str]) -> None:
+        await self.client.query_single(UPDATE_USER_SECRET, user_id=user_id, secret=secret)

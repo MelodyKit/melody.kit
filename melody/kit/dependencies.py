@@ -3,7 +3,7 @@ from uuid import UUID
 
 from attrs import define
 from email_validator import EmailNotValidError, validate_email
-from fastapi import Body
+from fastapi import Body, Query
 from fastapi.requests import Request
 from iters.iters import iter
 from yarl import URL
@@ -116,7 +116,7 @@ async def optional_access_token_dependency(
         return None
 
 
-async def bound_verification_token_dependency(verification_token: str) -> BoundToken:
+async def bound_verification_token_dependency(verification_token: str = Query()) -> BoundToken:
     user_id = await fetch_user_id_by_verification_token(verification_token)
 
     if user_id is None:
@@ -125,7 +125,7 @@ async def bound_verification_token_dependency(verification_token: str) -> BoundT
     return BoundToken(verification_token, user_id)
 
 
-async def verification_token_dependency(verification_token: str) -> UUID:
+async def verification_token_dependency(verification_token: str = Query()) -> UUID:
     bound_token = await bound_verification_token_dependency(verification_token)
 
     return bound_token.user_id

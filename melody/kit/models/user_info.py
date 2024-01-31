@@ -1,3 +1,5 @@
+from typing import Optional
+
 from attrs import define
 from edgedb import Object
 from typing_extensions import Self
@@ -12,6 +14,7 @@ class UserInfoData(BaseData):
     verified: bool
     email: str
     password_hash: str
+    secret: Optional[str]
 
 
 @define()
@@ -19,6 +22,7 @@ class UserInfo(Base):
     verified: bool
     email: str
     password_hash: str
+    secret: Optional[str]
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -27,6 +31,7 @@ class UserInfo(Base):
             verified=object.verified,
             email=object.email,
             password_hash=object.password_hash,
+            secret=object.secret,
         )
 
     @classmethod
@@ -38,3 +43,6 @@ class UserInfo(Base):
 
     def is_verified(self) -> bool:
         return self.verified
+
+    def is_totp_enabled(self) -> bool:
+        return self.secret is not None

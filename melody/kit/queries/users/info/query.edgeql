@@ -4,4 +4,4 @@ select User {
     email,
     password_hash,
     secret
-} filter .email = <str>$email;
+} filter .id = <uuid>$user_id;
