@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
@@ -73,6 +74,7 @@ CAN_NOT_FIND_SECRET = "can not find the secret for the user with the ID `{}`"
 can_not_find_secret = CAN_NOT_FIND_SECRET.format
 
 CODE_MISMATCH = "code mismatch"
+EXPECTED_CODE = "expected code"
 
 
 @v1.get("/totp", tags=[AUTH], summary="Fetches TOTP secrets.")
@@ -143,12 +145,29 @@ async def verify_totp(user_id: UUID = Depends(access_token_dependency), code: st
     await database.update_user_secret(user_id=user_id, secret=secret)
 
 
+def validate_totp(secret: Optional[str], code: Optional[str]) -> None:
+    if secret is None:
+        return
+
+    if code is None:
+        raise Unauthorized(EXPECTED_CODE)
+
+    totp = TOTP(secret)
+
+    if not totp.verify(code):
+        raise Unauthorized(CODE_MISMATCH)
+
+
 @v1.post(
     "/login",
     tags=[AUTH],
     summary="Logs in the user with the given email and password.",
 )
-async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokensData:
+async def login(
+    email: str = Depends(email_dependency),
+    password: str = Body(),
+    code: Optional[str] = Body(default=None),
+) -> TokensData:
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
@@ -166,6 +185,10 @@ async def login(email: str = Depends(email_dependency), password: str = Body()) 
 
     except VerifyMismatchError:
         raise Unauthorized(PASSWORD_MISMATCH) from None
+
+    secret = user_info.secret
+
+    validate_totp(secret, code)
 
     tokens = await generate_tokens_for(user_id)
 
