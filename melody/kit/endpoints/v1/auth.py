@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
@@ -144,28 +143,12 @@ async def verify_totp(user_id: UUID = Depends(access_token_dependency), code: st
     await database.update_user_secret(user_id=user_id, secret=secret)
 
 
-def verify_code(secret: Optional[str], code: Optional[str]) -> bool:
-    if secret is None:
-        return True
-
-    if code is None:
-        return False
-
-    totp = TOTP(secret)
-
-    return totp.verify(code)
-
-
 @v1.post(
     "/login",
     tags=[AUTH],
     summary="Logs in the user with the given email and password.",
 )
-async def login(
-    email: str = Depends(email_dependency),
-    password: str = Body(),
-    code: Optional[str] = Body(default=None),
-) -> TokensData:
+async def login(email: str = Depends(email_dependency), password: str = Body()) -> TokensData:
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
@@ -183,11 +166,6 @@ async def login(
 
     except VerifyMismatchError:
         raise Unauthorized(PASSWORD_MISMATCH) from None
-
-    secret = user_info.secret
-
-    if not verify_code(secret, code):
-        raise Unauthorized(CODE_MISMATCH)
 
     tokens = await generate_tokens_for(user_id)
 
