@@ -238,5 +238,7 @@ module default {
         discord_id: str {
             constraint exclusive;
         }
+
+        secret: str;
     }
 }

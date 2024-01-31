@@ -12,7 +12,7 @@ from typing import (
 )
 
 from attrs import frozen
-from typing_aliases import AnyError, AsyncCallable, Nullary
+from typing_aliases import AnyError, AsyncCallable, Nullary, Unary
 from typing_extensions import ParamSpec, Self
 
 __all__ = (
@@ -43,6 +43,16 @@ def run_blocking_factory(function: Callable[P, T]) -> AsyncCallable[P, T]:
         return await run_blocking(function, *args, **kwargs)
 
     return run
+
+
+R = TypeVar("R")
+
+
+def async_compose(outer: Unary[T, R], inner: AsyncCallable[P, T]) -> AsyncCallable[P, R]:
+    async def composed(*args: P.args, **kwargs: P.kwargs) -> R:
+        return outer(await inner(*args, **kwargs))
+
+    return composed
 
 
 E = TypeVar("E", bound=AnyError)
@@ -81,3 +91,6 @@ async_open = run_blocking_factory(open)
 
 def wrap_file(file: IO[AnyStr]) -> AsyncFile[AnyStr]:
     return AsyncFile(file)
+
+
+open_file = async_compose(wrap_file, async_open)
