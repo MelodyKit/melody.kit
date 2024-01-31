@@ -76,7 +76,7 @@ class KitConfig:
 
 
 @define()
-class LinkConfig:
+class CodeConfig:
     cache: Path
     error_correction: ErrorCorrection
     box_size: int
@@ -172,11 +172,11 @@ EXPECTED_MELODY_HASH_PARALLELISM = expected("melody.hash.parallelism")
 EXPECTED_MELODY_KIT = expected("melody.kit")
 EXPECTED_MELODY_KIT_HOST = expected("melody.kit.host")
 EXPECTED_MELODY_KIT_PORT = expected("melody.kit.port")
-EXPECTED_MELODY_LINK = expected("melody.link")
-EXPECTED_MELODY_LINK_CACHE = expected("melody.link.cache")
-EXPECTED_MELODY_LINK_ERROR_CORRECTION = expected("melody.link.error_correction")
-EXPECTED_MELODY_LINK_BOX_SIZE = expected("melody.link.box_size")
-EXPECTED_MELODY_LINK_BORDER = expected("melody.link.border")
+EXPECTED_MELODY_CODE = expected("melody.code")
+EXPECTED_MELODY_CODE_CACHE = expected("melody.code.cache")
+EXPECTED_MELODY_CODE_ERROR_CORRECTION = expected("melody.code.error_correction")
+EXPECTED_MELODY_CODE_BOX_SIZE = expected("melody.code.box_size")
+EXPECTED_MELODY_CODE_BORDER = expected("melody.code.border")
 EXPECTED_MELODY_LOG = expected("melody.log")
 EXPECTED_MELODY_LOG_LEVEL = expected("melody.log.level")
 EXPECTED_MELODY_REDIS = expected("melody.redis")
@@ -250,7 +250,7 @@ class Config:
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
-    link: LinkConfig
+    code: CodeConfig
     log: LogConfig
     redis: RedisConfig
     token: TokenConfig
@@ -262,9 +262,9 @@ class Config:
     def ensure_directories(self) -> Self:
         self.images = expand_user_directory(self.images)
 
-        link = self.link
+        code = self.code
 
-        link.cache = expand_user_directory(link.cache)
+        code.cache = expand_user_directory(code.cache)
 
         return self
 
@@ -319,16 +319,16 @@ class Config:
             port=kit_data.port.unwrap_or(kit_config.port),
         )
 
-        link_data = config_data.link.unwrap_or_else(AnyConfigData)
-        link_config = default_config.link
+        code_data = config_data.code.unwrap_or_else(AnyConfigData)
+        code_config = default_config.code
 
-        link = LinkConfig(
-            cache=link_data.cache.map_or(link_config.cache, Path),
-            error_correction=link_data.error_correction.map_or(
-                link_config.error_correction, ErrorCorrection
+        code = CodeConfig(
+            cache=code_data.cache.map_or(code_config.cache, Path),
+            error_correction=code_data.error_correction.map_or(
+                code_config.error_correction, ErrorCorrection
             ),
-            box_size=link_data.box_size.unwrap_or(link_config.box_size),
-            border=link_data.border.unwrap_or(link_config.border),
+            box_size=code_data.box_size.unwrap_or(code_config.box_size),
+            border=code_data.border.unwrap_or(code_config.border),
         )
 
         log_data = config_data.log.unwrap_or_else(AnyConfigData)
@@ -459,7 +459,7 @@ class Config:
             email=email,
             hash=hash,
             kit=kit,
-            link=link,
+            code=code,
             log=log,
             redis=redis,
             token=token,
@@ -528,15 +528,15 @@ class Config:
             port=kit_data.port.expect(EXPECTED_MELODY_KIT_PORT),
         )
 
-        link_data = config_data.link.expect(EXPECTED_MELODY_LINK)
+        code_data = config_data.code.expect(EXPECTED_MELODY_CODE)
 
-        link = LinkConfig(
-            cache=link_data.cache.map(Path).expect(EXPECTED_MELODY_LINK_CACHE),
-            error_correction=link_data.error_correction.map(ErrorCorrection).expect(
-                EXPECTED_MELODY_LINK_ERROR_CORRECTION
+        code = CodeConfig(
+            cache=code_data.cache.map(Path).expect(EXPECTED_MELODY_CODE_CACHE),
+            error_correction=code_data.error_correction.map(ErrorCorrection).expect(
+                EXPECTED_MELODY_CODE_ERROR_CORRECTION
             ),
-            box_size=link_data.box_size.expect(EXPECTED_MELODY_LINK_BOX_SIZE),
-            border=link_data.border.expect(EXPECTED_MELODY_LINK_BORDER),
+            box_size=code_data.box_size.expect(EXPECTED_MELODY_CODE_BOX_SIZE),
+            border=code_data.border.expect(EXPECTED_MELODY_CODE_BORDER),
         )
 
         log_data = config_data.log.expect(EXPECTED_MELODY_LOG)
@@ -710,7 +710,7 @@ class Config:
             email=email,
             hash=hash,
             kit=kit,
-            link=link,
+            code=code,
             log=log,
             redis=redis,
             token=token,

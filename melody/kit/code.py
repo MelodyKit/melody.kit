@@ -26,18 +26,18 @@ TRANSPARENT = Color.black().to_rgba(ZERO)
 
 
 def generate_code_sync(string: str, image_name: str) -> Path:
-    link_config = config.link
+    code_config = config.code
 
-    path = link_config.cache / image_name
+    path = code_config.cache / image_name
 
     if path.exists():
         return path
 
     qr: QRCode[StyledPILImage] = QRCode(
         version=None,
-        error_correction=link_config.error_correction.into_error_correction(),
-        box_size=link_config.box_size,
-        border=link_config.border,
+        error_correction=code_config.error_correction.into_error_correction(),
+        box_size=code_config.box_size,
+        border=code_config.border,
     )
 
     qr.add_data(string)

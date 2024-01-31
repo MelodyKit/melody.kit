@@ -32,8 +32,8 @@ parallelism = 4
 host = "127.0.0.1"
 port = 1342
 
-[melody.link]
-cache = "~/.cache/melody/link"
+[melody.code]
+cache = "~/.cache/melody/code"
 error_correction = "high"
 box_size = 10
 border = 4
