@@ -6,7 +6,6 @@ from melody.kit.endpoints.v1.artists import (
     get_artist_tracks,
 )
 from melody.kit.endpoints.v1.auth import (
-    check_totp,
     delete_totp,
     forgot,
     generate_totp,
@@ -139,7 +138,6 @@ __all__ = (
     # statistics
     "get_statistics",
     # TOTP
-    "check_totp",
     "generate_totp",
     "delete_totp",
     "link_totp",

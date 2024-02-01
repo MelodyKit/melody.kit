@@ -43,7 +43,6 @@ from melody.shared.tokens import TokensData
 
 __all__ = (
     # TOTP
-    "check_totp",
     "generate_totp",
     "delete_totp",
     "link_totp",
@@ -75,16 +74,6 @@ can_not_find_secret = CAN_NOT_FIND_SECRET.format
 
 CODE_MISMATCH = "code mismatch"
 EXPECTED_CODE = "expected code"
-
-
-@v1.get("/totp")
-async def check_totp(user_id: UUID = Depends(access_token_dependency)) -> bool:
-    user_info = await database.query_user_info(user_id=user_id)
-
-    if user_info is None:
-        raise NotFound(can_not_find_user(user_id))
-
-    return user_info.is_totp_enabled()
 
 
 @v1.post("/totp", tags=[AUTH], summary="Generates TOTP secrets.")
