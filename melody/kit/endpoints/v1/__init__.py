@@ -9,8 +9,7 @@ from melody.kit.endpoints.v1.auth import (
     delete_totp,
     forgot,
     generate_totp,
-    get_totp,
-    get_totp_link,
+    link_totp,
     login,
     logout,
     register,
@@ -139,10 +138,9 @@ __all__ = (
     # statistics
     "get_statistics",
     # TOTP
-    "get_totp",
-    "get_totp_link",
     "generate_totp",
     "delete_totp",
+    "link_totp",
     "verify_totp",
     # auth
     "login",

@@ -43,10 +43,9 @@ from melody.shared.tokens import TokensData
 
 __all__ = (
     # TOTP
-    "get_totp",
-    "get_totp_link",
     "generate_totp",
     "delete_totp",
+    "link_totp",
     "verify_totp",
     # auth
     "login",
@@ -77,40 +76,12 @@ CODE_MISMATCH = "code mismatch"
 EXPECTED_CODE = "expected code"
 
 
-@v1.get("/totp", tags=[AUTH], summary="Fetches TOTP secrets.")
-async def get_totp(user_id: UUID = Depends(access_token_dependency)) -> str:
-    user_info = await database.query_user_info(user_id=user_id)
-
-    if user_info is None:
-        raise NotFound(can_not_find_user(user_id))
-
-    secret = user_info.secret
-
-    if secret is None:
-        raise NotFound(can_not_find_secret(user_id))
-
-    return secret
-
-
-@v1.get("/totp/link", tags=[AUTH, LINKS], summary="Fetches TOTP links.")
-async def get_totp_link(user_id: UUID = Depends(access_token_dependency)) -> FileResponse:
+@v1.post("/totp", tags=[AUTH], summary="Generates TOTP secrets.")
+async def generate_totp(user_id: UUID = Depends(access_token_dependency)) -> str:
     secret = await fetch_secret_for(user_id)
 
     if secret is None:
-        secret = await get_totp(user_id=user_id)
-
-    url = provisioning_url(user_id=user_id, secret=secret)
-
-    image_name = secret_image_name(user_id)
-
-    path = await generate_code(str(url), image_name)
-
-    return FileResponse(path)
-
-
-@v1.post("/totp", tags=[AUTH], summary="Generates TOTP secrets.")
-async def generate_totp(user_id: UUID = Depends(access_token_dependency)) -> str:
-    secret = await generate_secret_for(user_id)
+        secret = await generate_secret_for(user_id)
 
     return secret
 
@@ -122,6 +93,22 @@ async def generate_totp(user_id: UUID = Depends(access_token_dependency)) -> str
 )
 async def delete_totp(user_id: UUID = Depends(access_token_dependency)) -> None:
     await database.update_user_secret(user_id=user_id, secret=None)
+
+
+@v1.get("/totp/link", tags=[AUTH, LINKS], summary="Fetches TOTP links.")
+async def link_totp(user_id: UUID = Depends(access_token_dependency)) -> FileResponse:
+    secret = await fetch_secret_for(user_id)
+
+    if secret is None:
+        raise NotFound(can_not_find_secret(user_id))
+
+    url = provisioning_url(user_id=user_id, secret=secret)
+
+    image_name = secret_image_name(user_id)
+
+    path = await generate_code(str(url), image_name)
+
+    return FileResponse(path)
 
 
 @v1.post(
