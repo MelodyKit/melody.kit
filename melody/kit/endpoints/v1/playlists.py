@@ -14,11 +14,7 @@ from melody.kit.constants import (
     MIN_OFFSET,
 )
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import (
-    access_token_dependency,
-    optional_access_token_dependency,
-    request_url_dependency,
-)
+from melody.kit.dependencies import request_url_dependency
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.errors import Forbidden, NotFound, ValidationError
 from melody.kit.models.base import BaseData
@@ -28,10 +24,11 @@ from melody.kit.models.playlist import (
     PlaylistTracks,
     PlaylistTracksData,
 )
-from melody.kit.privacy import are_friends, is_playlist_accessible, is_playlist_public
+from melody.kit.oauth2 import optional_token_dependency, token_dependency
+from melody.kit.privacy import are_friends, is_playlist_accessible
 from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
-from melody.shared.constants import EMPTY, IMAGE_TYPE
+from melody.shared.constants import IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
 
 __all__ = (
@@ -46,8 +43,13 @@ __all__ = (
 )
 
 CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
+can_not_find_playlist = CAN_NOT_FIND_PLAYLIST.format
+
 CAN_NOT_FIND_PLAYLIST_IMAGE = "can not find the image for the playlist with ID `{}`"
+can_not_find_playlist_image = CAN_NOT_FIND_PLAYLIST_IMAGE.format
+
 INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
+inaccessible_playlist = INACCESSIBLE_PLAYLIST.format
 
 
 @v1.post(
@@ -57,12 +59,12 @@ INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
 )
 async def create_playlist(
     name: str = Body(),
-    description: str = Body(default=EMPTY),
+    description: Optional[str] = Body(default=None),
     privacy_type: PrivacyType = Body(default=PrivacyType.DEFAULT),
-    user_id: UUID = Depends(access_token_dependency),
+    self_id: UUID = Depends(token_dependency),
 ) -> BaseData:
     base = await database.insert_playlist(
-        name=name, description=description, privacy_type=privacy_type, user_id=user_id
+        name=name, description=description, privacy_type=privacy_type, user_id=self_id
     )
 
     return base.into_data()
@@ -75,25 +77,27 @@ async def create_playlist(
 )
 async def get_playlist(
     playlist_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
+    self_id_option: Optional[UUID] = Depends(optional_token_dependency),
 ) -> PlaylistData:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+        raise NotFound(can_not_find_playlist(playlist_id))
 
-    if user_id_option is None:
-        accessible = is_playlist_public(playlist)
+    if self_id_option is None:
+        accessible = playlist.privacy_type.is_public()
 
     else:
-        playlist_user = playlist.user
+        self_id = self_id_option
 
-        friends = await are_friends(user_id_option, playlist_user.id)
+        user_id = playlist.required_user.id
 
-        accessible = is_playlist_accessible(user_id_option, playlist, playlist_user, friends)
+        friends = await are_friends(self_id, user_id)
+
+        accessible = is_playlist_accessible(self_id, playlist, friends)
 
     if not accessible:
-        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+        raise Forbidden(inaccessible_playlist(playlist_id))
 
     return playlist.into_data()
 
@@ -105,7 +109,7 @@ async def get_playlist(
 )
 async def update_playlist(
     playlist_id: UUID,
-    user_id: UUID = Depends(access_token_dependency),
+    self_id: UUID = Depends(token_dependency),
     name: Optional[str] = Body(default=None),
     description: Optional[str] = Body(default=None),
     privacy_type: Optional[PrivacyType] = Body(default=None),
@@ -116,10 +120,10 @@ async def update_playlist(
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+        raise NotFound(can_not_find_playlist(playlist_id))
 
-    if playlist.user.id != user_id:
-        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+    if playlist.required_user.id != self_id:
+        raise Forbidden(inaccessible_playlist(playlist_id))
 
     if name is None:
         name = playlist.name
@@ -143,16 +147,14 @@ async def update_playlist(
     tags=[PLAYLISTS],
     summary="Deletes the playlist with the given ID.",
 )
-async def delete_playlist(
-    playlist_id: UUID, user_id: UUID = Depends(access_token_dependency)
-) -> None:
+async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+        raise NotFound(can_not_find_playlist(playlist_id))
 
-    if playlist.user.id != user_id:
-        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+    if playlist.required_user.id != user_id:
+        raise Forbidden(inaccessible_playlist(playlist_id))
 
     await database.delete_playlist(playlist_id=playlist_id)
 
@@ -181,7 +183,7 @@ async def get_playlist_image(playlist_id: UUID) -> FileResponse:
     path = config.images / uri.image_name
 
     if not path.exists():
-        raise NotFound(CAN_NOT_FIND_PLAYLIST_IMAGE.format(playlist_id))
+        raise NotFound(can_not_find_playlist_image(playlist_id))
 
     return FileResponse(path)
 
@@ -198,7 +200,7 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
 async def change_playlist_image(
     playlist_id: UUID,
     image: UploadFile = File(),
-    user_id: UUID = Depends(access_token_dependency),
+    self_id: UUID = Depends(token_dependency),
 ) -> None:
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
@@ -206,10 +208,10 @@ async def change_playlist_image(
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+        raise NotFound(can_not_find_playlist(playlist_id))
 
-    if playlist.user.id != user_id:
-        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+    if playlist.required_user.id != self_id:
+        raise Forbidden(inaccessible_playlist(playlist_id))
 
     path = config.images / playlist.uri.image_name
 
@@ -224,7 +226,7 @@ async def change_playlist_image(
 )
 async def get_playlist_tracks(
     playlist_id: UUID,
-    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
+    self_id_option: Optional[UUID] = Depends(optional_token_dependency),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
     url: URL = Depends(request_url_dependency),
@@ -232,25 +234,27 @@ async def get_playlist_tracks(
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+        raise NotFound(can_not_find_playlist(playlist_id))
 
-    if user_id_option is None:
-        accessible = is_playlist_public(playlist)
+    if self_id_option is None:
+        accessible = playlist.privacy_type.is_public()
 
     else:
-        playlist_user = playlist.user
+        self_id = self_id_option
 
-        friends = await are_friends(user_id_option, playlist_user.id)
+        user_id = playlist.required_user.id
 
-        accessible = is_playlist_accessible(user_id_option, playlist, playlist_user, friends)
+        friends = await are_friends(self_id, user_id)
+
+        accessible = is_playlist_accessible(self_id, playlist, friends)
 
     if not accessible:
-        raise Forbidden(INACCESSIBLE_PLAYLIST.format(playlist_id))
+        raise Forbidden(inaccessible_playlist(playlist_id))
 
     counted = await database.query_playlist_tracks(playlist_id=playlist_id)
 
     if counted is None:
-        raise NotFound(CAN_NOT_FIND_PLAYLIST.format(playlist_id))
+        raise NotFound(can_not_find_playlist(playlist_id))
 
     items, count = counted
 

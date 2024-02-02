@@ -1,16 +1,12 @@
 module default {
+    # enums
+
     scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
     scalar type PrivacyType extending enum<`public`, `friends`, `private`>;
 
     scalar type Platform extending enum<`any`, `spotify`, `apple_music`, `yandex_music`>;
-    # scalar type Repeat extending enum <`none`, `context`, `one`>;
 
-    abstract type CreatedAt {
-        required created_at: datetime {
-            default := datetime_of_statement();
-            readonly := true;
-        };
-    }
+    # scalars
 
     scalar type duration_ms extending int64 {
         constraint min_value(0);
@@ -24,10 +20,26 @@ module default {
         constraint min_value(0);
     }
 
-    # scalar type volume extending float64 {
-    #     constraint min_value(0.0);
-    #     constraint max_value(1.0);
-    # }
+    # abstract types
+
+    abstract type Tracked {
+        required created_at: datetime {
+            default := datetime_of_statement();
+            readonly := true;
+        };
+    }
+
+    abstract type Named extending Tracked {
+        required name: str;
+    }
+
+    abstract type Genres {
+        required genres: array<str> {
+            default := <array<str>>[];
+        };
+    }
+
+    # abstract links
 
     abstract link with_position {
         position: position {
@@ -42,9 +54,9 @@ module default {
         };
     }
 
-    abstract type Entity extending CreatedAt {
-        required name: str;
+    # entities
 
+    abstract type Entity extending Named {
         spotify_id: str {
             constraint exclusive;
         };
@@ -62,12 +74,6 @@ module default {
                 weight_category := fts::Weight.A,
             )
         );
-    }
-
-    abstract type Genres {
-        required genres: array<str> {
-            default := <array<str>>[];
-        };
     }
 
     type Track extending Entity, Genres {
@@ -143,36 +149,6 @@ module default {
         track_count := count(.tracks);
     }
 
-    type Stream extending CreatedAt {
-        required user: User {
-            on target delete delete source;
-        };
-
-        required track: Track {
-            on target delete delete source;
-        };
-
-        required duration_ms: duration_ms;
-    }
-
-    # type PlayerSettings {
-    #     required playing: bool {
-    #         default := false;
-    #     };
-    #     required shuffle: bool {
-    #         default := false;
-    #     };
-    #     required repeat: Repeat {
-    #         default := Repeat.none;
-    #     };
-    #     required volume: volume {
-    #         default := 0.5;
-    #     };
-    #     required volume_store: volume {
-    #         default := 0.0;
-    #     };
-    # }
-
     type User extending Entity {
         multi tracks extending with_linked_at: Track;
         multi albums extending with_linked_at: Album;
@@ -240,5 +216,27 @@ module default {
         }
 
         secret: str;
+    }
+
+    # non-entities
+
+    type Stream extending Tracked {
+        required user: User {
+            on target delete delete source;
+        };
+
+        required track: Track {
+            on target delete delete source;
+        };
+
+        required duration_ms: duration_ms;
+    }
+
+    type Client extending Named {
+        required creator: User {
+            on target delete delete source;
+        };
+
+        required secret_hash: str;
     }
 }

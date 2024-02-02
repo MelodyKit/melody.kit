@@ -12,10 +12,9 @@ __all__ = (
     "Error",
     "ErrorCode",
     "ErrorData",
-    "AuthenticationError",
-    "AuthenticationInvalid",
-    "AuthenticationMissing",
-    "AuthenticationNotFound",
+    "AuthError",
+    "AuthExpected",
+    "AuthInvalid",
     "ValidationError",
     "BadRequest",
     "Unauthorized",
@@ -46,10 +45,9 @@ class ErrorCode(Enum):
 
     INTERNAL_SERVER_ERROR = 13500
 
-    AUTHENTICATION_ERROR = 13600
-    AUTHENTICATION_INVALID = 13601
-    AUTHENTICATION_MISSING = 13602
-    AUTHENTICATION_NOT_FOUND = 13603
+    AUTH_ERROR = 13600
+    AUTH_EXPECTED = 13601
+    AUTH_INVALID = 13602
 
     @classmethod
     def from_status_code(cls, status_code: int) -> ErrorCode:
@@ -84,29 +82,23 @@ class Error(NormalError):
         return ErrorData(code=self.CODE.value, message=self.message)
 
 
-class AuthenticationError(Error):
+class AuthError(Error):
     """Authentication has failed."""
 
-    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_ERROR
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_ERROR
     STATUS_CODE: ClassVar[int] = status.HTTP_401_UNAUTHORIZED
 
 
-class AuthenticationInvalid(AuthenticationError):
+class AuthExpected(AuthError):
+    """Authentication was expected."""
+
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_EXPECTED
+
+
+class AuthInvalid(AuthError):
     """Authentication is invalid."""
 
-    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_INVALID
-
-
-class AuthenticationMissing(AuthenticationError):
-    """Authentication is missing."""
-
-    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_MISSING
-
-
-class AuthenticationNotFound(AuthenticationError):
-    """Authentication was not found."""
-
-    CODE: ClassVar[ErrorCode] = ErrorCode.AUTHENTICATION_NOT_FOUND
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_INVALID
 
 
 class ValidationError(Error):

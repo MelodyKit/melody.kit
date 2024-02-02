@@ -9,8 +9,10 @@ __all__ = (
     "SELF",
     # settings
     "SETTINGS",
-    # others
+    # auth
     "AUTH",
+    # TOTP
+    "TOTP",
     "STATISTICS",
     "LINKS",
     "IMAGES",
@@ -31,6 +33,7 @@ SETTINGS = "settings"
 SEARCH = "search"
 
 AUTH = "auth"
+TOTP = "totp"
 
 STATISTICS = "statistics"
 

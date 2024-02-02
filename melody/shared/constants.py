@@ -35,9 +35,6 @@ __all__ = (
     "ACCESS_TOKEN",
     "REFRESH_TOKEN",
     "VERIFICATION_TOKEN",
-    # grant types
-    "CLIENT_CREDENTIALS",
-    "AUTHORIZATION_CODE",
     # response types
     "CODE",
     # user agent names
@@ -114,14 +111,11 @@ ACCESS_TOKEN: Literal["access_token"] = "access_token"
 REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
 VERIFICATION_TOKEN: Literal["verification_token"] = "verification_token"
 
-# grant types
-
-CLIENT_CREDENTIALS = "client_credentials"
-AUTHORIZATION_CODE = "authorization_code"
-
-# response types
+# codes
 
 CODE = "code"
+CODE_SIZE = 32
+CODE_VERIFIER_SIZE = 96
 
 # colors
 

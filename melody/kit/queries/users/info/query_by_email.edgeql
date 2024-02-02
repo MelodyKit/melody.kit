@@ -3,5 +3,5 @@ select User {
     verified,
     email,
     password_hash,
-    secret
+    secret,
 } filter .email = <str>$email;

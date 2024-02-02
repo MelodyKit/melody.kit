@@ -18,7 +18,7 @@ class StatisticsData(Data):
     stream_count: int
 
 
-@define()
+@define(kw_only=True)
 class Statistics:
     track_count: int = DEFAULT_COUNT
     artist_count: int = DEFAULT_COUNT

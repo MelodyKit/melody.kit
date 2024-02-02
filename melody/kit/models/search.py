@@ -132,7 +132,7 @@ class SearchData(Data):
     users: SearchUsersData
 
 
-@define()
+@define(kw_only=True)
 class Search:
     albums: SearchAlbums = field(factory=SearchAlbums)
     artists: SearchArtists = field(factory=SearchArtists)

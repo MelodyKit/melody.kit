@@ -6,17 +6,13 @@ from melody.kit.endpoints.v1.artists import (
     get_artist_tracks,
 )
 from melody.kit.endpoints.v1.auth import (
-    delete_totp,
     forgot,
-    generate_totp,
-    link_totp,
     login,
     logout,
     register,
     reset,
     revoke,
     verify,
-    verify_totp,
 )
 from melody.kit.endpoints.v1.connections import (
     connect_discord,
@@ -62,6 +58,7 @@ from melody.kit.endpoints.v1.self import (
     update_self_settings,
 )
 from melody.kit.endpoints.v1.statistics import get_statistics
+from melody.kit.endpoints.v1.totp import delete_totp, generate_totp, link_totp, verify_totp
 from melody.kit.endpoints.v1.tracks import get_track, get_track_link
 from melody.kit.endpoints.v1.users import (
     get_user,

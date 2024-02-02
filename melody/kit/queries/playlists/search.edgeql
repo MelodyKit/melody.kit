@@ -14,7 +14,7 @@ with result := (
         spotify_id,
         apple_music_id,
         yandex_music_id,
-        discord_id
+        discord_id,
     },
     follower_count,
     description,
@@ -24,5 +24,5 @@ with result := (
     created_at,
     spotify_id,
     apple_music_id,
-    yandex_music_id
+    yandex_music_id,
 } order by result.score desc offset <expression>$offset limit <expression>$limit;

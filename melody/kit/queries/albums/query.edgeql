@@ -11,7 +11,7 @@ select Album {
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     },
     album_type,
     release_date,
@@ -22,5 +22,5 @@ select Album {
     created_at,
     spotify_id,
     apple_music_id,
-    yandex_music_id
+    yandex_music_id,
 } filter .id = <uuid>$album_id;

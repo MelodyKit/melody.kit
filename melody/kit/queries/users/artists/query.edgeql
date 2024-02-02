@@ -9,7 +9,7 @@ select User {
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     } order by @linked_at desc offset <expression>$offset limit <expression>$limit,
-    artist_count
+    artist_count,
 } filter .id = <uuid>$user_id;

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from async_extensions import run_blocking_in_thread
 from colors import Color
 from qrcode.image.styledpil import StyledPilImage as StyledPILImage
 from qrcode.image.styles.colormasks import VerticalGradiantColorMask
@@ -7,7 +8,6 @@ from qrcode.main import QRCode
 
 from melody.kit.core import config
 from melody.kit.uri import URI
-from melody.shared.asyncio import run_blocking
 from melody.shared.constants import MELODY_BLUE, MELODY_PURPLE, ZERO
 
 __all__ = (
@@ -63,8 +63,8 @@ def generate_code_for_uri_sync(uri: URI) -> Path:
 
 
 async def generate_code(string: str, image_name: str) -> Path:
-    return await run_blocking(generate_code_sync, string, image_name)
+    return await run_blocking_in_thread(generate_code_sync, string, image_name)
 
 
 async def generate_code_for_uri(uri: URI) -> Path:
-    return await run_blocking(generate_code_for_uri_sync, uri)
+    return await run_blocking_in_thread(generate_code_for_uri_sync, uri)

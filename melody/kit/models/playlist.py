@@ -4,7 +4,6 @@ from typing import List, Optional
 
 from attrs import define, field
 from edgedb import Object
-from pendulum import DateTime
 from typing_extensions import Self
 from yarl import URL
 
@@ -22,13 +21,9 @@ from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time, utc_now
 from melody.shared.typing import Data
 
 __all__ = (
-    # partial playlists
-    "PartialPlaylist",
-    "PartialPlaylistData",
     # playlists
     "Playlist",
     "PlaylistData",
@@ -38,7 +33,9 @@ __all__ = (
 )
 
 
-class PartialPlaylistData(EntityData):
+class PlaylistData(EntityData):
+    user: Optional[UserData]
+
     uri: str
 
     follower_count: int
@@ -48,80 +45,16 @@ class PartialPlaylistData(EntityData):
     duration_ms: int
 
     track_count: int
+
     privacy_type: str
 
 
-@define()
-class PartialPlaylist(Entity):
-    follower_count: int = field(default=DEFAULT_COUNT)
-
-    description: Optional[str] = field(default=None)
-
-    duration_ms: int = field(default=DEFAULT_DURATION)
-
-    track_count: int = field(default=DEFAULT_COUNT)
-
-    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
-
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[str] = field(default=None)
-    yandex_music_id: Optional[str] = field(default=None)
-
-    uri: URI = field()
-
-    @uri.default
-    def default_uri(self) -> URI:
-        return URI(type=EntityType.PLAYLIST, id=self.id)
-
-    @classmethod
-    def from_object(cls, object: Object) -> Self:
-        return cls(
-            id=object.id,
-            name=object.name,
-            follower_count=object.follower_count,
-            description=object.description,
-            duration_ms=object.duration_ms,
-            track_count=object.track_count,
-            privacy_type=PrivacyType(object.privacy_type.value),
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
-
-    @classmethod
-    def from_data(cls, data: PartialPlaylistData) -> Self:  # type: ignore
-        return CONVERTER.structure(data, cls)
-
-    def into_data(self) -> PartialPlaylistData:
-        return CONVERTER.unstructure(self)  # type: ignore
-
-    def with_user(self, user: User) -> Playlist:
-        return Playlist(
-            id=self.id,
-            name=self.name,
-            user=user,
-            follower_count=self.follower_count,
-            description=self.description,
-            duration_ms=self.duration_ms,
-            track_count=self.track_count,
-            privacy_type=self.privacy_type,
-            created_at=self.created_at,
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-        )
+USER_NOT_ATTACHED = "`user` is not attached"
 
 
-class PlaylistData(PartialPlaylistData):
-    user: UserData
-
-
-@define()
-class Playlist(Linked, PartialPlaylist):
-    user: User = field()
+@define(kw_only=True)
+class Playlist(Linked, Entity):
+    user: Optional[User] = field(default=None)
 
     follower_count: int = field(default=DEFAULT_COUNT)
 
@@ -133,34 +66,46 @@ class Playlist(Linked, PartialPlaylist):
 
     privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
 
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[str] = field(default=None)
-    yandex_music_id: Optional[str] = field(default=None)
-
-    uri: URI = field()
+    uri: URI = field(init=False)
 
     @uri.default
     def default_uri(self) -> URI:
         return URI(type=EntityType.PLAYLIST, id=self.id)
 
+    def attach_user(self, user: User) -> Self:
+        self.user = user
+
+        return self
+
+    def detach_user(self) -> Self:
+        self.user = None
+
+        return self
+
+    @property
+    def required_user(self) -> User:
+        user = self.user
+
+        if user is None:
+            raise ValueError(USER_NOT_ATTACHED)
+
+        return user
+
     @classmethod
     def from_object(cls, object: Object) -> Self:
-        return cls(
-            id=object.id,
-            name=object.name,
-            user=User.from_object(object.user),
-            follower_count=object.follower_count,
-            description=object.description,
-            duration_ms=object.duration_ms,
-            track_count=object.track_count,
-            privacy_type=PrivacyType(object.privacy_type.value),
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
+        self = super().from_object(object)
+
+        self.follower_count = object.follower_count
+
+        self.description = object.description
+
+        self.duration_ms = object.duration_ms
+
+        self.track_count = object.track_count
+
+        self.privacy_type = PrivacyType(object.privacy_type.value)
+
+        return self
 
     @classmethod
     def from_data(cls, data: PlaylistData) -> Self:  # type: ignore
@@ -183,8 +128,13 @@ class Playlist(Linked, PartialPlaylist):
 
     @property
     def yandex_music_url(self) -> Optional[URL]:
+        user = self.user
+
+        if user is None:
+            return None
+
         yandex_music_id = self.yandex_music_id
-        yandex_music_user_id = self.user.yandex_music_id
+        yandex_music_user_id = user.yandex_music_id
 
         return (
             None
@@ -195,21 +145,6 @@ class Playlist(Linked, PartialPlaylist):
     @property
     def url(self) -> URL:
         return URL(self_playlist(config=CONFIG, id=self.id))
-
-    def without_user(self) -> PartialPlaylist:
-        return PartialPlaylist(
-            id=self.id,
-            name=self.name,
-            follower_count=self.follower_count,
-            description=self.description,
-            duration_ms=self.duration_ms,
-            track_count=self.track_count,
-            privacy_type=self.privacy_type,
-            created_at=self.created_at,
-            spotify_id=self.spotify_id,
-            apple_music_id=self.apple_music_id,
-            yandex_music_id=self.yandex_music_id,
-        )
 
 
 from melody.kit.models.tracks import PositionTrack, PositionTrackData

@@ -28,6 +28,7 @@ from melody.kit.uri import URI
 __all__ = ("get_album", "get_album_link", "get_album_tracks")
 
 CAN_NOT_FIND_ALBUM = "can not find the album with ID `{}`"
+can_not_find_album = CAN_NOT_FIND_ALBUM.format
 
 
 @v1.get(
@@ -39,7 +40,7 @@ async def get_album(album_id: UUID) -> AlbumData:
     album = await database.query_album(album_id=album_id)
 
     if album is None:
-        raise NotFound(CAN_NOT_FIND_ALBUM.format(album_id))
+        raise NotFound(can_not_find_album(album_id))
 
     return album.into_data()
 
@@ -71,7 +72,7 @@ async def get_album_tracks(
     counted = await database.query_album_tracks(album_id=album_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(CAN_NOT_FIND_ALBUM.format(album_id))
+        raise NotFound(can_not_find_album(album_id))
 
     items, count = counted
 

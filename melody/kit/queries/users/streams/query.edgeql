@@ -19,7 +19,7 @@ select User {
                     created_at,
                     spotify_id,
                     apple_music_id,
-                    yandex_music_id
+                    yandex_music_id,
                 },
                 album_type,
                 release_date,
@@ -30,7 +30,7 @@ select User {
                 created_at,
                 spotify_id,
                 apple_music_id,
-                yandex_music_id
+                yandex_music_id,
             },
             artists: {
                 id,
@@ -42,7 +42,7 @@ select User {
                 created_at,
                 spotify_id,
                 apple_music_id,
-                yandex_music_id
+                yandex_music_id,
             },
             explicit,
             duration_ms,
@@ -52,8 +52,8 @@ select User {
             created_at,
             spotify_id,
             apple_music_id,
-            yandex_music_id
-        }
+            yandex_music_id,
+        },
     } order by .created_at desc offset <expression>$offset limit <expression>$limit,
-    stream_count
+    stream_count,
 } filter .id = <uuid>$user_id;

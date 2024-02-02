@@ -3,7 +3,7 @@ from uuid import UUID
 
 from melody.kit.core import database
 from melody.kit.enums import PrivacyType
-from melody.kit.models.playlist import PartialPlaylist
+from melody.kit.models.playlist import Playlist
 from melody.kit.models.user import User
 from melody.shared.markers import unreachable
 
@@ -11,10 +11,9 @@ __all__ = (
     "friends_set",
     "are_friends",
     "process_privacy_type",
-    "is_user_public",
     "is_user_accessible",
-    "is_playlist_public",
     "is_playlist_accessible",
+    "is_playlist_accessible_set",
 )
 
 
@@ -39,10 +38,6 @@ def process_privacy_type(privacy_type: PrivacyType, friends: bool) -> bool:
     unreachable()
 
 
-def is_user_public(user: User) -> bool:
-    return user.privacy_type.is_public()
-
-
 def is_user_accessible(self_id: UUID, user: User, friends: bool) -> bool:
     user_id = user.id
 
@@ -52,16 +47,23 @@ def is_user_accessible(self_id: UUID, user: User, friends: bool) -> bool:
     return process_privacy_type(user.privacy_type, friends)
 
 
-def is_playlist_public(playlist: PartialPlaylist) -> bool:
-    return playlist.privacy_type.is_public()
+def is_playlist_accessible(self_id: UUID, playlist: Playlist, friends: bool) -> bool:
+    user = playlist.required_user
 
-
-def is_playlist_accessible(
-    self_id: UUID, playlist: PartialPlaylist, user: User, friends: bool
-) -> bool:
     user_id = user.id
 
     if self_id == user_id:
         return True
 
     return process_privacy_type(playlist.privacy_type, friends)
+
+
+def is_playlist_accessible_set(self_id: UUID, playlist: Playlist, friends: Set[UUID]) -> bool:
+    user = playlist.required_user
+
+    user_id = user.id
+
+    if self_id == user_id:
+        return True
+
+    return process_privacy_type(playlist.privacy_type, user_id in friends)

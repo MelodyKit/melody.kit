@@ -8,8 +8,8 @@ from fastapi.responses import RedirectResponse
 
 from melody.discord.client import Client
 from melody.kit.core import database, oauth, v1
-from melody.kit.dependencies import access_token_dependency
 from melody.kit.errors import Conflict, InternalError
+from melody.kit.oauth2 import token_dependency
 from melody.kit.tags import CONNECTIONS
 from melody.shared.tokens import Tokens
 
@@ -23,7 +23,7 @@ DISCORD_CALLBACK = "discord_callback"
 
 @v1.get("/me/connections/discord", tags=[CONNECTIONS])
 async def connect_discord(
-    request: Request, user_id: UUID = Depends(access_token_dependency)
+    request: Request, user_id: UUID = Depends(token_dependency)
 ) -> RedirectResponse:
     callback_url = request.url_for(DISCORD_CALLBACK)
 
@@ -35,7 +35,7 @@ async def connect_discord(
 
 
 @v1.delete("/me/connections/discord", tags=[CONNECTIONS])
-async def disconnect_discord(user_id: UUID = Depends(access_token_dependency)) -> None:
+async def disconnect_discord(user_id: UUID = Depends(token_dependency)) -> None:
     await database.update_user_discord_id(user_id=user_id, discord_id=None)
 
 

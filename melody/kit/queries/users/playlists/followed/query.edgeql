@@ -13,7 +13,7 @@ select User {
             spotify_id,
             apple_music_id,
             yandex_music_id
-            discord_id
+            discord_id,
         },
         follower_count,
         description,
@@ -23,7 +23,7 @@ select User {
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     } order by @linked_at desc offset <expression>$offset limit <expression>$limit,
-    followed_playlist_count
+    followed_playlist_count,
 } filter .id = <uuid>$user_id;

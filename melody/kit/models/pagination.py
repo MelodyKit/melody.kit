@@ -17,7 +17,7 @@ class PaginationData(Data):
     count: int
 
 
-@define()
+@define(kw_only=True)
 class Pagination:
     previous: Optional[URL] = None
     next: Optional[URL] = None

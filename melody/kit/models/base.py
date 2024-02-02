@@ -14,7 +14,7 @@ class BaseData(Data):
     id: str
 
 
-@define()
+@define(kw_only=True)
 class Base:
     id: UUID
 

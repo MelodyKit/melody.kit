@@ -2,7 +2,7 @@ from secrets import token_hex
 from typing import AsyncIterator, Optional
 from uuid import UUID
 
-from attrs import define, field
+from attrs import define, field, frozen
 from pendulum import Duration
 
 from melody.kit.core import config, redis
@@ -16,6 +16,7 @@ from melody.shared.constants import (
 from melody.shared.tokens import Tokens as SharedTokens
 
 __all__ = (
+    "BoundToken",
     "Tokens",
     "access_token_factory",
     "expires_in_factory",
@@ -39,6 +40,12 @@ __all__ = (
     "fetch_refresh_tokens_for",
     "fetch_verification_tokens_for",
 )
+
+
+@frozen()
+class BoundToken:
+    token: str
+    self_id: UUID
 
 
 def access_token_factory() -> str:

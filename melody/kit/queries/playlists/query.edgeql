@@ -12,7 +12,7 @@ select Playlist {
         spotify_id,
         apple_music_id,
         yandex_music_id,
-        discord_id
+        discord_id,
     },
     follower_count,
     description,
@@ -22,5 +22,5 @@ select Playlist {
     created_at,
     spotify_id,
     apple_music_id,
-    yandex_music_id
+    yandex_music_id,
 } filter .id = <uuid>$playlist_id;

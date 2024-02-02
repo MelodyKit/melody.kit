@@ -2,7 +2,6 @@ from typing import List, Optional
 
 from attrs import define, field
 from edgedb import Object
-from pendulum import DateTime
 from typing_extensions import Self
 from yarl import URL
 
@@ -14,7 +13,6 @@ from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time, utc_now
 from melody.shared.typing import Data
 
 __all__ = (
@@ -64,7 +62,7 @@ class UserData(EntityData):
     discord_id: Optional[str]
 
 
-@define()
+@define(kw_only=True)
 class User(Linked, Entity):
     follower_count: int = field(default=DEFAULT_COUNT)
 
@@ -73,14 +71,9 @@ class User(Linked, Entity):
 
     privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
 
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[str] = field(default=None)
-    yandex_music_id: Optional[str] = field(default=None)
     discord_id: Optional[str] = field(default=None)
 
-    uri: URI = field()
+    uri: URI = field(init=False)
 
     @uri.default
     def default_uri(self) -> URI:
@@ -88,19 +81,18 @@ class User(Linked, Entity):
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
-        return cls(
-            id=object.id,
-            name=object.name,
-            follower_count=object.follower_count,
-            stream_count=object.stream_count,
-            stream_duration_ms=object.stream_duration_ms,
-            privacy_type=PrivacyType(object.privacy_type.value),
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-            discord_id=object.discord_id,
-        )
+        self = super().from_object(object)
+
+        self.follower_count = object.follower_count
+
+        self.stream_count = object.stream_count
+        self.stream_duration_ms = object.stream_duration_ms
+
+        self.privacy_type = PrivacyType(object.privacy_type.value)
+
+        self.discord_id = object.discord_id
+
+        return self
 
     @classmethod
     def from_data(cls, data: UserData) -> Self:  # type: ignore
@@ -135,12 +127,10 @@ class User(Linked, Entity):
 from melody.kit.models.album import Album, AlbumData
 from melody.kit.models.artist import Artist, ArtistData
 from melody.kit.models.playlist import (
-    PartialPlaylist,
-    PartialPlaylistData,
     Playlist,
     PlaylistData,
 )
-from melody.kit.models.streams import UserStream, UserStreamData
+from melody.kit.models.streams import Stream, StreamData
 from melody.kit.models.tracks import Track, TrackData
 
 
@@ -181,13 +171,13 @@ class UserAlbums:
 
 
 class UserPlaylistsData(Data):
-    items: List[PartialPlaylistData]
+    items: List[PlaylistData]
     pagination: PaginationData
 
 
 @define()
 class UserPlaylists:
-    items: List[PartialPlaylist] = field(factory=list)
+    items: List[Playlist] = field(factory=list)
     pagination: Pagination = field(factory=Pagination)
 
     @classmethod
@@ -271,13 +261,13 @@ class UserFollowing:
 
 
 class UserStreamsData(Data):
-    items: List[UserStreamData]
+    items: List[StreamData]
     pagination: PaginationData
 
 
 @define()
 class UserStreams:
-    items: List[UserStream] = field(factory=list)
+    items: List[Stream] = field(factory=list)
     pagination: Pagination = field(factory=Pagination)
 
     @classmethod

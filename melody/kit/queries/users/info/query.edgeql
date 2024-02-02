@@ -3,5 +3,5 @@ select User {
     verified,
     email,
     password_hash,
-    secret
+    secret,
 } filter .id = <uuid>$user_id;

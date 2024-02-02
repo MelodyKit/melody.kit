@@ -4,10 +4,9 @@ from melody.kit.core import app, config, database, hasher, redis, v1
 from melody.kit.database import Database
 from melody.kit.enums import AlbumType, EntityType, LogLevel, PrivacyType, Repeat
 from melody.kit.errors import (
-    AuthenticationError,
-    AuthenticationInvalid,
-    AuthenticationMissing,
-    AuthenticationNotFound,
+    AuthError,
+    AuthExpected,
+    AuthInvalid,
     BadRequest,
     Conflict,
     Error,
@@ -54,10 +53,9 @@ __all__ = (
     "Error",
     "ErrorCode",
     "ErrorData",
-    "AuthenticationError",
-    "AuthenticationInvalid",
-    "AuthenticationMissing",
-    "AuthenticationNotFound",
+    "AuthError",
+    "AuthExpected",
+    "AuthInvalid",
     "ValidationError",
     "BadRequest",
     "Unauthorized",

@@ -30,6 +30,7 @@ from melody.kit.uri import URI
 __all__ = ("get_artist", "get_artist_link", "get_artist_tracks", "get_artist_albums")
 
 CAN_NOT_FIND_ARTIST = "can not find the artist with ID `{}`"
+can_not_find_artist = CAN_NOT_FIND_ARTIST.format
 
 
 @v1.get(
@@ -41,7 +42,7 @@ async def get_artist(artist_id: UUID) -> ArtistData:
     artist = await database.query_artist(artist_id=artist_id)
 
     if artist is None:
-        raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
+        raise NotFound(can_not_find_artist(artist_id))
 
     return artist.into_data()
 
@@ -73,7 +74,7 @@ async def get_artist_tracks(
     counted = await database.query_artist_tracks(artist_id=artist_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
+        raise NotFound(can_not_find_artist(artist_id))
 
     items, count = counted
 
@@ -98,7 +99,7 @@ async def get_artist_albums(
     counted = await database.query_artist_albums(artist_id=artist_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(CAN_NOT_FIND_ARTIST.format(artist_id))
+        raise NotFound(can_not_find_artist(artist_id))
 
     items, count = counted
 

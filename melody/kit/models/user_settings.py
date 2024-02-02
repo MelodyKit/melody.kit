@@ -22,7 +22,7 @@ class UserSettingsData(Data):
     privacy_type: str
 
 
-@define()
+@define(kw_only=True)
 class UserSettings:
     name: str
 

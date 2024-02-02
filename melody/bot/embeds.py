@@ -122,7 +122,7 @@ def track_embed(track: Track, inline: bool = INLINE) -> Embed:
             value=iter(track.artists).map(artist_with_url).join(SEPARATOR),
             inline=inline,
         )
-        .add_field(name=ALBUM, value=album_with_url(track.album), inline=inline)
+        .add_field(name=ALBUM, value=album_with_url(track.required_album), inline=inline)
         .add_field(name=DURATION, value=tick(duration_ms(track.duration_ms)), inline=inline)
         .add_field(name=STREAMS, value=count(track.stream_count), inline=inline)
     )

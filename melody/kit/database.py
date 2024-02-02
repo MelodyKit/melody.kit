@@ -11,14 +11,13 @@ from melody.kit.enums import Platform, PrivacyType
 from melody.kit.models.album import Album
 from melody.kit.models.artist import Artist
 from melody.kit.models.base import Base
+from melody.kit.models.client import Client
 from melody.kit.models.playlist import (
-    PartialPlaylist,
     Playlist,
 )
 from melody.kit.models.statistics import Statistics
-from melody.kit.models.streams import UserStream
+from melody.kit.models.streams import Stream
 from melody.kit.models.tracks import (
-    PartialTrack,
     PositionTrack,
     Track,
 )
@@ -140,6 +139,13 @@ QUERY_USER_BY_DISCORD_ID = load_query("users/connections/query_by_discord_id")
 
 QUERY_STATISTICS = load_query("statistics/query")
 
+# clients
+
+QUERY_CLIENT = load_query("clients/query")
+INSERT_CLIENT = load_query("clients/insert")
+DELETE_CLIENT = load_query("clients/delete")
+UPDATE_CLIENT_SECRET_HASH = load_query("clients/update_secret_hash")
+
 
 @define()
 class Database:
@@ -210,7 +216,7 @@ class Database:
 
     async def query_album_tracks(
         self, album_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
-    ) -> Optional[Counted[PartialTrack]]:
+    ) -> Optional[Counted[Track]]:
         option = await self.client.query_single(
             QUERY_ALBUM_TRACKS, album_id=album_id, offset=offset, limit=limit
         )
@@ -219,7 +225,7 @@ class Database:
             None
             if option is None
             else (
-                iter(option.tracks).map(PartialTrack.from_object).list(),
+                iter(option.tracks).map(Track.from_object).list(),
                 option.track_count,
             )
         )
@@ -237,7 +243,7 @@ class Database:
     async def insert_playlist(
         self,
         name: str,
-        description: str,
+        description: Optional[str],
         privacy_type: PrivacyType,
         user_id: UUID,
     ) -> Base:
@@ -396,7 +402,7 @@ class Database:
 
     async def query_user_playlists(
         self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
-    ) -> Optional[Counted[PartialPlaylist]]:
+    ) -> Optional[Counted[Playlist]]:
         option = await self.client.query_single(
             QUERY_USER_PLAYLISTS, user_id=user_id, offset=offset, limit=limit
         )
@@ -405,7 +411,7 @@ class Database:
             None
             if option is None
             else (
-                iter(option.playlists).map(PartialPlaylist.from_object).list(),
+                iter(option.playlists).map(Playlist.from_object).list(),
                 option.playlist_count,
             )
         )
@@ -428,7 +434,7 @@ class Database:
 
     async def query_user_streams(
         self, user_id: UUID, offset: int = DEFAULT_OFFSET, limit: int = DEFAULT_LIMIT
-    ) -> Optional[Counted[UserStream]]:
+    ) -> Optional[Counted[Stream]]:
         option = await self.client.query_single(
             QUERY_USER_STREAMS, user_id=user_id, offset=offset, limit=limit
         )
@@ -437,7 +443,7 @@ class Database:
             None
             if option is None
             else (
-                iter(option.streams).map(UserStream.from_object).list(),
+                iter(option.streams).map(Stream.from_object).list(),
                 option.stream_count,
             )
         )
@@ -559,3 +565,23 @@ class Database:
 
     async def update_user_secret(self, user_id: UUID, secret: Optional[str]) -> None:
         await self.client.query_single(UPDATE_USER_SECRET, user_id=user_id, secret=secret)
+
+    async def query_client(self, client_id: UUID) -> Optional[Client]:
+        option = await self.client.query_single(QUERY_CLIENT, client_id=client_id)
+
+        return None if option is None else Client.from_object(option)
+
+    async def insert_client(self, client_id: UUID, secret_hash: str, creator_id: UUID) -> Base:
+        object = await self.client.query_single(
+            INSERT_CLIENT, client_id=client_id, secret_hash=secret_hash, creator_id=creator_id
+        )
+
+        return Base.from_object(object)
+
+    async def delete_client(self, client_id: UUID) -> None:
+        await self.client.query_single(DELETE_CLIENT, client_id=client_id)
+
+    async def update_client_secret_hash(self, client_id: UUID, secret_hash: str) -> None:
+        await self.client.query_single(
+            UPDATE_CLIENT_SECRET_HASH, client_id=client_id, secret_hash=secret_hash
+        )

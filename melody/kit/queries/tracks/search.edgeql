@@ -16,7 +16,7 @@ with result := (
             created_at,
             spotify_id,
             apple_music_id,
-            yandex_music_id
+            yandex_music_id,
         },
         album_type,
         release_date,
@@ -27,7 +27,7 @@ with result := (
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     },
     artists: {
         id,
@@ -39,7 +39,7 @@ with result := (
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     },
     explicit,
     duration_ms,
@@ -49,5 +49,5 @@ with result := (
     created_at,
     spotify_id,
     apple_music_id,
-    yandex_music_id
+    yandex_music_id,
 } order by result.score desc offset <expression>$offset limit <expression>$limit;

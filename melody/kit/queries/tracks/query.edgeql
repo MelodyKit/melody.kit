@@ -14,7 +14,7 @@ select Track {
             created_at,
             spotify_id,
             apple_music_id,
-            yandex_music_id
+            yandex_music_id,
         },
         album_type,
         release_date,
@@ -25,7 +25,7 @@ select Track {
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     },
     artists: {
         id,
@@ -37,7 +37,7 @@ select Track {
         created_at,
         spotify_id,
         apple_music_id,
-        yandex_music_id
+        yandex_music_id,
     },
     explicit,
     duration_ms,
@@ -47,5 +47,5 @@ select Track {
     created_at,
     spotify_id,
     apple_music_id,
-    yandex_music_id
+    yandex_music_id,
 } filter .id = <uuid>$track_id;

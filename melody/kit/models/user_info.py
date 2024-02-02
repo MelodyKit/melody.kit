@@ -17,12 +17,12 @@ class UserInfoData(BaseData):
     secret: Optional[str]
 
 
-@define()
+@define(kw_only=True)
 class UserInfo(Base):
     verified: bool
     email: str
     password_hash: str
-    secret: Optional[str]
+    secret: Optional[str] = None
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -35,11 +35,11 @@ class UserInfo(Base):
         )
 
     @classmethod
-    def from_data(cls, data: UserInfoData) -> Self:  # type: ignore
+    def from_data(cls, data: UserInfoData) -> Self:  # type: ignore[override]
         return CONVERTER.structure(data, cls)
 
     def into_data(self) -> UserInfoData:
-        return CONVERTER.unstructure(self)  # type: ignore
+        return CONVERTER.unstructure(self)  # type: ignore[no-any-return]
 
     def is_verified(self) -> bool:
         return self.verified

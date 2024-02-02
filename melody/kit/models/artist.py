@@ -2,7 +2,6 @@ from typing import List, Optional
 
 from attrs import define, field
 from edgedb import Object
-from pendulum import DateTime
 from typing_extensions import Self
 from yarl import URL
 
@@ -20,7 +19,6 @@ from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time, utc_now
 from melody.shared.typing import Data
 
 __all__ = (
@@ -47,7 +45,7 @@ class ArtistData(EntityData):
     genres: List[str]
 
 
-@define()
+@define(kw_only=True)
 class Artist(Linked, Entity):
     follower_count: int = field(default=DEFAULT_COUNT)
 
@@ -56,13 +54,7 @@ class Artist(Linked, Entity):
 
     genres: List[str] = field(factory=list)
 
-    created_at: DateTime = field(factory=utc_now)
-
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[str] = field(default=None)
-    yandex_music_id: Optional[str] = field(default=None)
-
-    uri: URI = field()
+    uri: URI = field(init=False)
 
     @uri.default
     def default_uri(self) -> URI:
@@ -70,18 +62,16 @@ class Artist(Linked, Entity):
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
-        return cls(
-            id=object.id,
-            name=object.name,
-            follower_count=object.follower_count,
-            stream_count=object.stream_count,
-            stream_duration_ms=object.stream_duration_ms,
-            genres=object.genres,
-            created_at=convert_standard_date_time(object.created_at),
-            spotify_id=object.spotify_id,
-            apple_music_id=object.apple_music_id,
-            yandex_music_id=object.yandex_music_id,
-        )
+        self = super().from_object(object)
+
+        self.follower_count = object.follower_count
+
+        self.stream_count = object.stream_count
+        self.stream_duration_ms = object.stream_duration_ms
+
+        self.genres = object.genres
+
+        return self
 
     @classmethod
     def from_data(cls, data: ArtistData) -> Self:  # type: ignore

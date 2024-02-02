@@ -15,7 +15,6 @@ from melody.kit.constants import (
 )
 from melody.kit.core import database, v1
 from melody.kit.dependencies import (
-    optional_access_token_dependency,
     request_url_dependency,
     types_dependency,
 )
@@ -32,7 +31,8 @@ from melody.kit.models.search import (
     SearchTracks,
     SearchUsers,
 )
-from melody.kit.privacy import friends_set, is_playlist_accessible, is_playlist_public
+from melody.kit.oauth2 import token_dependency
+from melody.kit.privacy import friends_set, is_playlist_accessible_set
 from melody.kit.tags import SEARCH
 
 __all__ = ("search_items",)
@@ -40,11 +40,13 @@ __all__ = ("search_items",)
 
 def is_playlist_accessible_by(self_id: UUID, friends: Set[UUID]) -> Predicate[Playlist]:
     def is_playlist_accessible_predicate(playlist: Playlist) -> bool:
-        playlist_user = playlist.user
-
-        return is_playlist_accessible(self_id, playlist, playlist_user, playlist_user.id in friends)
+        return is_playlist_accessible_set(self_id, playlist, friends)
 
     return is_playlist_accessible_predicate
+
+
+def is_playlist_public(playlist: Playlist) -> bool:
+    return playlist.privacy_type.is_public()
 
 
 NOT_FOUND = "can not find the user with ID `{}`"
@@ -62,7 +64,7 @@ async def search_items(
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     url: URL = Depends(request_url_dependency),
-    user_id_option: Optional[UUID] = Depends(optional_access_token_dependency),
+    self_id_option: Optional[UUID] = Depends(token_dependency),
 ) -> SearchData:
     albums = []
     artists = []
@@ -79,19 +81,19 @@ async def search_items(
     if EntityType.PLAYLIST in types:
         all_playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
 
-        if user_id_option is None:
+        if self_id_option is None:
             playlists = iter(all_playlists).filter(is_playlist_public).list()
 
         else:
-            user_id = user_id_option
+            self_id = self_id_option
 
-            friends = await friends_set(user_id)
+            friends = await friends_set(self_id)
 
             if friends is None:
-                raise NotFound(not_found(user_id))
+                raise NotFound(not_found(self_id))
 
             playlists = (
-                iter(all_playlists).filter(is_playlist_accessible_by(user_id, friends)).list()
+                iter(all_playlists).filter(is_playlist_accessible_by(self_id, friends)).list()
             )
 
     if EntityType.TRACK in types:

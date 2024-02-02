@@ -16,10 +16,6 @@ from melody.kit.models.base import (
     Base,
     BaseData,
 )
-from melody.kit.models.created_at import (
-    CreatedAt,
-    CreatedAtData,
-)
 from melody.kit.models.entity import (
     Entity,
     EntityData,
@@ -29,8 +25,6 @@ from melody.kit.models.pagination import (
     PaginationData,
 )
 from melody.kit.models.playlist import (
-    PartialPlaylist,
-    PartialPlaylistData,
     Playlist,
     PlaylistData,
     PlaylistTracks,
@@ -55,18 +49,14 @@ from melody.kit.models.statistics import (
     StatisticsData,
 )
 from melody.kit.models.streams import (
-    BaseStream,
-    BaseStreamData,
     Stream,
     StreamData,
-    TrackStream,
-    TrackStreamData,
-    UserStream,
-    UserStreamData,
+)
+from melody.kit.models.tracked import (
+    Tracked,
+    TrackedData,
 )
 from melody.kit.models.tracks import (
-    PartialTrack,
-    PartialTrackData,
     PositionTrack,
     PositionTrackData,
     Track,
@@ -107,15 +97,12 @@ __all__ = (
     # base
     "Base",
     "BaseData",
-    # created at
-    "CreatedAt",
-    "CreatedAtData",
+    # tracked
+    "Tracked",
+    "TrackedData",
     # entities
     "Entity",
     "EntityData",
-    # partial tracks
-    "PartialTrack",
-    "PartialTrackData",
     # tracks
     "Track",
     "TrackData",
@@ -137,9 +124,6 @@ __all__ = (
     # album tracks
     "AlbumTracks",
     "AlbumTracksData",
-    # partial playlists
-    "PartialPlaylist",
-    "PartialPlaylistData",
     # playlists
     "Playlist",
     "PlaylistData",
@@ -185,15 +169,6 @@ __all__ = (
     # statistics
     "Statistics",
     "StatisticsData",
-    # base streams
-    "BaseStream",
-    "BaseStreamData",
-    # user streams
-    "UserStream",
-    "UserStreamData",
-    # track streams
-    "TrackStream",
-    "TrackStreamData",
     # streams
     "Stream",
     "StreamData",
