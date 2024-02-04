@@ -6,7 +6,6 @@ from attrs import define, field
 from edgedb import Object
 from iters.iters import iter
 from typing_extensions import Self
-from wraps.wraps import wrap_optional
 from yarl import URL
 
 from melody.kit.config import CONFIG
@@ -79,6 +78,16 @@ class Track(Linked, Entity):
     def default_uri(self) -> URI:
         return URI(type=EntityType.TRACK, id=self.id)
 
+    def attach_album(self, album: Album) -> Self:
+        self.album = album
+
+        return self
+
+    def detach_album(self) -> Self:
+        self.album = None
+
+        return self
+
     @property
     def required_album(self) -> Album:
         album = self.album
@@ -92,7 +101,16 @@ class Track(Linked, Entity):
     def from_object(cls, object: Object) -> Self:
         self = super().from_object(object)
 
-        self.album = wrap_optional(object.album).map(Album.from_object).extract()
+        try:
+            album_object = object.album
+
+        except AttributeError:
+            album = None
+
+        else:
+            album = Album.from_object(album_object)
+
+        self.album = album
 
         self.artists = iter(object.artists).map(Artist.from_object).list()
 
@@ -104,16 +122,6 @@ class Track(Linked, Entity):
         self.stream_duration_ms = object.stream_duration_ms
 
         self.genres = object.genres
-
-        return self
-
-    def attach_album(self, album: Album) -> Self:
-        self.album = album
-
-        return self
-
-    def detach_album(self) -> Self:
-        self.album = None
 
         return self
 

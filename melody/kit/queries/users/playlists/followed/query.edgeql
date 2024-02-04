@@ -2,7 +2,7 @@ select User {
     followed_playlists: {
         id,
         name,
-        user: {
+        owner: {
             id,
             name,
             follower_count,

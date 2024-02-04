@@ -23,10 +23,7 @@ from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import (
-    convert_standard_date,
-    utc_today,
-)
+from melody.shared.date_time import convert_standard_date, utc_today
 from melody.shared.typing import Data
 
 __all__ = (

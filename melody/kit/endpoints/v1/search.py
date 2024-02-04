@@ -3,7 +3,6 @@ from uuid import UUID
 
 from fastapi import Depends, Query
 from iters.iters import iter
-from typing_aliases import Predicate
 from yarl import URL
 
 from melody.kit.constants import (
@@ -14,14 +13,9 @@ from melody.kit.constants import (
     MIN_OFFSET,
 )
 from melody.kit.core import database, v1
-from melody.kit.dependencies import (
-    request_url_dependency,
-    types_dependency,
-)
+from melody.kit.dependencies import request_url_dependency, types_dependency
 from melody.kit.enums import EntityType
-from melody.kit.errors import NotFound
 from melody.kit.models.pagination import Pagination
-from melody.kit.models.playlist import Playlist
 from melody.kit.models.search import (
     Search,
     SearchAlbums,
@@ -31,22 +25,14 @@ from melody.kit.models.search import (
     SearchTracks,
     SearchUsers,
 )
-from melody.kit.oauth2 import token_dependency
-from melody.kit.privacy import friends_set, is_playlist_accessible_set
+from melody.kit.oauth2 import optional_token_dependency
+from melody.kit.privacy import (
+    create_playlist_accessible_predicate,
+    create_user_accessible_predicate,
+)
 from melody.kit.tags import SEARCH
 
 __all__ = ("search_items",)
-
-
-def is_playlist_accessible_by(self_id: UUID, friends: Set[UUID]) -> Predicate[Playlist]:
-    def is_playlist_accessible_predicate(playlist: Playlist) -> bool:
-        return is_playlist_accessible_set(self_id, playlist, friends)
-
-    return is_playlist_accessible_predicate
-
-
-def is_playlist_public(playlist: Playlist) -> bool:
-    return playlist.privacy_type.is_public()
 
 
 NOT_FOUND = "can not find the user with ID `{}`"
@@ -64,7 +50,7 @@ async def search_items(
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     url: URL = Depends(request_url_dependency),
-    self_id_option: Optional[UUID] = Depends(token_dependency),
+    self_id: Optional[UUID] = Depends(optional_token_dependency),
 ) -> SearchData:
     albums = []
     artists = []
@@ -81,26 +67,19 @@ async def search_items(
     if EntityType.PLAYLIST in types:
         all_playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
 
-        if self_id_option is None:
-            playlists = iter(all_playlists).filter(is_playlist_public).list()
+        is_playlist_accessible = await create_playlist_accessible_predicate(self_id)
 
-        else:
-            self_id = self_id_option
-
-            friends = await friends_set(self_id)
-
-            if friends is None:
-                raise NotFound(not_found(self_id))
-
-            playlists = (
-                iter(all_playlists).filter(is_playlist_accessible_by(self_id, friends)).list()
-            )
+        playlists = iter(all_playlists).filter(is_playlist_accessible).list()
 
     if EntityType.TRACK in types:
         tracks = await database.search_tracks(query=query, offset=offset, limit=limit)
 
     if EntityType.USER in types:
-        users = await database.search_users(query=query, offset=offset, limit=limit)
+        all_users = await database.search_users(query=query, offset=offset, limit=limit)
+
+        is_user_accessible = await create_user_accessible_predicate(self_id)
+
+        users = iter(all_users).filter(is_user_accessible).list()
 
     search_albums = SearchAlbums(
         items=albums,

@@ -57,15 +57,9 @@ module default {
     # entities
 
     abstract type Entity extending Named {
-        spotify_id: str {
-            constraint exclusive;
-        };
-        apple_music_id: str {
-            constraint exclusive;
-        };
-        yandex_music_id: str {
-            constraint exclusive
-        };
+        spotify_id: str;
+        apple_music_id: str;
+        yandex_music_id: str;
 
         index fts::index on (
             fts::with_options(
@@ -128,7 +122,7 @@ module default {
     }
 
     type Playlist extending Entity {
-        required user: User {
+        required owner: User {
             on target delete delete source;
         };
 
@@ -154,9 +148,16 @@ module default {
         multi albums extending with_linked_at: Album;
         multi artists extending with_linked_at: Artist;
 
-        multi playlists := .<user[is Playlist];
+        multi playlists := .<owner[is Playlist];
 
         multi following extending with_linked_at: User;
+
+        trigger forbid_follow_self after insert, update for each do (
+            assert(
+                not __new__ in __new__.following,
+                message := "users can not follow themselves",
+            )
+        );
 
         multi followers := .<following[is User];
 

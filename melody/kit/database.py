@@ -12,15 +12,11 @@ from melody.kit.models.album import Album
 from melody.kit.models.artist import Artist
 from melody.kit.models.base import Base
 from melody.kit.models.client import Client
-from melody.kit.models.playlist import (
-    Playlist,
-)
+from melody.kit.models.playlist import Playlist
+from melody.kit.models.privacy import PlaylistPrivacy, UserPrivacy
 from melody.kit.models.statistics import Statistics
 from melody.kit.models.streams import Stream
-from melody.kit.models.tracks import (
-    PositionTrack,
-    Track,
-)
+from melody.kit.models.tracks import PositionTrack, Track
 from melody.kit.models.user import User
 from melody.kit.models.user_info import UserInfo
 from melody.kit.models.user_settings import UserSettings
@@ -81,6 +77,8 @@ UPDATE_PLAYLIST = load_query("playlists/update")
 
 SEARCH_PLAYLISTS = load_query("playlists/search")
 
+QUERY_PLAYLIST_PRIVACY = load_query("playlists/query_privacy")
+
 QUERY_PLAYLIST_TRACKS = load_query("playlists/tracks/query")
 
 # users
@@ -123,8 +121,10 @@ ADD_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/add")
 REMOVE_USER_FOLLOWED_PLAYLISTS = load_query("users/playlists/followed/remove")
 
 QUERY_USER_FRIENDS = load_query("users/friends/query")
-QUERY_USER_FRIEND_IDS = load_query("users/friends/query_ids")
+QUERY_USER_FRIENDS_ESSENTIAL = load_query("users/friends/query_essential")
 CHECK_USER_FRIENDS = load_query("users/friends/check")
+
+QUERY_USER_PRIVACY = load_query("users/query_privacy")
 
 QUERY_USER_INFO = load_query("users/info/query")
 QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
@@ -245,14 +245,14 @@ class Database:
         name: str,
         description: Optional[str],
         privacy_type: PrivacyType,
-        user_id: UUID,
+        owner_id: UUID,
     ) -> Base:
         object = await self.client.query_single(
             INSERT_PLAYLIST,
             name=name,
             description=description,
             privacy_type=privacy_type.value,
-            user_id=user_id,
+            owner_id=owner_id,
         )
 
         return Base.from_object(object)
@@ -290,6 +290,11 @@ class Database:
 
     async def remove_user_followed_playlists(self, user_id: UUID, ids: List[UUID]) -> None:
         await self.client.query_single(REMOVE_USER_FOLLOWED_PLAYLISTS, user_id=user_id, ids=ids)
+
+    async def query_playlist_privacy(self, playlist_id: UUID) -> Optional[PlaylistPrivacy]:
+        option = await self.client.query_single(QUERY_PLAYLIST_PRIVACY, playlist_id=playlist_id)
+
+        return None if option is None else PlaylistPrivacy.from_object(option)
 
     async def query_playlist_tracks(
         self,
@@ -502,8 +507,8 @@ class Database:
             )
         )
 
-    async def query_user_friend_ids(self, user_id: UUID) -> Optional[Set[UUID]]:
-        option = await self.client.query_single(QUERY_USER_FRIEND_IDS, user_id=user_id)
+    async def query_user_friends_essential(self, user_id: UUID) -> Optional[Set[UUID]]:
+        option = await self.client.query_single(QUERY_USER_FRIENDS_ESSENTIAL, user_id=user_id)
 
         return None if option is None else set(option.friends)
 
@@ -565,6 +570,11 @@ class Database:
 
     async def update_user_secret(self, user_id: UUID, secret: Optional[str]) -> None:
         await self.client.query_single(UPDATE_USER_SECRET, user_id=user_id, secret=secret)
+
+    async def query_user_privacy(self, user_id: UUID) -> Optional[UserPrivacy]:
+        option = await self.client.query_single(QUERY_USER_PRIVACY, user_id=user_id)
+
+        return None if option is None else UserPrivacy.from_object(option)
 
     async def query_client(self, client_id: UUID) -> Optional[Client]:
         option = await self.client.query_single(QUERY_CLIENT, client_id=client_id)

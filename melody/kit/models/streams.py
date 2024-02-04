@@ -19,6 +19,10 @@ class StreamData(TrackedData):
     duration_ms: int
 
 
+TRACK_NOT_ATTACHED = "`track` is not attached"
+USER_NOT_ATTACHED = "`user` is not attached"
+
+
 @define(kw_only=True)
 class Stream(Tracked):
     duration_ms: int
@@ -36,6 +40,15 @@ class Stream(Tracked):
 
         return self
 
+    @property
+    def required_track(self) -> Track:
+        track = self.track
+
+        if track is None:
+            raise ValueError(TRACK_NOT_ATTACHED)
+
+        return track
+
     def attach_user(self, user: User) -> Self:
         self.user = user
 
@@ -46,13 +59,46 @@ class Stream(Tracked):
 
         return self
 
+    @property
+    def required_user(self) -> User:
+        user = self.user
+
+        if user is None:
+            raise ValueError(USER_NOT_ATTACHED)
+
+        return user
+
     @classmethod
     def from_object(cls, object: Object) -> Self:
-        return cls(
+        self = cls(
             id=object.id,
             created_at=convert_standard_date_time(object.created_at),
             duration_ms=object.duration_ms,
         )
+
+        try:
+            track_object = object.track
+
+        except AttributeError:
+            track = None
+
+        else:
+            track = Track.from_object(track_object)
+
+        self.track = track
+
+        try:
+            user_object = object.user
+
+        except AttributeError:
+            user = None
+
+        else:
+            user = User.from_object(user_object)
+
+        self.user = user
+
+        return self
 
     @classmethod
     def from_data(cls, data: StreamData) -> Self:  # type: ignore[override]

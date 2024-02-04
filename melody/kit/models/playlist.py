@@ -19,6 +19,7 @@ from melody.kit.links import (
 )
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
+from melody.kit.models.privacy import PlaylistPrivacy, UserPrivacy
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
@@ -34,7 +35,7 @@ __all__ = (
 
 
 class PlaylistData(EntityData):
-    user: Optional[UserData]
+    owner: Optional[UserData]
 
     uri: str
 
@@ -49,12 +50,12 @@ class PlaylistData(EntityData):
     privacy_type: str
 
 
-USER_NOT_ATTACHED = "`user` is not attached"
+OWNER_NOT_ATTACHED = "`owner` is not attached"
 
 
 @define(kw_only=True)
 class Playlist(Linked, Entity):
-    user: Optional[User] = field(default=None)
+    owner: Optional[User] = field(default=None)
 
     follower_count: int = field(default=DEFAULT_COUNT)
 
@@ -72,28 +73,46 @@ class Playlist(Linked, Entity):
     def default_uri(self) -> URI:
         return URI(type=EntityType.PLAYLIST, id=self.id)
 
-    def attach_user(self, user: User) -> Self:
-        self.user = user
+    def attach_owner(self, owner: User) -> Self:
+        self.owner = owner
 
         return self
 
-    def detach_user(self) -> Self:
-        self.user = None
+    def detach_owner(self) -> Self:
+        self.owner = None
 
         return self
 
     @property
-    def required_user(self) -> User:
-        user = self.user
+    def required_owner(self) -> User:
+        owner = self.owner
 
-        if user is None:
-            raise ValueError(USER_NOT_ATTACHED)
+        if owner is None:
+            raise ValueError(OWNER_NOT_ATTACHED)
 
-        return user
+        return owner
+
+    @property
+    def privacy(self) -> PlaylistPrivacy:
+        return self.privacy_with(self.required_owner.privacy)
+
+    def privacy_with(self, owner: UserPrivacy) -> PlaylistPrivacy:
+        return PlaylistPrivacy(id=self.id, privacy_type=self.privacy_type, owner=owner)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
         self = super().from_object(object)
+
+        try:
+            owner_object = object.owner
+
+        except AttributeError:
+            owner = None
+
+        else:
+            owner = User.from_object(owner_object)
+
+        self.owner = owner
 
         self.follower_count = object.follower_count
 
@@ -128,18 +147,18 @@ class Playlist(Linked, Entity):
 
     @property
     def yandex_music_url(self) -> Optional[URL]:
-        user = self.user
+        owner = self.owner
 
-        if user is None:
+        if owner is None:
             return None
 
         yandex_music_id = self.yandex_music_id
-        yandex_music_user_id = user.yandex_music_id
+        yandex_music_owner_id = owner.yandex_music_id
 
         return (
             None
-            if yandex_music_id is None or yandex_music_user_id is None
-            else URL(yandex_music_playlist(user_id=yandex_music_user_id, id=yandex_music_id))
+            if yandex_music_id is None or yandex_music_owner_id is None
+            else URL(yandex_music_playlist(user_id=yandex_music_owner_id, id=yandex_music_id))
         )
 
     @property

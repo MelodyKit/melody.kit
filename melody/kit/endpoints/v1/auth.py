@@ -70,12 +70,12 @@ async def login(
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
-        raise NotFound(CAN_NOT_FIND_USER.format(email))
+        raise NotFound(can_not_find_user_by_email(email))
 
     user_id = user_info.id
 
     if not user_info.is_verified():
-        raise Unauthorized(UNVERIFIED.format(user_id))
+        raise Unauthorized(unverified(user_id))
 
     password_hash = user_info.password_hash
 
@@ -138,6 +138,7 @@ async def revoke(self_id: UUID = Depends(token_dependency)) -> None:
 
 
 EMAIL_TAKEN = "the email `{}` is taken"
+email_taken = EMAIL_TAKEN.format
 
 VERIFICATION = "MelodyKit verification token"
 VERIFICATION_CONTENT = """
@@ -164,7 +165,7 @@ async def register(
         self = await database.insert_user(name=name, email=email, password_hash=password_hash)
 
     except ConstraintViolationError:
-        raise Conflict(EMAIL_TAKEN.format(email)) from None
+        raise Conflict(email_taken(email)) from None
 
     else:
         self_id = self.id
@@ -190,13 +191,10 @@ async def register(
         return self.into_data()
 
 
-VERIFICATION_NOT_FOUND = "verification for the user not found"
-
-
 @v1.post(
     "/verify",
     tags=[AUTH],
-    summary="Verifies the user with the given ID.",
+    summary="Verifies the user.",
 )
 async def verify(bound_token: BoundToken = Depends(bound_verification_token_dependency)) -> None:
     await delete_verification_token(bound_token.token)
@@ -235,7 +233,7 @@ async def forgot(email: str = Depends(email_dependency)) -> None:
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
-        raise NotFound(CAN_NOT_FIND_USER_BY_EMAIL.format(email))
+        raise NotFound(can_not_find_user_by_email(email))
 
     tokens = await generate_tokens_for(user_info.id)
 

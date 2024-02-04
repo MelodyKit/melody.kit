@@ -3,7 +3,7 @@ with result := (
 ) select result.object {
     id,
     name,
-    user: {
+    owner: {
         id,
         name,
         follower_count,

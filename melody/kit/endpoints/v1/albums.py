@@ -16,11 +16,7 @@ from melody.kit.core import database, v1
 from melody.kit.dependencies import request_url_dependency
 from melody.kit.enums import EntityType
 from melody.kit.errors import NotFound
-from melody.kit.models.album import (
-    AlbumData,
-    AlbumTracks,
-    AlbumTracksData,
-)
+from melody.kit.models.album import AlbumData, AlbumTracks, AlbumTracksData
 from melody.kit.models.pagination import Pagination
 from melody.kit.tags import ALBUMS, LINKS, TRACKS
 from melody.kit.uri import URI

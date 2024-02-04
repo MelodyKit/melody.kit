@@ -8,9 +8,16 @@ from yarl import URL
 from melody.kit.config import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
-from melody.kit.links import Linked, apple_music_user, self_user, spotify_user, yandex_music_user
+from melody.kit.links import (
+    Linked,
+    apple_music_user,
+    self_user,
+    spotify_user,
+    yandex_music_user,
+)
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
+from melody.kit.models.privacy import UserPrivacy
 from melody.kit.uri import URI
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
@@ -75,6 +82,10 @@ class User(Linked, Entity):
 
     uri: URI = field(init=False)
 
+    @property
+    def privacy(self) -> UserPrivacy:
+        return UserPrivacy(id=self.id, privacy_type=self.privacy_type)
+
     @uri.default
     def default_uri(self) -> URI:
         return URI(type=EntityType.USER, id=self.id)
@@ -126,10 +137,7 @@ class User(Linked, Entity):
 
 from melody.kit.models.album import Album, AlbumData
 from melody.kit.models.artist import Artist, ArtistData
-from melody.kit.models.playlist import (
-    Playlist,
-    PlaylistData,
-)
+from melody.kit.models.playlist import Playlist, PlaylistData
 from melody.kit.models.streams import Stream, StreamData
 from melody.kit.models.tracks import Track, TrackData
 

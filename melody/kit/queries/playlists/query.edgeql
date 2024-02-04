@@ -1,7 +1,7 @@
 select Playlist {
     id,
     name,
-    user: {
+    owner: {
         id,
         name,
         follower_count,

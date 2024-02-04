@@ -1,69 +1,165 @@
 from typing import Optional, Set
 from uuid import UUID
 
+from fastapi import Depends
+from typing_aliases import Predicate
+
 from melody.kit.core import database
-from melody.kit.enums import PrivacyType
+from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.playlist import Playlist
 from melody.kit.models.user import User
-from melody.shared.markers import unreachable
-
-__all__ = (
-    "friends_set",
-    "are_friends",
-    "process_privacy_type",
-    "is_user_accessible",
-    "is_playlist_accessible",
-    "is_playlist_accessible_set",
-)
-
-
-async def friends_set(user_id: UUID) -> Optional[Set[UUID]]:
-    return await database.query_user_friend_ids(user_id=user_id)
+from melody.kit.oauth2 import optional_token_dependency, token_dependency
 
 
 async def are_friends(self_id: UUID, user_id: UUID) -> bool:
     return await database.check_user_friends(self_id=self_id, user_id=user_id)
 
 
-def process_privacy_type(privacy_type: PrivacyType, friends: bool) -> bool:
-    if privacy_type.is_private():
-        return False
-
-    if privacy_type.is_friends():
-        return friends
-
-    if privacy_type.is_public():
-        return True
-
-    unreachable()
+async def get_friends(self_id: UUID) -> Optional[Set[UUID]]:
+    return await database.query_user_friends_essential(user_id=self_id)
 
 
-def is_user_accessible(self_id: UUID, user: User, friends: bool) -> bool:
-    user_id = user.id
+CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
+can_not_find_user = CAN_NOT_FIND_USER.format
 
-    if self_id == user_id:
-        return True
-
-    return process_privacy_type(user.privacy_type, friends)
+INACCESSIBLE_USER = "the user with ID `{}` is inaccessible"
+inaccessible_user = INACCESSIBLE_USER.format
 
 
-def is_playlist_accessible(self_id: UUID, playlist: Playlist, friends: bool) -> bool:
-    user = playlist.required_user
+async def check_user_accessible(user_id: UUID, self_id: Optional[UUID] = None) -> None:
+    user_privacy = await database.query_user_privacy(user_id=user_id)
 
-    user_id = user.id
+    if user_privacy is None:
+        raise NotFound(can_not_find_user(user_id))
 
-    if self_id == user_id:
-        return True
+    if self_id is None:
+        if not user_privacy.is_accessible():
+            raise Forbidden(inaccessible_user(user_id))
 
-    return process_privacy_type(playlist.privacy_type, friends)
+        return
+
+    friends = await are_friends(self_id, user_id)
+
+    if not user_privacy.is_accessible_by(self_id, friends):
+        raise Forbidden(inaccessible_user(user_id))
 
 
-def is_playlist_accessible_set(self_id: UUID, playlist: Playlist, friends: Set[UUID]) -> bool:
-    user = playlist.required_user
+async def check_user_accessible_dependency(
+    user_id: UUID, self_id: Optional[UUID] = Depends(optional_token_dependency)
+) -> None:
+    await check_user_accessible(user_id, self_id)
 
-    user_id = user.id
 
-    if self_id == user_id:
-        return True
+async def create_user_accessible_predicate(self_id: Optional[UUID] = None) -> Predicate[User]:
+    if self_id is None:
 
-    return process_privacy_type(playlist.privacy_type, user_id in friends)
+        def predicate(user: User) -> bool:
+            return user.privacy.is_accessible()
+
+        return predicate
+
+    friends = await get_friends(self_id)
+
+    if friends is None:
+        raise NotFound(can_not_find_user(self_id))
+
+    def privacy_predicate(user: User) -> bool:
+        return user.privacy.is_accessible_by(self_id, user.id in friends)
+
+    return privacy_predicate
+
+
+CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
+can_not_find_playlist = CAN_NOT_FIND_PLAYLIST.format
+
+INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
+inaccessible_playlist = INACCESSIBLE_PLAYLIST.format
+
+
+async def check_playlist_accessible(playlist_id: UUID, self_id: Optional[UUID] = None) -> None:
+    playlist_privacy = await database.query_playlist_privacy(playlist_id=playlist_id)
+
+    if playlist_privacy is None:
+        raise NotFound(can_not_find_playlist(playlist_id))
+
+    if self_id is None:
+        if not playlist_privacy.is_accessible():
+            raise Forbidden(inaccessible_playlist(playlist_id))
+
+        return
+
+    friends = await are_friends(self_id, playlist_privacy.owner.id)
+
+    if not playlist_privacy.is_accessible_by(self_id, friends):
+        raise Forbidden(inaccessible_playlist(playlist_id))
+
+
+async def check_playlist_accessible_dependency(
+    playlist_id: UUID, self_id: Optional[UUID] = Depends(optional_token_dependency)
+) -> None:
+    await check_playlist_accessible(playlist_id, self_id)
+
+
+async def check_playlist_changeable(playlist_id: UUID, self_id: UUID) -> None:
+    playlist_privacy = await database.query_playlist_privacy(playlist_id=playlist_id)
+
+    if playlist_privacy is None:
+        raise NotFound(can_not_find_playlist(playlist_id))
+
+    if playlist_privacy.owner.id != self_id:
+        raise Forbidden(inaccessible_playlist(playlist_id))
+
+
+async def check_playlist_changeable_dependency(
+    playlist_id: UUID, self_id: UUID = Depends(token_dependency)
+) -> None:
+   await check_playlist_changeable(playlist_id, self_id)
+
+
+async def create_partial_playlist_accessible_predicate(
+    owner_id: UUID, self_id: Optional[UUID] = None
+) -> Predicate[Playlist]:
+    owner = await database.query_user_privacy(owner_id)
+
+    if owner is None:
+        raise NotFound(can_not_find_user(owner_id))
+
+    if self_id is None:
+
+        def predicate(playlist: Playlist) -> bool:
+            return playlist.privacy_with(owner).is_accessible()
+
+        return predicate
+
+    friends = await get_friends(self_id)
+
+    if friends is None:
+        raise NotFound(can_not_find_user(self_id))
+
+    def privacy_predicate(playlist: Playlist) -> bool:
+        return playlist.privacy_with(owner).is_accessible_by(self_id, owner_id in friends)
+
+    return privacy_predicate
+
+
+async def create_playlist_accessible_predicate(
+    self_id: Optional[UUID] = None,
+) -> Predicate[Playlist]:
+    if self_id is None:
+
+        def predicate(playlist: Playlist) -> bool:
+            return playlist.privacy.is_accessible()
+
+        return predicate
+
+    friends = await get_friends(self_id)
+
+    if friends is None:
+        raise NotFound(can_not_find_user(self_id))
+
+    def privacy_predicate(playlist: Playlist) -> bool:
+        playlist_privacy = playlist.privacy
+
+        return playlist_privacy.is_accessible_by(self_id, playlist_privacy.owner.id in friends)
+
+    return privacy_predicate

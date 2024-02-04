@@ -215,7 +215,7 @@ async def get_self_artists(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserArtistsData:
-    counted = await database.query_user_artists(user_id=self_id)
+    counted = await database.query_user_artists(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -262,7 +262,7 @@ async def get_self_albums(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserAlbumsData:
-    counted = await database.query_user_albums(user_id=self_id)
+    counted = await database.query_user_albums(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -309,7 +309,7 @@ async def get_self_playlists(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserPlaylistsData:
-    counted = await database.query_user_playlists(user_id=self_id)
+    counted = await database.query_user_playlists(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -334,7 +334,7 @@ async def get_self_streams(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserStreamsData:
-    counted = await database.query_user_streams(user_id=self_id)
+    counted = await database.query_user_streams(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -359,7 +359,7 @@ async def get_self_friends(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFriendsData:
-    counted = await database.query_user_friends(user_id=self_id)
+    counted = await database.query_user_friends(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -384,7 +384,7 @@ async def get_self_followers(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFollowersData:
-    counted = await database.query_user_followers(user_id=self_id)
+    counted = await database.query_user_followers(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -409,7 +409,7 @@ async def get_self_following(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFollowingData:
-    counted = await database.query_user_following(user_id=self_id)
+    counted = await database.query_user_following(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))
@@ -456,7 +456,9 @@ async def get_self_followed_playlists(
     offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
     limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
 ) -> UserFollowedPlaylistsData:
-    counted = await database.query_user_followed_playlists(user_id=self_id)
+    counted = await database.query_user_followed_playlists(
+        user_id=self_id, offset=offset, limit=limit
+    )
 
     if counted is None:
         raise NotFound(can_not_find_user(self_id))

@@ -5,7 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
-from starlette.middleware.sessions import SessionMiddleware  # XXX: use `fastapi` when implemented
+from starlette.middleware.sessions import (
+    SessionMiddleware,  # XXX: use `fastapi` when implemented
+)
 from typing_aliases import NormalError
 
 from melody.kit.config import CONFIG

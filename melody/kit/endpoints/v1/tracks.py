@@ -13,6 +13,7 @@ from melody.kit.uri import URI
 __all__ = ("get_track", "get_track_link")
 
 CAN_NOT_FIND_TRACK = "can not find the track with ID `{}`"
+can_not_find_track = CAN_NOT_FIND_TRACK.format
 
 
 @v1.get(
@@ -24,7 +25,7 @@ async def get_track(track_id: UUID) -> TrackData:
     track = await database.query_track(track_id=track_id)
 
     if track is None:
-        raise NotFound(CAN_NOT_FIND_TRACK.format(track_id))
+        raise NotFound(can_not_find_track(track_id))
 
     return track.into_data()
 

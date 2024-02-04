@@ -10,7 +10,14 @@ from typing_aliases import Headers, Parameters, Payload
 from typing_extensions import Self
 from yarl import URL
 
-from melody.shared.constants import DEFAULT_RETRIES, DEFAULT_TIMEOUT, NAME, PYTHON, SLASH, ZERO
+from melody.shared.constants import (
+    DEFAULT_RETRIES,
+    DEFAULT_TIMEOUT,
+    NAME,
+    PYTHON,
+    SLASH,
+    ZERO,
+)
 from melody.shared.enums import ResponseType
 from melody.shared.typing import URLString
 from melody.versions import python_version_info, version_info

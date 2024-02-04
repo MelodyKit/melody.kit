@@ -1,4 +1,4 @@
-from melody.kit import endpoints, models
+from melody.kit import models
 from melody.kit.config import Config, ConfigData, get_config, get_default_config
 from melody.kit.core import app, config, database, hasher, redis, v1
 from melody.kit.database import Database
@@ -26,7 +26,7 @@ from melody.kit.uri import URI
 
 __all__ = (
     # endpoints
-    "endpoints",
+    # "endpoints",
     # models
     "models",
     # core

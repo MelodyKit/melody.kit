@@ -1,9 +1,4 @@
-from melody.kit.models.album import (
-    Album,
-    AlbumData,
-    AlbumTracks,
-    AlbumTracksData,
-)
+from melody.kit.models.album import Album, AlbumData, AlbumTracks, AlbumTracksData
 from melody.kit.models.artist import (
     Artist,
     ArtistAlbums,
@@ -12,18 +7,9 @@ from melody.kit.models.artist import (
     ArtistTracks,
     ArtistTracksData,
 )
-from melody.kit.models.base import (
-    Base,
-    BaseData,
-)
-from melody.kit.models.entity import (
-    Entity,
-    EntityData,
-)
-from melody.kit.models.pagination import (
-    Pagination,
-    PaginationData,
-)
+from melody.kit.models.base import Base, BaseData
+from melody.kit.models.entity import Entity, EntityData
+from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.models.playlist import (
     Playlist,
     PlaylistData,
@@ -44,24 +30,10 @@ from melody.kit.models.search import (
     SearchUsers,
     SearchUsersData,
 )
-from melody.kit.models.statistics import (
-    Statistics,
-    StatisticsData,
-)
-from melody.kit.models.streams import (
-    Stream,
-    StreamData,
-)
-from melody.kit.models.tracked import (
-    Tracked,
-    TrackedData,
-)
-from melody.kit.models.tracks import (
-    PositionTrack,
-    PositionTrackData,
-    Track,
-    TrackData,
-)
+from melody.kit.models.statistics import Statistics, StatisticsData
+from melody.kit.models.streams import Stream, StreamData
+from melody.kit.models.tracked import Tracked, TrackedData
+from melody.kit.models.tracks import PositionTrack, PositionTrackData, Track, TrackData
 from melody.kit.models.user import (
     User,
     UserAlbums,
@@ -84,14 +56,8 @@ from melody.kit.models.user import (
     UserTracks,
     UserTracksData,
 )
-from melody.kit.models.user_info import (
-    UserInfo,
-    UserInfoData,
-)
-from melody.kit.models.user_settings import (
-    UserSettings,
-    UserSettingsData,
-)
+from melody.kit.models.user_info import UserInfo, UserInfoData
+from melody.kit.models.user_settings import UserSettings, UserSettingsData
 
 __all__ = (
     # base

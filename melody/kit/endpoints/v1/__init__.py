@@ -58,7 +58,12 @@ from melody.kit.endpoints.v1.self import (
     update_self_settings,
 )
 from melody.kit.endpoints.v1.statistics import get_statistics
-from melody.kit.endpoints.v1.totp import delete_totp, generate_totp, link_totp, verify_totp
+from melody.kit.endpoints.v1.totp import (
+    delete_totp,
+    generate_totp,
+    link_totp,
+    verify_totp,
+)
 from melody.kit.endpoints.v1.tracks import get_track, get_track_link
 from melody.kit.endpoints.v1.users import (
     get_user,
