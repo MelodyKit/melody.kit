@@ -26,7 +26,7 @@ from melody.kit.uri import URI
 
 __all__ = (
     # endpoints
-    # "endpoints",
+    "endpoints",
     # models
     "models",
     # core
