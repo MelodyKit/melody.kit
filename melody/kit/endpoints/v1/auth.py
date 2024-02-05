@@ -14,6 +14,7 @@ from melody.kit.dependencies import (
 )
 from melody.kit.email import email_message, send_email_message, support
 from melody.kit.endpoints.v1.totp import validate_totp
+from melody.kit.enums import Tag
 from melody.kit.errors import Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
 from melody.kit.oauth2 import (
@@ -22,7 +23,6 @@ from melody.kit.oauth2 import (
     client_credentials_dependency,
     token_dependency,
 )
-from melody.kit.tags import AUTH
 from melody.kit.tokens import (
     BoundToken,
     delete_access_token,
@@ -38,6 +38,7 @@ from melody.shared.tokens import TokensData
 __all__ = (
     "login",
     "logout",
+    "tokens",
     "revoke",
     "register",
     "verify",
@@ -59,8 +60,8 @@ can_not_find_user = CAN_NOT_FIND_USER.format
 
 @v1.post(
     "/login",
-    tags=[AUTH],
-    summary="Logs in the user with the given email and password.",
+    tags=[Tag.AUTH],
+    summary="Logs in the user.",
 )
 async def login(
     email: str = Depends(email_dependency),
@@ -101,8 +102,8 @@ async def login(
 
 @v1.post(
     "/logout",
-    tags=[AUTH],
-    summary="Logs out the user, revoking the current token.",
+    tags=[Tag.AUTH],
+    summary="Logs out the user, revoking the token used.",
 )
 async def logout(
     bound_token: BoundToken = Depends(bound_token_dependency),
@@ -110,8 +111,8 @@ async def logout(
     await delete_access_token(bound_token.token)
 
 
-@v1.post("/tokens", tags=[AUTH], summary="Generates tokens.")
-async def generate_tokens(
+@v1.post("/tokens", tags=[Tag.AUTH], summary="Returns tokens.")
+async def tokens(
     grant_type: GrantType,
     code: Optional[str] = None,
     refresh_token: Optional[str] = None,
@@ -129,7 +130,7 @@ async def generate_tokens(
 
 @v1.post(
     "/revoke",
-    tags=[AUTH],
+    tags=[Tag.AUTH],
     summary="Revokes all tokens of the user.",
 )
 async def revoke(self_id: UUID = Depends(token_dependency)) -> None:
@@ -151,8 +152,8 @@ verification_content = VERIFICATION_CONTENT.format
 
 @v1.post(
     "/register",
-    tags=[AUTH],
-    summary="Registers the user with the given name, email and password.",
+    tags=[Tag.AUTH],
+    summary="Registers the user.",
 )
 async def register(
     name: str = Body(),
@@ -193,7 +194,7 @@ async def register(
 
 @v1.post(
     "/verify",
-    tags=[AUTH],
+    tags=[Tag.AUTH],
     summary="Verifies the user.",
 )
 async def verify(bound_token: BoundToken = Depends(bound_verification_token_dependency)) -> None:
@@ -204,8 +205,8 @@ async def verify(bound_token: BoundToken = Depends(bound_verification_token_depe
 
 @v1.post(
     "/reset",
-    tags=[AUTH],
-    summary="Resets the password of the user, revoking all tokens.",
+    tags=[Tag.AUTH],
+    summary="Resets the password of the user, revoking all their tokens.",
 )
 async def reset(self_id: UUID = Depends(token_dependency), password: str = Body()) -> None:
     await revoke(self_id)
@@ -226,7 +227,7 @@ temporary_token_content = TEMPORARY_TOKEN_CONTENT.format
 
 @v1.post(
     "/forgot",
-    tags=[AUTH],
+    tags=[Tag.AUTH],
     summary="Allows the user to reset their password via the email.",
 )
 async def forgot(email: str = Depends(email_dependency)) -> None:

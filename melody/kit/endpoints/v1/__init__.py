@@ -12,8 +12,10 @@ from melody.kit.endpoints.v1.auth import (
     register,
     reset,
     revoke,
+    tokens,
     verify,
 )
+from melody.kit.endpoints.v1.clients import get_client
 from melody.kit.endpoints.v1.connections import (
     connect_discord,
     disconnect_discord,
@@ -147,6 +149,7 @@ __all__ = (
     # auth
     "login",
     "logout",
+    "tokens",
     "revoke",
     "register",
     "verify",
@@ -158,4 +161,6 @@ __all__ = (
     "connect_discord",
     "disconnect_discord",
     "discord_callback",
+    # clients
+    "get_client",
 )

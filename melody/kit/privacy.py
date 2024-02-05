@@ -113,7 +113,7 @@ async def check_playlist_changeable(playlist_id: UUID, self_id: UUID) -> None:
 async def check_playlist_changeable_dependency(
     playlist_id: UUID, self_id: UUID = Depends(token_dependency)
 ) -> None:
-   await check_playlist_changeable(playlist_id, self_id)
+    await check_playlist_changeable(playlist_id, self_id)
 
 
 async def create_partial_playlist_accessible_predicate(

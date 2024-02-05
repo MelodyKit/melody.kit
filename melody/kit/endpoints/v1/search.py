@@ -14,7 +14,7 @@ from melody.kit.constants import (
 )
 from melody.kit.core import database, v1
 from melody.kit.dependencies import request_url_dependency, types_dependency
-from melody.kit.enums import EntityType
+from melody.kit.enums import EntityType, Tag
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.search import (
     Search,
@@ -30,7 +30,6 @@ from melody.kit.privacy import (
     create_playlist_accessible_predicate,
     create_user_accessible_predicate,
 )
-from melody.kit.tags import SEARCH
 
 __all__ = ("search_items",)
 
@@ -41,8 +40,8 @@ not_found = NOT_FOUND.format
 
 @v1.get(
     "/search",
-    tags=[SEARCH],
-    summary="Searches for items with the given query.",
+    tags=[Tag.SEARCH],
+    summary="Searches for items.",
 )
 async def search_items(
     query: str = Query(),

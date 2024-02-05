@@ -7,10 +7,9 @@ from pyotp import TOTP
 
 from melody.kit.code import generate_code
 from melody.kit.core import database, v1
+from melody.kit.enums import Tag
 from melody.kit.errors import NotFound, Unauthorized
 from melody.kit.oauth2 import token_dependency
-from melody.kit.tags import LINKS
-from melody.kit.tags import TOTP as TOTP_LITERAL
 from melody.kit.totp import (
     delete_secret_for,
     fetch_secret_for,
@@ -47,7 +46,7 @@ def validate_totp(secret: Optional[str], code: Optional[str]) -> None:
         raise Unauthorized(CODE_MISMATCH)
 
 
-@v1.post("/totp", tags=[TOTP_LITERAL], summary="Generates TOTP secrets.")
+@v1.post("/totp", tags=[Tag.TOTP], summary="Generates TOTP secrets.")
 async def generate_totp(self_id: UUID = Depends(token_dependency)) -> str:
     secret = await fetch_secret_for(self_id)
 
@@ -59,14 +58,14 @@ async def generate_totp(self_id: UUID = Depends(token_dependency)) -> str:
 
 @v1.delete(
     "/totp",
-    tags=[TOTP_LITERAL],
-    summary="Deletes TOTP secrets",
+    tags=[Tag.TOTP],
+    summary="Deletes TOTP secrets/",
 )
 async def delete_totp(self_id: UUID = Depends(token_dependency)) -> None:
     await database.update_user_secret(user_id=self_id, secret=None)
 
 
-@v1.get("/totp/link", tags=[TOTP_LITERAL, LINKS], summary="Fetches TOTP links.")
+@v1.get("/totp/link", tags=[Tag.TOTP], summary="Fetches TOTP links.")
 async def link_totp(self_id: UUID = Depends(token_dependency)) -> FileResponse:
     secret = await fetch_secret_for(self_id)
 
@@ -84,7 +83,7 @@ async def link_totp(self_id: UUID = Depends(token_dependency)) -> FileResponse:
 
 @v1.post(
     "/totp/verify",
-    tags=[TOTP_LITERAL],
+    tags=[Tag.TOTP],
     summary="Verifies TOTP secrets.",
 )
 async def verify_totp(self_id: UUID = Depends(token_dependency), code: str = Body()) -> None:

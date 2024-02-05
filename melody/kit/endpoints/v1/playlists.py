@@ -15,16 +15,16 @@ from melody.kit.constants import (
 )
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import request_url_dependency
-from melody.kit.enums import EntityType, PrivacyType
+from melody.kit.enums import EntityType, PrivacyType, Tag
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import PlaylistData, PlaylistTracks, PlaylistTracksData
 from melody.kit.oauth2 import optional_token_dependency, token_dependency
 from melody.kit.privacy import (
-    check_playlist_accessible_dependency, check_playlist_changeable_dependency
+    check_playlist_accessible_dependency,
+    check_playlist_changeable_dependency,
 )
-from melody.kit.tags import IMAGES, LINKS, PLAYLISTS, TRACKS
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
@@ -52,8 +52,8 @@ inaccessible_playlist = INACCESSIBLE_PLAYLIST.format
 
 @v1.post(
     "/playlists",
-    tags=[PLAYLISTS],
-    summary="Creates a new playlist with the given name.",
+    tags=[Tag.PLAYLISTS],
+    summary="Creates a new playlist.",
 )
 async def create_playlist(
     name: str = Body(),
@@ -70,8 +70,8 @@ async def create_playlist(
 
 @v1.get(
     "/playlists/{playlist_id}",
-    tags=[PLAYLISTS],
-    summary="Fetches the playlist with the given ID.",
+    tags=[Tag.PLAYLISTS],
+    summary="Fetches the playlist.",
     dependencies=[Depends(check_playlist_accessible_dependency)],
 )
 async def get_playlist(
@@ -88,9 +88,9 @@ async def get_playlist(
 
 @v1.put(
     "/playlists/{playlist_id}",
-    tags=[PLAYLISTS],
-    summary="Updates the playlist with the given ID.",
-    dependencies=[Depends(check_playlist_changeable_dependency)]
+    tags=[Tag.PLAYLISTS],
+    summary="Updates the playlist.",
+    dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def update_playlist(
     playlist_id: UUID,
@@ -125,8 +125,8 @@ async def update_playlist(
 
 @v1.delete(
     "/playlists/{playlist_id}",
-    tags=[PLAYLISTS],
-    summary="Deletes the playlist with the given ID.",
+    tags=[Tag.PLAYLISTS],
+    summary="Deletes the playlist.",
     dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
@@ -140,8 +140,8 @@ async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_depen
 
 @v1.get(
     "/playlists/{playlist_id}/link",
-    tags=[PLAYLISTS, LINKS],
-    summary="Fetches the playlist link with the given ID.",
+    tags=[Tag.PLAYLISTS],
+    summary="Fetches the playlist's link.",
 )
 async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
@@ -153,8 +153,8 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
 
 @v1.get(
     "/playlists/{playlist_id}/image",
-    tags=[PLAYLISTS, IMAGES],
-    summary="Fetches the playlist image with the given ID.",
+    tags=[Tag.PLAYLISTS],
+    summary="Fetches the playlist's image.",
     dependencies=[Depends(check_playlist_accessible_dependency)],
 )
 async def get_playlist_image(playlist_id: UUID) -> FileResponse:
@@ -174,8 +174,8 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
 
 @v1.put(
     "/playlists/{playlist_id}/image",
-    tags=[PLAYLISTS, IMAGES],
-    summary="Changes the playlist image with the given ID.",
+    tags=[Tag.PLAYLISTS],
+    summary="Changes the playlist's image.",
     dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def change_playlist_image(playlist_id: UUID, image: UploadFile = File()) -> None:
@@ -192,8 +192,8 @@ async def change_playlist_image(playlist_id: UUID, image: UploadFile = File()) -
 
 @v1.get(
     "/playlists/{playlist_id}/tracks",
-    tags=[PLAYLISTS, TRACKS],
-    summary="Fetches playlist tracks with the given ID.",
+    tags=[Tag.PLAYLISTS],
+    summary="Fetches the playlist's tracks.",
     dependencies=[Depends(check_playlist_accessible_dependency)],
 )
 async def get_playlist_tracks(

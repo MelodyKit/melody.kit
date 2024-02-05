@@ -5,7 +5,51 @@ from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW
 from qrcode.constants import ERROR_CORRECT_M as ERROR_CORRECTION_MEDIUM
 from qrcode.constants import ERROR_CORRECT_Q as ERROR_CORRECTION_QUARTER
 
-__all__ = ("AlbumType", "PrivacyType", "Repeat", "Platform", "Connection", "EntityType", "LogLevel")
+__all__ = (
+    "Tag",
+    "AlbumType",
+    "PrivacyType",
+    "Repeat",
+    "Platform",
+    "Connection",
+    "EntityType",
+    "LogLevel",
+)
+
+
+class Tag(Enum):
+    # entities
+
+    TRACKS = "tracks"
+    ARTISTS = "artists"
+    ALBUMS = "albums"
+    PLAYLISTS = "playlists"
+    USERS = "users"
+
+    # statistics
+
+    STATISTICS = "statistics"
+
+    # self
+
+    SELF = "self"
+
+    # search
+
+    SEARCH = "search"
+
+    # auth
+
+    AUTH = "auth"
+    TOTP = "totp"
+
+    # connections
+
+    CONNECTIONS = "connections"
+
+    # clients
+
+    CLIENTS = "clients"
 
 
 class AlbumType(Enum):

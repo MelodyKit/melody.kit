@@ -16,7 +16,7 @@ from melody.kit.constants import (
 )
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import request_url_dependency
-from melody.kit.enums import EntityType
+from melody.kit.enums import EntityType, Tag
 from melody.kit.errors import NotFound
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.user import (
@@ -45,7 +45,6 @@ from melody.kit.privacy import (
     create_playlist_accessible_predicate,
     create_user_accessible_predicate,
 )
-from melody.kit.tags import ALBUMS, ARTISTS, IMAGES, LINKS, PLAYLISTS, TRACKS, USERS
 from melody.kit.uri import URI
 
 __all__ = (
@@ -67,8 +66,8 @@ can_not_find_user = CAN_NOT_FIND_USER.format
 
 @v1.get(
     "/users/{user_id}",
-    tags=[USERS],
-    summary="Fetches the user with the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user(user_id: UUID) -> UserData:
@@ -82,8 +81,8 @@ async def get_user(user_id: UUID) -> UserData:
 
 @v1.get(
     "/users/{user_id}/link",
-    tags=[USERS, LINKS],
-    summary="Fetches the user link with the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's link.",
 )
 async def get_user_link(user_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
@@ -99,8 +98,8 @@ can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
 
 @v1.get(
     "/users/{user_id}/image",
-    tags=[USERS, IMAGES],
-    summary="Fetches the user image with the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's image.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_image(user_id: UUID) -> FileResponse:
@@ -116,8 +115,8 @@ async def get_user_image(user_id: UUID) -> FileResponse:
 
 @v1.get(
     "/users/{user_id}/tracks",
-    tags=[USERS, TRACKS],
-    summary="Fetches user tracks by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's saved tracks.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_tracks(
@@ -142,8 +141,8 @@ async def get_user_tracks(
 
 @v1.get(
     "/users/{user_id}/artists",
-    tags=[USERS, ARTISTS],
-    summary="Fetches user artists by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's saved artists.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_artists(
@@ -168,8 +167,8 @@ async def get_user_artists(
 
 @v1.get(
     "/users/{user_id}/albums",
-    tags=[USERS, ALBUMS],
-    summary="Fetches user albums by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's saved albums.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_albums(
@@ -194,8 +193,8 @@ async def get_user_albums(
 
 @v1.get(
     "/users/{user_id}/playlists",
-    tags=[USERS, PLAYLISTS],
-    summary="Fetches user playlists by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's playlists.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_playlists(
@@ -227,8 +226,8 @@ async def get_user_playlists(
 
 @v1.get(
     "/users/{user_id}/playlists/followed",
-    tags=[USERS, PLAYLISTS],
-    summary="Fetches user followed playlists by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's followed playlists.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_followed_playlists(
@@ -260,8 +259,8 @@ async def get_user_followed_playlists(
 
 @v1.get(
     "/users/{user_id}/followers",
-    tags=[USERS],
-    summary="Fetches user followers by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's followers.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_followers(
@@ -291,8 +290,8 @@ async def get_user_followers(
 
 @v1.get(
     "/users/{user_id}/following",
-    tags=[USERS],
-    summary="Fetches user following by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's following.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_following(
@@ -326,8 +325,8 @@ inaccessible_friends = INACCESSIBLE_FRIENDS.format
 
 @v1.get(
     "/users/{user_id}/friends",
-    tags=[USERS],
-    summary="Fetches user friends by the given ID.",
+    tags=[Tag.USERS],
+    summary="Fetches the user's friends.",
     dependencies=[Depends(check_user_accessible_dependency)],
 )
 async def get_user_friends(

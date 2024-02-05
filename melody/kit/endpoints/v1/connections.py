@@ -8,9 +8,9 @@ from fastapi.responses import RedirectResponse
 
 from melody.discord.client import Client
 from melody.kit.core import database, oauth, v1
+from melody.kit.enums import Tag
 from melody.kit.errors import Conflict, InternalError
 from melody.kit.oauth2 import token_dependency
-from melody.kit.tags import CONNECTIONS
 from melody.shared.tokens import Tokens
 
 USER_ID_NOT_FOUND = "can not find user ID for state `{}`"
@@ -21,7 +21,7 @@ USER_ID = "user_id"
 DISCORD_CALLBACK = "discord_callback"
 
 
-@v1.get("/me/connections/discord", tags=[CONNECTIONS])
+@v1.get("/me/connections/discord", tags=[Tag.CONNECTIONS])
 async def connect_discord(
     request: Request, user_id: UUID = Depends(token_dependency)
 ) -> RedirectResponse:
@@ -34,7 +34,7 @@ async def connect_discord(
     )
 
 
-@v1.delete("/me/connections/discord", tags=[CONNECTIONS])
+@v1.delete("/me/connections/discord", tags=[Tag.CONNECTIONS])
 async def disconnect_discord(user_id: UUID = Depends(token_dependency)) -> None:
     await database.update_user_discord_id(user_id=user_id, discord_id=None)
 
@@ -45,7 +45,7 @@ discord_id_connected = DISCORD_ID_CONNECTED.format
 OAUTH_ERROR = "oauth error"
 
 
-@v1.get("/me/connections/discord/callback", tags=[CONNECTIONS])
+@v1.get("/me/connections/discord/callback", tags=[Tag.CONNECTIONS])
 async def discord_callback(request: Request) -> None:
     try:
         data = await oauth.discord.authorize_access_token(request)

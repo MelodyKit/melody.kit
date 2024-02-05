@@ -15,7 +15,7 @@ from melody.kit.constants import (
 )
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies import request_url_dependency
-from melody.kit.enums import EntityType, Platform, PrivacyType
+from melody.kit.enums import EntityType, Platform, PrivacyType, Tag
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.user import (
@@ -41,17 +41,6 @@ from melody.kit.models.user import (
 )
 from melody.kit.models.user_settings import UserSettingsData
 from melody.kit.oauth2 import token_dependency
-from melody.kit.tags import (
-    ALBUMS,
-    ARTISTS,
-    IMAGES,
-    LINKS,
-    PLAYLISTS,
-    SELF,
-    SETTINGS,
-    TRACKS,
-    USERS,
-)
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
@@ -91,8 +80,8 @@ can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
 
 @v1.get(
     "/me",
-    tags=[SELF],
-    summary="Fetches self user.",
+    tags=[Tag.SELF],
+    summary="Fetches self.",
 )
 async def get_self(self_id: UUID = Depends(token_dependency)) -> UserData:
     self = await database.query_user(user_id=self_id)
@@ -105,8 +94,8 @@ async def get_self(self_id: UUID = Depends(token_dependency)) -> UserData:
 
 @v1.get(
     "/me/link",
-    tags=[SELF, LINKS],
-    summary="Fetches self user link.",
+    tags=[Tag.SELF],
+    summary="Fetches self link.",
 )
 async def get_self_link(
     self_id: UUID = Depends(token_dependency),
@@ -120,8 +109,8 @@ async def get_self_link(
 
 @v1.get(
     "/me/image",
-    tags=[SELF, IMAGES],
-    summary="Fetches self user image.",
+    tags=[Tag.SELF],
+    summary="Fetches self image.",
 )
 async def get_self_image(self_id: UUID = Depends(token_dependency)) -> FileResponse:
     uri = URI(type=EntityType.USER, id=self_id)
@@ -140,8 +129,8 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
 
 @v1.put(
     "/me/image",
-    tags=[SELF, IMAGES],
-    summary="Changes self user image.",
+    tags=[Tag.SELF],
+    summary="Changes self image.",
 )
 async def change_self_image(
     image: UploadFile = File(), self_id: UUID = Depends(token_dependency)
@@ -159,8 +148,8 @@ async def change_self_image(
 
 @v1.get(
     "/me/tracks",
-    tags=[SELF, TRACKS],
-    summary="Fetches self user tracks.",
+    tags=[Tag.SELF],
+    summary="Fetches saved tracks.",
 )
 async def get_self_tracks(
     self_id: UUID = Depends(token_dependency),
@@ -184,8 +173,8 @@ async def get_self_tracks(
 
 @v1.put(
     "/me/tracks",
-    tags=[SELF, TRACKS],
-    summary="Save self user tracks.",
+    tags=[Tag.SELF],
+    summary="Saves tracks.",
 )
 async def save_self_tracks(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -195,8 +184,8 @@ async def save_self_tracks(
 
 @v1.delete(
     "/me/tracks",
-    tags=[SELF, TRACKS],
-    summary="Remove self user tracks.",
+    tags=[Tag.SELF],
+    summary="Removes saved tracks.",
 )
 async def remove_self_tracks(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -206,8 +195,8 @@ async def remove_self_tracks(
 
 @v1.get(
     "/me/artists",
-    tags=[SELF, ARTISTS],
-    summary="Fetches self user artists.",
+    tags=[Tag.SELF],
+    summary="Fetches saved artists.",
 )
 async def get_self_artists(
     self_id: UUID = Depends(token_dependency),
@@ -231,8 +220,8 @@ async def get_self_artists(
 
 @v1.put(
     "/me/artists",
-    tags=[SELF, ARTISTS],
-    summary="Save self user artists.",
+    tags=[Tag.SELF],
+    summary="Saves artists.",
 )
 async def save_self_artists(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -242,8 +231,8 @@ async def save_self_artists(
 
 @v1.delete(
     "/me/artists",
-    tags=[SELF, ARTISTS],
-    summary="Remove self user artists.",
+    tags=[Tag.SELF],
+    summary="Removes saved artists.",
 )
 async def remove_self_artists(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -253,8 +242,8 @@ async def remove_self_artists(
 
 @v1.get(
     "/me/albums",
-    tags=[SELF, ALBUMS],
-    summary="Fetches self user albums.",
+    tags=[Tag.SELF],
+    summary="Fetches saved albums.",
 )
 async def get_self_albums(
     self_id: UUID = Depends(token_dependency),
@@ -278,8 +267,8 @@ async def get_self_albums(
 
 @v1.put(
     "/me/albums",
-    tags=[SELF, ALBUMS],
-    summary="Save self user albums.",
+    tags=[Tag.SELF],
+    summary="Saves albums.",
 )
 async def save_self_albums(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -289,8 +278,8 @@ async def save_self_albums(
 
 @v1.delete(
     "/me/albums",
-    tags=[SELF, ALBUMS],
-    summary="Remove self user albums.",
+    tags=[Tag.SELF],
+    summary="Removes saved albums.",
 )
 async def remove_self_albums(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -300,8 +289,8 @@ async def remove_self_albums(
 
 @v1.get(
     "/me/playlists",
-    tags=[SELF, PLAYLISTS],
-    summary="Fetches self user playlists.",
+    tags=[Tag.SELF],
+    summary="Fetches playlists.",
 )
 async def get_self_playlists(
     self_id: UUID = Depends(token_dependency),
@@ -325,8 +314,8 @@ async def get_self_playlists(
 
 @v1.get(
     "/me/streams",
-    tags=[SELF, TRACKS],
-    summary="Fetches self user streams.",
+    tags=[Tag.SELF],
+    summary="Fetches streams.",
 )
 async def get_self_streams(
     self_id: UUID = Depends(token_dependency),
@@ -350,8 +339,8 @@ async def get_self_streams(
 
 @v1.get(
     "/me/friends",
-    tags=[SELF, USERS],
-    summary="Fetches self user friends.",
+    tags=[Tag.SELF],
+    summary="Fetches friends.",
 )
 async def get_self_friends(
     self_id: UUID = Depends(token_dependency),
@@ -375,8 +364,8 @@ async def get_self_friends(
 
 @v1.get(
     "/me/followers",
-    tags=[SELF, USERS],
-    summary="Fetches self user followers.",
+    tags=[Tag.SELF],
+    summary="Fetches followers.",
 )
 async def get_self_followers(
     self_id: UUID = Depends(token_dependency),
@@ -400,8 +389,8 @@ async def get_self_followers(
 
 @v1.get(
     "/me/following",
-    tags=[SELF, USERS],
-    summary="Fetches self user following.",
+    tags=[Tag.SELF],
+    summary="Fetches following.",
 )
 async def get_self_following(
     self_id: UUID = Depends(token_dependency),
@@ -425,8 +414,8 @@ async def get_self_following(
 
 @v1.put(
     "/me/following",
-    tags=[SELF, USERS],
-    summary="Add users to self following.",
+    tags=[Tag.SELF],
+    summary="Follows users.",
 )
 async def add_self_following(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -436,8 +425,8 @@ async def add_self_following(
 
 @v1.delete(
     "/me/following",
-    tags=[SELF, USERS],
-    summary="Remove users from self following.",
+    tags=[Tag.SELF],
+    summary="Unfollows users.",
 )
 async def remove_self_following(
     self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
@@ -447,8 +436,8 @@ async def remove_self_following(
 
 @v1.get(
     "/me/playlists/followed",
-    tags=[SELF, PLAYLISTS],
-    summary="Fetches self user followed playlists.",
+    tags=[Tag.SELF],
+    summary="Fetches followed playlists.",
 )
 async def get_self_followed_playlists(
     self_id: UUID = Depends(token_dependency),
@@ -474,8 +463,8 @@ async def get_self_followed_playlists(
 
 @v1.put(
     "/me/playlists/followed",
-    tags=[SELF, PLAYLISTS],
-    summary="Add playlists to self followed playlists.",
+    tags=[Tag.SELF],
+    summary="Follows playlists.",
 )
 async def add_self_followed_playlists(
     self_id: UUID = Depends(token_dependency),
@@ -486,8 +475,8 @@ async def add_self_followed_playlists(
 
 @v1.delete(
     "/me/playlists/followed",
-    tags=[SELF, PLAYLISTS],
-    summary="Remove playlists from self followed playlists.",
+    tags=[Tag.SELF],
+    summary="Unfollows playlists.",
 )
 async def remove_self_followed_playlists(
     self_id: UUID = Depends(token_dependency),
@@ -498,7 +487,7 @@ async def remove_self_followed_playlists(
 
 @v1.get(
     "/me/settings",
-    tags=[SELF, SETTINGS],
+    tags=[Tag.SELF],
     summary="Fetches self settings.",
 )
 async def get_self_settings(
@@ -514,8 +503,8 @@ async def get_self_settings(
 
 @v1.put(
     "/me/settings",
-    tags=[SELF, SETTINGS],
-    summary="Update self settings.",
+    tags=[Tag.SELF],
+    summary="Changes self settings.",
 )
 async def update_self_settings(
     self_id: UUID = Depends(token_dependency),

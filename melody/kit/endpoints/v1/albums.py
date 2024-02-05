@@ -14,11 +14,10 @@ from melody.kit.constants import (
 )
 from melody.kit.core import database, v1
 from melody.kit.dependencies import request_url_dependency
-from melody.kit.enums import EntityType
+from melody.kit.enums import EntityType, Tag
 from melody.kit.errors import NotFound
 from melody.kit.models.album import AlbumData, AlbumTracks, AlbumTracksData
 from melody.kit.models.pagination import Pagination
-from melody.kit.tags import ALBUMS, LINKS, TRACKS
 from melody.kit.uri import URI
 
 __all__ = ("get_album", "get_album_link", "get_album_tracks")
@@ -29,8 +28,8 @@ can_not_find_album = CAN_NOT_FIND_ALBUM.format
 
 @v1.get(
     "/albums/{album_id}",
-    tags=[ALBUMS],
-    summary="Fetches the album with the given ID.",
+    tags=[Tag.ALBUMS],
+    summary="Fetches the album.",
 )
 async def get_album(album_id: UUID) -> AlbumData:
     album = await database.query_album(album_id=album_id)
@@ -43,8 +42,8 @@ async def get_album(album_id: UUID) -> AlbumData:
 
 @v1.get(
     "/albums/{album_id}/link",
-    tags=[ALBUMS, LINKS],
-    summary="Fetches the album link with the given ID.",
+    tags=[Tag.ALBUMS],
+    summary="Fetches the album's link.",
 )
 async def get_album_link(album_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.ALBUM, id=album_id)
@@ -56,8 +55,8 @@ async def get_album_link(album_id: UUID) -> FileResponse:
 
 @v1.get(
     "/albums/{album_id}/tracks",
-    tags=[ALBUMS, TRACKS],
-    summary="Fetches album tracks with the given ID.",
+    tags=[Tag.ALBUMS],
+    summary="Fetches the album's tracks.",
 )
 async def get_album_tracks(
     album_id: UUID,
