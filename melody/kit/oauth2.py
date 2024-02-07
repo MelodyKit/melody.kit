@@ -4,8 +4,8 @@ from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
 from attrs import frozen
-from fastapi import Body, Depends
-from fastapi.security import OAuth2AuthorizationCodeBearer
+from fastapi import Depends
+from fastapi.security import HTTPBasic, HTTPBasicCredentials, OAuth2AuthorizationCodeBearer
 
 from melody.kit.core import config, database, hasher
 from melody.kit.errors import AuthInvalid
@@ -19,6 +19,9 @@ TOKENS = "tokens"
 
 AUTHORIZE = f"https://{config.open}.{config.domain}/authorize"
 
+BASIC_DESCRIPTION = "This is used solely for sending `client_id` and `client_secret` to the server."
+
+basic = HTTPBasic(description=BASIC_DESCRIPTION, auto_error=False)
 scheme = OAuth2AuthorizationCodeBearer(AUTHORIZE, TOKENS, auto_error=False)
 
 
@@ -54,8 +57,21 @@ async def optional_token_dependency(token: Optional[str] = Depends(scheme)) -> O
 
 
 async def client_credentials_dependency(
-    client_id: UUID = Body(), client_secret: str = Body()
+    basic_credentials: Optional[HTTPBasicCredentials] = Depends(basic)
 ) -> ClientCredentials:
+    if basic_credentials is None:
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS)
+
+    client_id_string = basic_credentials.username
+
+    try:
+        client_id = UUID(client_id_string)
+
+    except ValueError:
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS) from None
+
+    client_secret = basic_credentials.password
+
     client = await database.query_client(client_id=client_id)
 
     if client is None:
@@ -67,7 +83,7 @@ async def client_credentials_dependency(
         hasher.verify(secret_hash, client_secret)
 
     except VerifyMismatchError:
-        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS)
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS) from None
 
     if hasher.check_needs_rehash(secret_hash):
         secret_hash = hasher.hash(client_secret)
