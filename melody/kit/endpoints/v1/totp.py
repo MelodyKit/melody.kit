@@ -20,7 +20,7 @@ from melody.kit.totp import (
 __all__ = (
     "validate_totp",
     "generate_totp",
-    "delete_totp",
+    "remove_totp",
     "link_totp",
     "verify_totp",
 )
@@ -57,13 +57,22 @@ async def generate_totp(context: UserTokenDependency) -> str:
     return secret
 
 
+CodeDependency = Annotated[str, Form()]
+
+
 @v1.delete(
     "/totp",
     tags=[Tag.TOTP],
-    summary="Deletes TOTP secrets/",
+    summary="Removes TOTP secrets.",
 )
-async def delete_totp(context: UserTokenDependency) -> None:
-    await database.update_user_secret(user_id=context.user_id, secret=None)
+async def remove_totp(context: UserTokenDependency, code: CodeDependency) -> None:
+    self_id = context.user_id
+
+    secret = await fetch_secret_for(self_id)
+
+    validate_totp(secret, code)
+
+    await database.update_user_secret(user_id=self_id, secret=None)
 
 
 @v1.get("/totp/link", tags=[Tag.TOTP], summary="Fetches TOTP links.")
@@ -82,9 +91,6 @@ async def link_totp(context: UserTokenDependency) -> FileResponse:
     path = await generate_code(str(url), image_name)
 
     return FileResponse(path)
-
-
-CodeDependency = Annotated[str, Form()]
 
 
 @v1.post(

@@ -309,24 +309,28 @@ FormRefreshTokenDependency = Annotated[str, Form()]
 OptionalFormRefreshTokenDependency = Annotated[Optional[str], Form()]
 
 
-async def refresh_token_dependency(refresh_token: FormRefreshTokenDependency) -> Context:
+async def bound_refresh_token_dependency(
+    refresh_token: FormRefreshTokenDependency
+) -> BoundToken[Context]:
     context = await fetch_context_by_refresh_token(refresh_token)
 
     if context is None:
         raise AuthInvalid(INVALID_REFRESH_TOKEN)
 
-    return context
+    return BoundToken(refresh_token, context)
 
 
-RefreshTokenDependency = Annotated[Context, Depends(refresh_token_dependency)]
+BoundRefreshTokenDependency = Annotated[
+    BoundToken[Context], Depends(bound_refresh_token_dependency)
+]
 
 
-async def optional_refresh_token_dependency(
+async def optional_bound_refresh_token_dependency(
     refresh_token: OptionalFormRefreshTokenDependency = None,
-) -> Optional[Context]:
-    return None if refresh_token is None else await refresh_token_dependency(refresh_token)
+) -> Optional[BoundToken[Context]]:
+    return None if refresh_token is None else await bound_refresh_token_dependency(refresh_token)
 
 
-OptionalRefreshTokenDependency = Annotated[
-    Optional[Context], Depends(optional_refresh_token_dependency)
+OptionalBoundRefreshTokenDependency = Annotated[
+    Optional[BoundToken[Context]], Depends(optional_bound_refresh_token_dependency)
 ]

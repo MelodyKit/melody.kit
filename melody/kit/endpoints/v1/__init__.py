@@ -58,9 +58,9 @@ from melody.kit.endpoints.v1.self import (
 )
 from melody.kit.endpoints.v1.statistics import get_statistics
 from melody.kit.endpoints.v1.totp import (
-    delete_totp,
     generate_totp,
     link_totp,
+    remove_totp,
     verify_totp,
 )
 from melody.kit.endpoints.v1.tracks import get_track, get_track_link
@@ -142,7 +142,7 @@ __all__ = (
     "get_statistics",
     # TOTP
     "generate_totp",
-    "delete_totp",
+    "remove_totp",
     "link_totp",
     "verify_totp",
     # auth

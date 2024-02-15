@@ -7,9 +7,7 @@ from fastapi import Form
 from typing_aliases import NormalError
 
 from melody.kit.authorization import (
-    OptionalAuthorizationCodeDependency,
-    delete_authorization_codes_with,
-    generate_authorization_code_with,
+    OptionalAuthorizationCodeDependency, delete_authorization_codes_with
 )
 from melody.kit.contexts import ClientContext, Context, UserContext
 from melody.kit.core import database, hasher, v1
@@ -21,14 +19,15 @@ from melody.kit.errors import AuthInvalid, Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
 from melody.kit.oauth2 import (
     BoundTokenDependency,
+    OptionalBoundRefreshTokenDependency,
     OptionalClientCredentialsDependency,
-    OptionalRefreshTokenDependency,
     TokenDependency,
     UserTokenDependency,
 )
 from melody.kit.tokens import (
     delete_access_token,
     delete_access_tokens_with,
+    delete_refresh_token,
     delete_refresh_tokens_with,
     generate_tokens_with,
 )
@@ -139,7 +138,7 @@ GrantTypeDependency = Annotated[GrantType, Form()]
 async def tokens(
     grant_type: GrantTypeDependency,
     authorization_context: OptionalAuthorizationCodeDependency = None,
-    refresh_context: OptionalRefreshTokenDependency = None,
+    bound_refresh_token: OptionalBoundRefreshTokenDependency = None,
     client_credentials: OptionalClientCredentialsDependency = None,
 ) -> TokensData:
     context: Optional[Context] = None
@@ -167,10 +166,12 @@ async def tokens(
         context = ClientContext(client_id)
 
     if grant_type.is_refresh_token():
-        if refresh_context is None:
+        if bound_refresh_token is None:
             raise AuthInvalid(EXPECTED_REFRESH_TOKEN)
 
-        context = refresh_context
+        await delete_refresh_token(bound_refresh_token.token)
+
+        context = bound_refresh_token.context
 
     if context is None:
         unreachable()
