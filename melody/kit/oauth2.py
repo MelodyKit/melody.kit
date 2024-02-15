@@ -93,7 +93,7 @@ scheme = OAuth2Scheme(authorize_url=AUTHORIZE, tokens_url=TOKENS, scope_setup=SC
 
 BASIC_DESCRIPTION = "This is used solely for sending `client_id` and `client_secret` credentials."
 
-basic = HTTPBasic(description=BASIC_DESCRIPTION, auto_error=True)
+basic = HTTPBasic(description=BASIC_DESCRIPTION, auto_error=False)
 
 
 @frozen()
