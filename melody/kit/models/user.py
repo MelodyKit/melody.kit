@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from attrs import define, field
 from edgedb import Object
@@ -18,7 +18,7 @@ from melody.kit.links import (
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.models.privacy import UserPrivacy
-from melody.kit.uri import URI
+from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
 
@@ -57,8 +57,6 @@ __all__ = (
 
 
 class UserData(EntityData):
-    uri: str
-
     follower_count: int
 
     stream_count: int
@@ -70,7 +68,9 @@ class UserData(EntityData):
 
 
 @define(kw_only=True)
-class User(Linked, Entity):
+class User(Linked, Locatable, Entity):
+    TYPE: ClassVar[EntityType] = EntityType.USER
+
     follower_count: int = field(default=DEFAULT_COUNT)
 
     stream_count: int = field(default=DEFAULT_COUNT)
@@ -80,15 +80,9 @@ class User(Linked, Entity):
 
     discord_id: Optional[str] = field(default=None)
 
-    uri: URI = field(init=False)
-
     @property
     def privacy(self) -> UserPrivacy:
         return UserPrivacy(id=self.id, privacy_type=self.privacy_type)
-
-    @uri.default
-    def default_uri(self) -> URI:
-        return URI(type=EntityType.USER, id=self.id)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:

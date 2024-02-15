@@ -72,10 +72,22 @@ hours = 0
 minutes = 0
 seconds = 0
 
-[melody.token.verification]
+[melody.authorization]
 size = 32
 
-[melody.token.verification.expires]
+[melody.authorization.expires]
+years = 0
+months = 0
+weeks = 0
+days = 0
+hours = 0
+minutes = 0
+seconds = 0
+
+[melody.verification]
+size = 32
+
+[melody.verification.expires]
 years = 0
 months = 0
 weeks = 0

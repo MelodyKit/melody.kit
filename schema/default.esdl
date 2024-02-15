@@ -217,6 +217,8 @@ module default {
         }
 
         secret: str;
+
+        multi clients extending with_linked_at: Client;
     }
 
     # non-entities
@@ -237,6 +239,8 @@ module default {
         required creator: User {
             on target delete delete source;
         };
+
+        multi users := .<clients[is User];
 
         required secret_hash: str;
     }

@@ -1,6 +1,6 @@
-from typing import List, Optional, Type, TypeVar
+from typing import FrozenSet, Iterable, List, Optional, Type, TypeVar
 
-from attrs import define, field
+from attrs import define, field, frozen
 from cattrs.gen import override
 from pendulum import DateTime, Duration
 from typing_extensions import Self
@@ -26,23 +26,33 @@ def split_scope(scope: str) -> List[str]:
     return scope.split(SCOPE_SEPARATOR)
 
 
+def converter(tokens: Iterable[str]) -> FrozenSet[str]:
+    return frozenset(tokens)
+
+
 S = TypeVar("S", bound="Scopes")
 
 
-@define()
+@frozen()
 class Scopes:
-    scopes: List[str] = field(factory=list)
+    tokens: FrozenSet[str] = field(factory=frozenset, converter=converter)
 
     @classmethod
     def from_scope(cls, scope: str) -> Self:
         return cls(split_scope(scope))
 
     def to_scope(self) -> str:
-        return concat_scopes(self.scopes)
+        return concat_scopes(self.tokens)
 
     @property
     def scope(self) -> str:
         return self.to_scope()
+
+    def has_tokens(self, tokens: Iterable[str]) -> bool:
+        return converter(tokens) <= self.tokens
+
+    def has(self, *tokens: str) -> bool:
+        return self.has_tokens(tokens)
 
 
 def structure_scopes(scope: str, scopes_type: Type[S]) -> S:
@@ -72,12 +82,12 @@ EXPIRES_IN = "expires_in"
 SCOPE = "scope"
 
 
-register_unstructure_hook_rename = register_unstructure_hook(scopes=override(rename=SCOPE))
-register_structure_hook_rename = register_structure_hook(scopes=override(rename=SCOPE))
+register_unstructure_hook_rename_scopes = register_unstructure_hook(scopes=override(rename=SCOPE))
+register_structure_hook_rename_scopes = register_structure_hook(scopes=override(rename=SCOPE))
 
 
-@register_unstructure_hook_rename
-@register_structure_hook_rename
+@register_unstructure_hook_rename_scopes
+@register_structure_hook_rename_scopes
 @define()
 class Tokens:
     access_token: str = field()
@@ -109,6 +119,9 @@ class Tokens:
     def into_data(self) -> TokensData:
         return CONVERTER.unstructure(self)  # type: ignore[no-any-return]
 
+
+AUTHORIZATION = "Authorization"
+AUTHORIZATION_SEPARATOR = " "
 
 AUTHORIZATION_FORMAT = "{type} {content}"
 authorization_format = AUTHORIZATION_FORMAT.format

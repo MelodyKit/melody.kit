@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, TypeVar
+from typing import ClassVar, List, Optional, TypeVar
 
 from attrs import define, field
 from edgedb import Object
@@ -21,7 +21,7 @@ from melody.kit.links import (
 )
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
-from melody.kit.uri import URI
+from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 from melody.shared.date_time import convert_standard_date, utc_today
 from melody.shared.typing import Data
@@ -37,8 +37,6 @@ __all__ = (
 
 
 class AlbumData(EntityData):
-    uri: str
-
     artists: List[ArtistData]
 
     album_type: str
@@ -54,7 +52,9 @@ class AlbumData(EntityData):
 
 
 @define(kw_only=True)
-class Album(Linked, Entity):
+class Album(Linked, Locatable, Entity):
+    TYPE: ClassVar[EntityType] = EntityType.ALBUM
+
     artists: List[Artist] = field(factory=list)
 
     album_type: AlbumType = field(default=AlbumType.DEFAULT)
@@ -67,12 +67,6 @@ class Album(Linked, Entity):
     label: Optional[str] = field(default=None)
 
     genres: List[str] = field(factory=list)
-
-    uri: URI = field(init=False)
-
-    @uri.default
-    def default_uri(self) -> URI:
-        return URI(type=EntityType.ALBUM, id=self.id)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from attrs import define, field
 from edgedb import Object
@@ -20,7 +20,7 @@ from melody.kit.links import (
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.models.privacy import PlaylistPrivacy, UserPrivacy
-from melody.kit.uri import URI
+from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
 
@@ -37,8 +37,6 @@ __all__ = (
 class PlaylistData(EntityData):
     owner: Optional[UserData]
 
-    uri: str
-
     follower_count: int
 
     description: Optional[str]
@@ -54,7 +52,9 @@ OWNER_NOT_ATTACHED = "`owner` is not attached"
 
 
 @define(kw_only=True)
-class Playlist(Linked, Entity):
+class Playlist(Linked, Locatable, Entity):
+    TYPE: ClassVar[EntityType] = EntityType.PLAYLIST
+
     owner: Optional[User] = field(default=None)
 
     follower_count: int = field(default=DEFAULT_COUNT)
@@ -66,12 +66,6 @@ class Playlist(Linked, Entity):
     track_count: int = field(default=DEFAULT_COUNT)
 
     privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
-
-    uri: URI = field(init=False)
-
-    @uri.default
-    def default_uri(self) -> URI:
-        return URI(type=EntityType.PLAYLIST, id=self.id)
 
     def attach_owner(self, owner: User) -> Self:
         self.owner = owner

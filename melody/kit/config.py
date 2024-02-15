@@ -118,18 +118,37 @@ class ExpiresConfig:
 
 
 @define()
-class SpecificTokenConfig:
+class SpecificConfig:
     size: int
     expires: ExpiresConfig
+
+
+@define()
+class AccessConfig(SpecificConfig):
+    pass
+
+
+@define()
+class RefreshConfig(SpecificConfig):
+    pass
 
 
 @define()
 class TokenConfig:
     type: str
 
-    access: SpecificTokenConfig
-    refresh: SpecificTokenConfig
-    verification: SpecificTokenConfig
+    access: AccessConfig
+    refresh: RefreshConfig
+
+
+@define()
+class AuthorizationConfig(SpecificConfig):
+    pass
+
+
+@define()
+class VerificationConfig(SpecificConfig):
+    pass
 
 
 @define()
@@ -204,28 +223,26 @@ EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_DAYS = expected("melody.token.refresh.expi
 EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_HOURS = expected("melody.token.refresh.expires.hours")
 EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_MINUTES = expected("melody.token.refresh.expires.minutes")
 EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES_SECONDS = expected("melody.token.refresh.expires.seconds")
-EXPECTED_MELODY_TOKEN_VERIFICATION = expected("melody.token.verification")
-EXPECTED_MELODY_TOKEN_VERIFICATION_SIZE = expected("melody.token.verification.size")
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES = expected("melody.token.verification.expires")
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_YEARS = expected(
-    "melody.token.verification.expires.years"
-)
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MONTHS = expected(
-    "melody.token.verification.expires.months"
-)
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_WEEKS = expected(
-    "melody.token.verification.expires.weeks"
-)
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_DAYS = expected("melody.token.verification.expires.days")
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_HOURS = expected(
-    "melody.token.verification.expires.hours"
-)
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MINUTES = expected(
-    "melody.token.verification.expires.minutes"
-)
-EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_SECONDS = expected(
-    "melody.token.verification.expires.seconds"
-)
+EXPECTED_MELODY_AUTHORIZATION = expected("melody.authorization")
+EXPECTED_MELODY_AUTHORIZATION_SIZE = expected("melody.authorization.size")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES = expected("melody.authorization.expires")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_YEARS = expected("melody.authorization.expires.years")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_MONTHS = expected("melody.authorization.expires.months")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_WEEKS = expected("melody.authorization.expires.weeks")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_DAYS = expected("melody.authorization.expires.days")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_HOURS = expected("melody.authorization.expires.hours")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_MINUTES = expected("melody.authorization.expires.minutes")
+EXPECTED_MELODY_AUTHORIZATION_EXPIRES_SECONDS = expected("melody.authorization.expires.seconds")
+EXPECTED_MELODY_VERIFICATION = expected("melody.verification")
+EXPECTED_MELODY_VERIFICATION_SIZE = expected("melody.verification.size")
+EXPECTED_MELODY_VERIFICATION_EXPIRES = expected("melody.verification.expires")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_YEARS = expected("melody.verification.expires.years")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_MONTHS = expected("melody.verification.expires.months")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_WEEKS = expected("melody.verification.expires.weeks")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_DAYS = expected("melody.verification.expires.days")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_HOURS = expected("melody.verification.expires.hours")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_MINUTES = expected("melody.verification.expires.minutes")
+EXPECTED_MELODY_VERIFICATION_EXPIRES_SECONDS = expected("melody.verification.expires.seconds")
 EXPECTED_MELODY_WEB = expected("melody.web")
 EXPECTED_MELODY_WEB_HOST = expected("melody.web.host")
 EXPECTED_MELODY_WEB_PORT = expected("melody.web.port")
@@ -254,6 +271,8 @@ class Config:
     log: LogConfig
     redis: RedisConfig
     token: TokenConfig
+    authorization: AuthorizationConfig
+    verification: VerificationConfig
     web: WebConfig
     bot: BotConfig
     discord: ClientConfig
@@ -359,15 +378,9 @@ class Config:
         refresh_expires_data = refresh_data.expires.unwrap_or_else(AnyConfigData)
         refresh_expires_config = refresh_config.expires
 
-        verification_data = token_data.verification.unwrap_or_else(AnyConfigData)
-        verification_config = token_config.verification
-
-        verification_expires_data = verification_data.expires.unwrap_or_else(AnyConfigData)
-        verification_expires_config = verification_config.expires
-
         token = TokenConfig(
             type=token_data.type.unwrap_or(token_config.type),
-            access=SpecificTokenConfig(
+            access=AccessConfig(
                 size=access_data.size.unwrap_or(access_config.size),
                 expires=ExpiresConfig(
                     years=access_expires_data.years.unwrap_or(access_expires_config.years),
@@ -379,7 +392,7 @@ class Config:
                     seconds=access_expires_data.seconds.unwrap_or(access_expires_config.seconds),
                 ),
             ),
-            refresh=SpecificTokenConfig(
+            refresh=RefreshConfig(
                 size=refresh_data.size.unwrap_or(refresh_config.size),
                 expires=ExpiresConfig(
                     years=refresh_expires_data.years.unwrap_or(refresh_expires_config.years),
@@ -391,28 +404,60 @@ class Config:
                     seconds=refresh_expires_data.seconds.unwrap_or(refresh_expires_config.seconds),
                 ),
             ),
-            verification=SpecificTokenConfig(
-                size=verification_data.size.unwrap_or(verification_config.size),
-                expires=ExpiresConfig(
-                    years=verification_expires_data.years.unwrap_or(
-                        verification_expires_config.years
-                    ),
-                    months=verification_expires_data.months.unwrap_or(
-                        verification_expires_config.months
-                    ),
-                    weeks=verification_expires_data.weeks.unwrap_or(
-                        verification_expires_config.weeks
-                    ),
-                    days=verification_expires_data.days.unwrap_or(verification_expires_config.days),
-                    hours=verification_expires_data.hours.unwrap_or(
-                        verification_expires_config.hours
-                    ),
-                    minutes=verification_expires_data.minutes.unwrap_or(
-                        verification_expires_config.minutes
-                    ),
-                    seconds=verification_expires_data.seconds.unwrap_or(
-                        verification_expires_config.seconds
-                    ),
+        )
+
+        authorization_data = config_data.authorization.unwrap_or_else(AnyConfigData)
+        authorization_config = default_config.authorization
+
+        authorization_expires_data = authorization_data.expires.unwrap_or_else(AnyConfigData)
+        authorization_expires_config = authorization_config.expires
+
+        authorization = AuthorizationConfig(
+            size=authorization_data.size.unwrap_or(authorization_config.size),
+            expires=ExpiresConfig(
+                years=authorization_expires_data.years.unwrap_or(
+                    authorization_expires_config.years
+                ),
+                months=authorization_expires_data.months.unwrap_or(
+                    authorization_expires_config.months
+                ),
+                weeks=authorization_expires_data.weeks.unwrap_or(
+                    authorization_expires_config.weeks
+                ),
+                days=authorization_expires_data.days.unwrap_or(authorization_expires_config.days),
+                hours=authorization_expires_data.hours.unwrap_or(
+                    authorization_expires_config.hours
+                ),
+                minutes=authorization_expires_data.minutes.unwrap_or(
+                    authorization_expires_config.minutes
+                ),
+                seconds=authorization_expires_data.seconds.unwrap_or(
+                    authorization_expires_config.seconds
+                ),
+            ),
+        )
+
+        verification_data = config_data.verification.unwrap_or_else(AnyConfigData)
+        verification_config = default_config.verification
+
+        verification_expires_data = verification_data.expires.unwrap_or_else(AnyConfigData)
+        verification_expires_config = verification_config.expires
+
+        verification = VerificationConfig(
+            size=verification_data.size.unwrap_or(verification_config.size),
+            expires=ExpiresConfig(
+                years=verification_expires_data.years.unwrap_or(verification_expires_config.years),
+                months=verification_expires_data.months.unwrap_or(
+                    verification_expires_config.months
+                ),
+                weeks=verification_expires_data.weeks.unwrap_or(verification_expires_config.weeks),
+                days=verification_expires_data.days.unwrap_or(verification_expires_config.days),
+                hours=verification_expires_data.hours.unwrap_or(verification_expires_config.hours),
+                minutes=verification_expires_data.minutes.unwrap_or(
+                    verification_expires_config.minutes
+                ),
+                seconds=verification_expires_data.seconds.unwrap_or(
+                    verification_expires_config.seconds
                 ),
             ),
         )
@@ -463,6 +508,8 @@ class Config:
             log=log,
             redis=redis,
             token=token,
+            authorization=authorization,
+            verification=verification,
             web=web,
             bot=bot,
             discord=discord,
@@ -558,14 +605,9 @@ class Config:
         refresh_data = token_data.refresh.expect(EXPECTED_MELODY_TOKEN_REFRESH)
         refresh_expires_data = refresh_data.expires.expect(EXPECTED_MELODY_TOKEN_REFRESH_EXPIRES)
 
-        verification_data = token_data.verification.expect(EXPECTED_MELODY_TOKEN_VERIFICATION)
-        verification_expires_data = verification_data.expires.expect(
-            EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES
-        )
-
         token = TokenConfig(
             type=token_data.type.expect(EXPECTED_MELODY_TOKEN_TYPE),
-            access=SpecificTokenConfig(
+            access=AccessConfig(
                 size=access_data.size.expect(EXPECTED_MELODY_TOKEN_ACCESS_SIZE),
                 expires=ExpiresConfig(
                     years=access_expires_data.years.expect(
@@ -589,7 +631,7 @@ class Config:
                     ),
                 ),
             ),
-            refresh=SpecificTokenConfig(
+            refresh=RefreshConfig(
                 size=refresh_data.size.expect(EXPECTED_MELODY_TOKEN_REFRESH_SIZE),
                 expires=ExpiresConfig(
                     years=refresh_expires_data.years.expect(
@@ -615,30 +657,68 @@ class Config:
                     ),
                 ),
             ),
-            verification=SpecificTokenConfig(
-                size=verification_data.size.expect(EXPECTED_MELODY_TOKEN_VERIFICATION_SIZE),
-                expires=ExpiresConfig(
-                    years=verification_expires_data.years.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_YEARS
-                    ),
-                    months=verification_expires_data.months.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MONTHS
-                    ),
-                    weeks=verification_expires_data.weeks.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_WEEKS
-                    ),
-                    days=verification_expires_data.days.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_DAYS
-                    ),
-                    hours=verification_expires_data.hours.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_HOURS
-                    ),
-                    minutes=verification_expires_data.minutes.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_MINUTES
-                    ),
-                    seconds=verification_expires_data.seconds.expect(
-                        EXPECTED_MELODY_TOKEN_VERIFICATION_EXPIRES_SECONDS
-                    ),
+        )
+
+        authorization_data = config_data.authorization.expect(EXPECTED_MELODY_AUTHORIZATION)
+        authorization_expires_data = authorization_data.expires.expect(
+            EXPECTED_MELODY_AUTHORIZATION_EXPIRES
+        )
+
+        authorization = AuthorizationConfig(
+            size=authorization_data.size.expect(EXPECTED_MELODY_AUTHORIZATION_SIZE),
+            expires=ExpiresConfig(
+                years=authorization_expires_data.years.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_YEARS
+                ),
+                months=authorization_expires_data.months.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_MONTHS
+                ),
+                weeks=authorization_expires_data.weeks.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_WEEKS
+                ),
+                days=authorization_expires_data.days.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_DAYS
+                ),
+                hours=authorization_expires_data.hours.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_HOURS
+                ),
+                minutes=authorization_expires_data.minutes.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_MINUTES
+                ),
+                seconds=authorization_expires_data.seconds.expect(
+                    EXPECTED_MELODY_AUTHORIZATION_EXPIRES_SECONDS
+                ),
+            ),
+        )
+
+        verification_data = config_data.verification.expect(EXPECTED_MELODY_VERIFICATION)
+        verification_expires_data = verification_data.expires.expect(
+            EXPECTED_MELODY_VERIFICATION_EXPIRES
+        )
+
+        verification = VerificationConfig(
+            size=verification_data.size.expect(EXPECTED_MELODY_VERIFICATION_SIZE),
+            expires=ExpiresConfig(
+                years=verification_expires_data.years.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_YEARS
+                ),
+                months=verification_expires_data.months.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_MONTHS
+                ),
+                weeks=verification_expires_data.weeks.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_WEEKS
+                ),
+                days=verification_expires_data.days.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_DAYS
+                ),
+                hours=verification_expires_data.hours.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_HOURS
+                ),
+                minutes=verification_expires_data.minutes.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_MINUTES
+                ),
+                seconds=verification_expires_data.seconds.expect(
+                    EXPECTED_MELODY_VERIFICATION_EXPIRES_SECONDS
                 ),
             ),
         )
@@ -714,6 +794,8 @@ class Config:
             log=log,
             redis=redis,
             token=token,
+            authorization=authorization,
+            verification=verification,
             web=web,
             bot=bot,
             discord=discord,

@@ -8,19 +8,14 @@ from melody.kit.endpoints.v1.artists import (
 from melody.kit.endpoints.v1.auth import (
     forgot,
     login,
-    logout,
     register,
     reset,
     revoke,
+    revoke_all,
     tokens,
     verify,
 )
 from melody.kit.endpoints.v1.clients import get_client
-from melody.kit.endpoints.v1.connections import (
-    connect_discord,
-    disconnect_discord,
-    discord_callback,
-)
 from melody.kit.endpoints.v1.playlists import (
     change_playlist_image,
     create_playlist,
@@ -29,9 +24,10 @@ from melody.kit.endpoints.v1.playlists import (
     get_playlist_image,
     get_playlist_link,
     get_playlist_tracks,
+    remove_playlist_image,
     update_playlist,
 )
-from melody.kit.endpoints.v1.search import search_items
+from melody.kit.endpoints.v1.search import search_entities
 from melody.kit.endpoints.v1.self import (
     add_self_followed_playlists,
     add_self_following,
@@ -53,6 +49,7 @@ from melody.kit.endpoints.v1.self import (
     remove_self_artists,
     remove_self_followed_playlists,
     remove_self_following,
+    remove_self_image,
     remove_self_tracks,
     save_self_albums,
     save_self_artists,
@@ -101,6 +98,7 @@ __all__ = (
     "get_playlist_link",
     "get_playlist_image",
     "change_playlist_image",
+    "remove_playlist_image",
     "get_playlist_tracks",
     # users
     "get_user",
@@ -118,6 +116,7 @@ __all__ = (
     "get_self_link",
     "get_self_image",
     "change_self_image",
+    "remove_self_image",
     "get_self_tracks",
     "save_self_tracks",
     "remove_self_tracks",
@@ -148,19 +147,15 @@ __all__ = (
     "verify_totp",
     # auth
     "login",
-    "logout",
     "tokens",
     "revoke",
+    "revoke_all",
     "register",
     "verify",
     "reset",
     "forgot",
     # search
-    "search_items",
-    # connections
-    "connect_discord",
-    "disconnect_discord",
-    "discord_callback",
+    "search_entities",
     # clients
     "get_client",
 )

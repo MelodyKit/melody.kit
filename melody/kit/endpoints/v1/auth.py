@@ -1,45 +1,51 @@
 from typing import Optional
-from uuid import UUID
+from typing_extensions import Annotated
 
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
-from fastapi import Body, Depends
+from fastapi import Form
 from typing_aliases import NormalError
 
-from melody.kit.core import database, hasher, v1
-from melody.kit.dependencies import (
-    bound_verification_token_dependency,
-    email_deliverability_dependency,
-    email_dependency,
+from melody.kit.authorization import (
+    OptionalAuthorizationCodeDependency,
+    delete_authorization_codes_with,
 )
+from melody.kit.contexts import ClientContext, Context, UserContext
+from melody.kit.core import database, hasher, v1
+from melody.kit.dependencies import EmailDeliverabilityDependency, EmailDependency
 from melody.kit.email import email_message, send_email_message, support
 from melody.kit.endpoints.v1.totp import validate_totp
 from melody.kit.enums import Tag
-from melody.kit.errors import Conflict, NotFound, Unauthorized
+from melody.kit.errors import AuthError, Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
 from melody.kit.oauth2 import (
-    ClientCredentials,
-    bound_token_dependency,
-    client_credentials_dependency,
-    token_dependency,
+    BoundTokenDependency,
+    OptionalClientCredentialsDependency,
+    OptionalRefreshTokenDependency,
+    TokenDependency,
+    UserTokenDependency,
 )
 from melody.kit.tokens import (
-    BoundToken,
     delete_access_token,
-    delete_access_tokens_for,
-    delete_refresh_tokens_for,
-    delete_verification_token,
-    generate_tokens_for,
-    generate_verification_token_for,
+    delete_access_tokens_with,
+    delete_refresh_tokens_with,
+    generate_tokens_with,
+)
+from melody.kit.verification import (
+    VerificationCodeDependency,
+    delete_verification_code,
+    delete_verification_codes_for,
+    generate_verification_code_for,
 )
 from melody.shared.enums import GrantType
+from melody.shared.markers import unreachable
 from melody.shared.tokens import TokensData
 
 __all__ = (
     "login",
-    "logout",
-    "tokens",
     "revoke",
+    "tokens",
+    "revoke_all",
     "register",
     "verify",
     "reset",
@@ -58,15 +64,19 @@ CAN_NOT_FIND_USER = "can not find the user with the ID `{}`"
 can_not_find_user = CAN_NOT_FIND_USER.format
 
 
+PasswordDependency = Annotated[str, Form()]
+CodeDependency = Annotated[Optional[str], Form()]
+
+
 @v1.post(
     "/login",
     tags=[Tag.AUTH],
     summary="Logs in the user.",
 )
 async def login(
-    email: str = Depends(email_dependency),
-    password: str = Body(),
-    code: Optional[str] = Body(default=None),
+    email: EmailDependency,
+    password: PasswordDependency,
+    code: CodeDependency = None,
 ) -> TokensData:
     user_info = await database.query_user_info_by_email(email=email)
 
@@ -90,7 +100,9 @@ async def login(
 
     validate_totp(secret, code)
 
-    tokens = await generate_tokens_for(user_id)
+    context = UserContext(user_id)
+
+    tokens = await generate_tokens_with(context)
 
     if hasher.check_needs_rehash(password_hash):
         password_hash = hasher.hash(password)
@@ -101,53 +113,95 @@ async def login(
 
 
 @v1.post(
-    "/logout",
+    "/revoke",
     tags=[Tag.AUTH],
-    summary="Logs out the user, revoking the token used.",
+    summary="Revokes the token.",
 )
-async def logout(
-    bound_token: BoundToken = Depends(bound_token_dependency),
-) -> None:
+async def revoke(bound_token: BoundTokenDependency) -> None:
     await delete_access_token(bound_token.token)
+
+
+EXPECTED_CODE = "expected code for `authorization_code` grant type"
+INVALID_CODE = "invalid code"
+
+EXPECTED_CLIENT_CREDENTIALS = "expected client credentials"
+CLIENT_CREDENTIALS_MISMATCH = "client credentials mismatch"
+
+EXPECTED_REFRESH_TOKEN = "expected refresh token for `refresh_token` grant type"
+INVALID_REFRESH_TOKEN = "invalid refresh token"
+
+
+GrantTypeDependency = Annotated[GrantType, Form()]
 
 
 @v1.post("/tokens", tags=[Tag.AUTH], summary="Returns tokens.")
 async def tokens(
-    grant_type: GrantType,
-    code: Optional[str] = None,
-    refresh_token: Optional[str] = None,
-    client_credentials: ClientCredentials = Depends(client_credentials_dependency),
-) -> None:
+    grant_type: GrantTypeDependency,
+    authorization_context: OptionalAuthorizationCodeDependency = None,
+    refresh_context: OptionalRefreshTokenDependency = None,
+    client_credentials: OptionalClientCredentialsDependency = None,
+) -> TokensData:
+    context: Optional[Context] = None
+
     if grant_type.is_authorization_code():
-        ...
+        if authorization_context is None:
+            raise AuthError(EXPECTED_CODE)
+
+        if client_credentials is None:
+            raise AuthError(EXPECTED_CLIENT_CREDENTIALS)
+
+        if client_credentials.id != authorization_context.client_id:
+            raise AuthError(CLIENT_CREDENTIALS_MISMATCH)
+
+        await delete_authorization_codes_with(authorization_context)
+
+        context = authorization_context.into_context()
 
     if grant_type.is_client_credentials():
-        ...
+        if client_credentials is None:
+            raise AuthError(EXPECTED_CLIENT_CREDENTIALS)
+
+        client_id = client_credentials.id
+
+        context = ClientContext(client_id)
 
     if grant_type.is_refresh_token():
-        ...
+        if refresh_context is None:
+            raise AuthError(EXPECTED_REFRESH_TOKEN)
+
+        context = refresh_context
+
+    if context is None:
+        unreachable()
+
+    tokens = await generate_tokens_with(context)
+
+    return tokens.into_data()
 
 
 @v1.post(
-    "/revoke",
+    "/revoke-all",
     tags=[Tag.AUTH],
-    summary="Revokes all tokens of the user.",
+    summary="Revokes all tokens.",
 )
-async def revoke(self_id: UUID = Depends(token_dependency)) -> None:
-    await delete_access_tokens_for(self_id)
-    await delete_refresh_tokens_for(self_id)
+async def revoke_all(context: TokenDependency) -> None:
+    await delete_access_tokens_with(context)
+    await delete_refresh_tokens_with(context)
 
 
 EMAIL_TAKEN = "the email `{}` is taken"
 email_taken = EMAIL_TAKEN.format
 
-VERIFICATION = "MelodyKit verification token"
+VERIFICATION = "MelodyKit verification code"
 VERIFICATION_CONTENT = """
-Here is your verification token:
+Here is your verification code:
 
-{verification_token}
+{verification_code}
 """.strip()
 verification_content = VERIFICATION_CONTENT.format
+
+
+NameDependency = Annotated[str, Form()]
 
 
 @v1.post(
@@ -156,9 +210,9 @@ verification_content = VERIFICATION_CONTENT.format
     summary="Registers the user.",
 )
 async def register(
-    name: str = Body(),
-    email: str = Depends(email_deliverability_dependency),
-    password: str = Body(),
+    name: NameDependency,
+    email: EmailDeliverabilityDependency,
+    password: PasswordDependency,
 ) -> BaseData:
     password_hash = hasher.hash(password)
 
@@ -171,7 +225,7 @@ async def register(
     else:
         self_id = self.id
 
-        verification_token = await generate_verification_token_for(self_id)
+        verification_code = await generate_verification_code_for(self_id)
 
         try:
             await send_email_message(
@@ -179,13 +233,13 @@ async def register(
                     author=support(),
                     target=email,
                     subject=VERIFICATION,
-                    content=verification_content(verification_token=verification_token),
+                    content=verification_content(verification_code=verification_code),
                 )
             )
 
         except NormalError:
             await database.delete_user(user_id=self_id)
-            await delete_verification_token(verification_token)
+            await delete_verification_code(verification_code)
 
             raise
 
@@ -197,10 +251,10 @@ async def register(
     tags=[Tag.AUTH],
     summary="Verifies the user.",
 )
-async def verify(bound_token: BoundToken = Depends(bound_verification_token_dependency)) -> None:
-    await delete_verification_token(bound_token.token)
+async def verify(self_id: VerificationCodeDependency) -> None:
+    await delete_verification_codes_for(self_id)
 
-    await database.update_user_verified(user_id=bound_token.self_id, verified=True)
+    await database.update_user_verified(user_id=self_id, verified=True)
 
 
 @v1.post(
@@ -208,8 +262,10 @@ async def verify(bound_token: BoundToken = Depends(bound_verification_token_depe
     tags=[Tag.AUTH],
     summary="Resets the password of the user, revoking all their tokens.",
 )
-async def reset(self_id: UUID = Depends(token_dependency), password: str = Body()) -> None:
-    await revoke(self_id)
+async def reset(context: UserTokenDependency, password: PasswordDependency) -> None:
+    await revoke_all(context)
+
+    self_id = context.user_id
 
     password_hash = hasher.hash(password)
 
@@ -230,13 +286,19 @@ temporary_token_content = TEMPORARY_TOKEN_CONTENT.format
     tags=[Tag.AUTH],
     summary="Allows the user to reset their password via the email.",
 )
-async def forgot(email: str = Depends(email_dependency)) -> None:
+async def forgot(email: EmailDependency, code: CodeDependency = None) -> None:
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
         raise NotFound(can_not_find_user_by_email(email))
 
-    tokens = await generate_tokens_for(user_info.id)
+    secret = user_info.secret
+
+    validate_totp(secret, code)
+
+    context = UserContext(user_info.id)
+
+    tokens = await generate_tokens_with(context)
 
     temporary_token = tokens.access_token
 

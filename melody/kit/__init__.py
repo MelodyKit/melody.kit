@@ -5,8 +5,6 @@ from melody.kit.database import Database
 from melody.kit.enums import AlbumType, EntityType, LogLevel, PrivacyType, Repeat
 from melody.kit.errors import (
     AuthError,
-    AuthExpected,
-    AuthInvalid,
     BadRequest,
     Conflict,
     Error,
@@ -54,8 +52,6 @@ __all__ = (
     "ErrorCode",
     "ErrorData",
     "AuthError",
-    "AuthExpected",
-    "AuthInvalid",
     "ValidationError",
     "BadRequest",
     "Unauthorized",

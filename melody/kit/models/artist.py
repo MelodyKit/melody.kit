@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from attrs import define, field
 from edgedb import Object
@@ -17,7 +17,7 @@ from melody.kit.links import (
 )
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
-from melody.kit.uri import URI
+from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
 
@@ -35,8 +35,6 @@ __all__ = (
 
 
 class ArtistData(EntityData):
-    uri: str
-
     follower_count: int
 
     stream_count: int
@@ -46,19 +44,15 @@ class ArtistData(EntityData):
 
 
 @define(kw_only=True)
-class Artist(Linked, Entity):
+class Artist(Linked, Locatable, Entity):
+    TYPE: ClassVar[EntityType] = EntityType.ARTIST
+
     follower_count: int = field(default=DEFAULT_COUNT)
 
     stream_count: int = field(default=DEFAULT_COUNT)
     stream_duration_ms: int = field(default=DEFAULT_DURATION)
 
     genres: List[str] = field(factory=list)
-
-    uri: URI = field(init=False)
-
-    @uri.default
-    def default_uri(self) -> URI:
-        return URI(type=EntityType.ARTIST, id=self.id)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:

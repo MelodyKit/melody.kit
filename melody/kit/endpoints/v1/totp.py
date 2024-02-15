@@ -1,7 +1,6 @@
-from typing import Optional
-from uuid import UUID
+from typing import Annotated, Optional
 
-from fastapi import Body, Depends
+from fastapi import Form
 from fastapi.responses import FileResponse
 from pyotp import TOTP
 
@@ -9,7 +8,7 @@ from melody.kit.code import generate_code
 from melody.kit.core import database, v1
 from melody.kit.enums import Tag
 from melody.kit.errors import NotFound, Unauthorized
-from melody.kit.oauth2 import token_dependency
+from melody.kit.oauth2 import UserTokenDependency
 from melody.kit.totp import (
     delete_secret_for,
     fetch_secret_for,
@@ -47,7 +46,9 @@ def validate_totp(secret: Optional[str], code: Optional[str]) -> None:
 
 
 @v1.post("/totp", tags=[Tag.TOTP], summary="Generates TOTP secrets.")
-async def generate_totp(self_id: UUID = Depends(token_dependency)) -> str:
+async def generate_totp(context: UserTokenDependency) -> str:
+    self_id = context.user_id
+
     secret = await fetch_secret_for(self_id)
 
     if secret is None:
@@ -61,12 +62,14 @@ async def generate_totp(self_id: UUID = Depends(token_dependency)) -> str:
     tags=[Tag.TOTP],
     summary="Deletes TOTP secrets/",
 )
-async def delete_totp(self_id: UUID = Depends(token_dependency)) -> None:
-    await database.update_user_secret(user_id=self_id, secret=None)
+async def delete_totp(context: UserTokenDependency) -> None:
+    await database.update_user_secret(user_id=context.user_id, secret=None)
 
 
 @v1.get("/totp/link", tags=[Tag.TOTP], summary="Fetches TOTP links.")
-async def link_totp(self_id: UUID = Depends(token_dependency)) -> FileResponse:
+async def link_totp(context: UserTokenDependency) -> FileResponse:
+    self_id = context.user_id
+
     secret = await fetch_secret_for(self_id)
 
     if secret is None:
@@ -81,12 +84,17 @@ async def link_totp(self_id: UUID = Depends(token_dependency)) -> FileResponse:
     return FileResponse(path)
 
 
+CodeDependency = Annotated[str, Form()]
+
+
 @v1.post(
     "/totp/verify",
     tags=[Tag.TOTP],
     summary="Verifies TOTP secrets.",
 )
-async def verify_totp(self_id: UUID = Depends(token_dependency), code: str = Body()) -> None:
+async def verify_totp(context: UserTokenDependency, code: CodeDependency) -> None:
+    self_id = context.user_id
+
     secret = await fetch_secret_for(self_id)
 
     if secret is None:

@@ -83,20 +83,20 @@ class Error(NormalError):
 
 
 class AuthError(Error):
-    """Authentication has failed."""
+    """Auth has failed."""
 
     CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_ERROR
     STATUS_CODE: ClassVar[int] = status.HTTP_401_UNAUTHORIZED
 
 
 class AuthExpected(AuthError):
-    """Authentication was expected."""
+    """Auth was expected."""
 
     CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_EXPECTED
 
 
 class AuthInvalid(AuthError):
-    """Authentication is invalid."""
+    """Auth is invalid."""
 
     CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_INVALID
 

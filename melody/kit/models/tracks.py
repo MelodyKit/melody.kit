@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from attrs import define, field
 from edgedb import Object
@@ -24,7 +24,7 @@ from melody.kit.links import (
     yandex_music_track,
 )
 from melody.kit.models.entity import Entity, EntityData
-from melody.kit.uri import URI
+from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 
 __all__ = (
@@ -38,8 +38,6 @@ __all__ = (
 
 
 class TrackData(EntityData):
-    uri: str
-
     album: Optional[AlbumData]
 
     artists: List[ArtistData]
@@ -58,7 +56,9 @@ ALBUM_NOT_ATTACHED = "`album` is not attached"
 
 
 @define(kw_only=True)
-class Track(Linked, Entity):
+class Track(Linked, Locatable, Entity):
+    TYPE: ClassVar[EntityType] = EntityType.TRACK
+
     album: Optional[Album] = field(default=None)
 
     artists: List[Artist] = field(factory=list)
@@ -71,12 +71,6 @@ class Track(Linked, Entity):
     stream_duration_ms: int = field(default=DEFAULT_DURATION)
 
     genres: List[str] = field(factory=list)
-
-    uri: URI = field(init=False)
-
-    @uri.default
-    def default_uri(self) -> URI:
-        return URI(type=EntityType.TRACK, id=self.id)
 
     def attach_album(self, album: Album) -> Self:
         self.album = album

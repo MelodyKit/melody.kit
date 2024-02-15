@@ -34,9 +34,9 @@ __all__ = (
     # tokens
     "ACCESS_TOKEN",
     "REFRESH_TOKEN",
-    "VERIFICATION_TOKEN",
-    # response types
-    "CODE",
+    # codes
+    "AUTHORIZATION_CODE",
+    "VERIFICATION_CODE",
     # user agent names
     "NAME",
     "PYTHON",
@@ -109,12 +109,14 @@ WRITE_BINARY: Literal["wb"] = "wb"
 
 ACCESS_TOKEN: Literal["access_token"] = "access_token"
 REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
-VERIFICATION_TOKEN: Literal["verification_token"] = "verification_token"
 
 # codes
 
-CODE = "code"
-CODE_SIZE = 32
+AUTHORIZATION_CODE: Literal["authorization_code"] = "authorization_code"
+VERIFICATION_CODE: Literal["verification_code"] = "verification_code"
+
+# PKCE
+
 CODE_VERIFIER_SIZE = 96
 
 # colors

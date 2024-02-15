@@ -1,26 +1,25 @@
 from typing import Optional
+from typing_extensions import Annotated
 from uuid import UUID
 
-from fastapi import Body, Depends, File, Query, UploadFile
+from fastapi import Body, Depends
 from fastapi.responses import FileResponse
-from yarl import URL
 
 from melody.kit.code import generate_code_for_uri
-from melody.kit.constants import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    MAX_LIMIT,
-    MIN_LIMIT,
-    MIN_OFFSET,
-)
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import request_url_dependency
+from melody.kit.dependencies import (
+    FileDependency,
+    LimitDependency,
+    OffsetDependency,
+    RequestURLDependency,
+)
 from melody.kit.enums import EntityType, PrivacyType, Tag
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import PlaylistData, PlaylistTracks, PlaylistTracksData
-from melody.kit.oauth2 import optional_token_dependency, token_dependency
+from melody.kit.oauth2 import PlaylistsWriteTokenDependency, token_dependency
 from melody.kit.privacy import (
     check_playlist_accessible_dependency,
     check_playlist_changeable_dependency,
@@ -37,6 +36,7 @@ __all__ = (
     "get_playlist_link",
     "get_playlist_image",
     "change_playlist_image",
+    "remove_playlist_image",
     "get_playlist_tracks",
 )
 
@@ -50,19 +50,40 @@ INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
 inaccessible_playlist = INACCESSIBLE_PLAYLIST.format
 
 
+NameDependency = Annotated[str, Body()]
+OptionalDescriptionDependency = Annotated[Optional[str], Body()]
+PrivacyTypeDependency = Annotated[PrivacyType, Body()]
+
+
+class CreatePlaylistPayload:
+    def __init__(
+        self,
+        name: NameDependency,
+        description: OptionalDescriptionDependency = None,
+        privacy_type: PrivacyTypeDependency = PrivacyType.DEFAULT,
+    ) -> None:
+        self.name = name
+        self.description = description
+        self.privacy_type = privacy_type
+
+
+CreatePlaylistPayloadDependency = Annotated[CreatePlaylistPayload, Depends()]
+
+
 @v1.post(
     "/playlists",
     tags=[Tag.PLAYLISTS],
     summary="Creates a new playlist.",
 )
 async def create_playlist(
-    name: str = Body(),
-    description: Optional[str] = Body(default=None),
-    privacy_type: PrivacyType = Body(default=PrivacyType.DEFAULT),
-    self_id: UUID = Depends(token_dependency),
+    payload: CreatePlaylistPayloadDependency,
+    context: PlaylistsWriteTokenDependency,
 ) -> BaseData:
     base = await database.insert_playlist(
-        name=name, description=description, privacy_type=privacy_type, owner_id=self_id
+        name=payload.name,
+        description=payload.description,
+        privacy_type=payload.privacy_type,
+        owner_id=context.user_id,
     )
 
     return base.into_data()
@@ -74,16 +95,32 @@ async def create_playlist(
     summary="Fetches the playlist.",
     dependencies=[Depends(check_playlist_accessible_dependency)],
 )
-async def get_playlist(
-    playlist_id: UUID,
-    self_id: Optional[UUID] = Depends(optional_token_dependency),
-) -> PlaylistData:
+async def get_playlist(playlist_id: UUID) -> PlaylistData:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
         raise NotFound(can_not_find_playlist(playlist_id))
 
     return playlist.into_data()
+
+
+OptionalNameDependency = Annotated[Optional[str], Body()]
+OptionalPrivacyTypeDependency = Annotated[Optional[PrivacyType], Body()]
+
+
+class UpdatePlaylistPayload:
+    def __init__(
+        self,
+        name: OptionalNameDependency = None,
+        description: OptionalDescriptionDependency = None,
+        privacy_type: OptionalPrivacyTypeDependency = None,
+    ) -> None:
+        self.name = name
+        self.description = description
+        self.privacy_type = privacy_type
+
+
+UpdatePlaylistPayloadDependency = Annotated[UpdatePlaylistPayload, Depends()]
 
 
 @v1.put(
@@ -94,10 +131,12 @@ async def get_playlist(
 )
 async def update_playlist(
     playlist_id: UUID,
-    name: Optional[str] = Body(default=None),
-    description: Optional[str] = Body(default=None),
-    privacy_type: Optional[PrivacyType] = Body(default=None),
+    payload: UpdatePlaylistPayloadDependency,
 ) -> None:
+    name = payload.name
+    description = payload.description
+    privacy_type = payload.privacy_type
+
     if name is None and description is None and privacy_type is None:
         return  # there is nothing to update
 
@@ -129,7 +168,7 @@ async def update_playlist(
     summary="Deletes the playlist.",
     dependencies=[Depends(check_playlist_changeable_dependency)],
 )
-async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_dependency)) -> None:
+async def delete_playlist(playlist_id: UUID) -> None:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
@@ -142,6 +181,7 @@ async def delete_playlist(playlist_id: UUID, user_id: UUID = Depends(token_depen
     "/playlists/{playlist_id}/link",
     tags=[Tag.PLAYLISTS],
     summary="Fetches the playlist's link.",
+    dependencies=[Depends(token_dependency)],
 )
 async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
@@ -178,7 +218,7 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     summary="Changes the playlist's image.",
     dependencies=[Depends(check_playlist_changeable_dependency)],
 )
-async def change_playlist_image(playlist_id: UUID, image: UploadFile = File()) -> None:
+async def change_playlist_image(playlist_id: UUID, image: FileDependency) -> None:
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
 
@@ -190,6 +230,20 @@ async def change_playlist_image(playlist_id: UUID, image: UploadFile = File()) -
         raise ValidationError(EXPECTED_SQUARE_IMAGE)
 
 
+@v1.delete(
+    "/playlists/{playlist_id}/image",
+    tags=[Tag.PLAYLISTS],
+    summary="Removes the playlist's image.",
+    dependencies=[Depends(check_playlist_changeable_dependency)],
+)
+async def remove_playlist_image(playlist_id: UUID) -> None:
+    uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
+
+    path = config.images / uri.image_name
+
+    path.unlink(missing_ok=True)
+
+
 @v1.get(
     "/playlists/{playlist_id}/tracks",
     tags=[Tag.PLAYLISTS],
@@ -198,9 +252,9 @@ async def change_playlist_image(playlist_id: UUID, image: UploadFile = File()) -
 )
 async def get_playlist_tracks(
     playlist_id: UUID,
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
-    url: URL = Depends(request_url_dependency),
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> PlaylistTracksData:
     counted = await database.query_playlist_tracks(
         playlist_id=playlist_id, offset=offset, limit=limit
@@ -212,7 +266,7 @@ async def get_playlist_tracks(
     items, count = counted
 
     playlist_tracks = PlaylistTracks(
-        items, Pagination.paginate(url=url, count=count, offset=offset, limit=limit)
+        items, Pagination.paginate(url=request_url, count=count, offset=offset, limit=limit)
     )
 
     return playlist_tracks.into_data()

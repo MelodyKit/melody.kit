@@ -1,14 +1,15 @@
 from typing import Optional, Set
 from uuid import UUID
 
-from fastapi import Depends
 from typing_aliases import Predicate
 
+from melody.kit.contexts import Context, is_client_user_context, is_user_context
 from melody.kit.core import database
 from melody.kit.errors import Forbidden, NotFound
 from melody.kit.models.playlist import Playlist
 from melody.kit.models.user import User
-from melody.kit.oauth2 import optional_token_dependency, token_dependency
+from melody.kit.oauth2 import PlaylistsWriteTokenDependency, TokenDependency
+from melody.kit.scopes import USER_FOLLOWING_READ
 
 
 async def are_friends(self_id: UUID, user_id: UUID) -> bool:
@@ -24,6 +25,15 @@ can_not_find_user = CAN_NOT_FIND_USER.format
 
 INACCESSIBLE_USER = "the user with ID `{}` is inaccessible"
 inaccessible_user = INACCESSIBLE_USER.format
+
+
+def self_id_from_context(context: Context) -> Optional[UUID]:
+    return (
+        context.user_id
+        if is_user_context(context)
+        or (is_client_user_context(context) and context.scopes.has(USER_FOLLOWING_READ))
+        else None
+    )
 
 
 async def check_user_accessible(user_id: UUID, self_id: Optional[UUID] = None) -> None:
@@ -44,10 +54,8 @@ async def check_user_accessible(user_id: UUID, self_id: Optional[UUID] = None) -
         raise Forbidden(inaccessible_user(user_id))
 
 
-async def check_user_accessible_dependency(
-    user_id: UUID, self_id: Optional[UUID] = Depends(optional_token_dependency)
-) -> None:
-    await check_user_accessible(user_id, self_id)
+async def check_user_accessible_dependency(user_id: UUID, context: TokenDependency) -> None:
+    await check_user_accessible(user_id, self_id_from_context(context))
 
 
 async def create_user_accessible_predicate(self_id: Optional[UUID] = None) -> Predicate[User]:
@@ -94,26 +102,24 @@ async def check_playlist_accessible(playlist_id: UUID, self_id: Optional[UUID] =
         raise Forbidden(inaccessible_playlist(playlist_id))
 
 
-async def check_playlist_accessible_dependency(
-    playlist_id: UUID, self_id: Optional[UUID] = Depends(optional_token_dependency)
-) -> None:
-    await check_playlist_accessible(playlist_id, self_id)
+async def check_playlist_accessible_dependency(playlist_id: UUID, context: TokenDependency) -> None:
+    await check_playlist_accessible(playlist_id, self_id_from_context(context))
 
 
-async def check_playlist_changeable(playlist_id: UUID, self_id: UUID) -> None:
+async def check_playlist_changeable(playlist_id: UUID, self_id: Optional[UUID] = None) -> None:
     playlist_privacy = await database.query_playlist_privacy(playlist_id=playlist_id)
 
     if playlist_privacy is None:
         raise NotFound(can_not_find_playlist(playlist_id))
 
-    if playlist_privacy.owner.id != self_id:
+    if self_id is None or playlist_privacy.owner.id != self_id:
         raise Forbidden(inaccessible_playlist(playlist_id))
 
 
 async def check_playlist_changeable_dependency(
-    playlist_id: UUID, self_id: UUID = Depends(token_dependency)
+    playlist_id: UUID, context: PlaylistsWriteTokenDependency
 ) -> None:
-    await check_playlist_changeable(playlist_id, self_id)
+    await check_playlist_changeable(playlist_id, self_id_from_context(context))
 
 
 async def create_partial_playlist_accessible_predicate(

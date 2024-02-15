@@ -1,21 +1,13 @@
-from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, Query
+from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters.iters import iter
-from yarl import URL
 
 from melody.kit.code import generate_code_for_uri
-from melody.kit.constants import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    MAX_LIMIT,
-    MIN_LIMIT,
-    MIN_OFFSET,
-)
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import request_url_dependency
+from melody.kit.dependencies import OffsetDependency, RequestURLDependency
 from melody.kit.enums import EntityType, Tag
 from melody.kit.errors import NotFound
 from melody.kit.models.pagination import Pagination
@@ -38,12 +30,13 @@ from melody.kit.models.user import (
     UserTracks,
     UserTracksData,
 )
-from melody.kit.oauth2 import optional_token_dependency
+from melody.kit.oauth2 import TokenDependency
 from melody.kit.privacy import (
     check_user_accessible_dependency,
     create_partial_playlist_accessible_predicate,
     create_playlist_accessible_predicate,
     create_user_accessible_predicate,
+    self_id_from_context,
 )
 from melody.kit.uri import URI
 
@@ -121,9 +114,9 @@ async def get_user_image(user_id: UUID) -> FileResponse:
 )
 async def get_user_tracks(
     user_id: UUID,
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserTracksData:
     counted = await database.query_user_tracks(user_id=user_id, offset=offset, limit=limit)
 
@@ -133,7 +126,7 @@ async def get_user_tracks(
     items, count = counted
 
     user_tracks = UserTracks(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_tracks.into_data()
@@ -147,9 +140,9 @@ async def get_user_tracks(
 )
 async def get_user_artists(
     user_id: UUID,
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserArtistsData:
     counted = await database.query_user_artists(user_id=user_id, offset=offset, limit=limit)
 
@@ -159,7 +152,7 @@ async def get_user_artists(
     items, count = counted
 
     user_artists = UserArtists(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_artists.into_data()
@@ -173,9 +166,9 @@ async def get_user_artists(
 )
 async def get_user_albums(
     user_id: UUID,
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserAlbumsData:
     counted = await database.query_user_albums(user_id=user_id, offset=offset, limit=limit)
 
@@ -185,7 +178,7 @@ async def get_user_albums(
     items, count = counted
 
     user_albums = UserAlbums(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_albums.into_data()
@@ -199,10 +192,10 @@ async def get_user_albums(
 )
 async def get_user_playlists(
     user_id: UUID,
-    self_id: Optional[UUID] = Depends(optional_token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: TokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserPlaylistsData:
     counted = await database.query_user_playlists(user_id=user_id, offset=offset, limit=limit)
 
@@ -212,13 +205,13 @@ async def get_user_playlists(
     items, count = counted
 
     is_partial_playlist_accessible = await create_partial_playlist_accessible_predicate(
-        user_id, self_id
+        user_id, self_id_from_context(context)
     )
 
     items = iter(items).filter(is_partial_playlist_accessible).list()
 
     user_playlists = UserPlaylists(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_playlists.into_data()
@@ -232,10 +225,10 @@ async def get_user_playlists(
 )
 async def get_user_followed_playlists(
     user_id: UUID,
-    self_id: Optional[UUID] = Depends(optional_token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: TokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserFollowedPlaylistsData:
     counted = await database.query_user_followed_playlists(
         user_id=user_id, offset=offset, limit=limit
@@ -246,12 +239,14 @@ async def get_user_followed_playlists(
 
     items, count = counted
 
-    is_playlist_accessible = await create_playlist_accessible_predicate(self_id)
+    is_playlist_accessible = await create_playlist_accessible_predicate(
+        self_id_from_context(context)
+    )
 
     items = iter(items).filter(is_playlist_accessible).list()
 
     user_followed_playlists = UserFollowedPlaylists(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_followed_playlists.into_data()
@@ -265,10 +260,10 @@ async def get_user_followed_playlists(
 )
 async def get_user_followers(
     user_id: UUID,
-    self_id: Optional[UUID] = Depends(optional_token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: TokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserFollowersData:
     counted = await database.query_user_followers(user_id=user_id, offset=offset, limit=limit)
 
@@ -277,12 +272,12 @@ async def get_user_followers(
 
     items, count = counted
 
-    is_user_accessible = await create_user_accessible_predicate(self_id)
+    is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
 
     items = iter(items).filter(is_user_accessible).list()
 
     user_followers = UserFollowers(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_followers.into_data()
@@ -296,10 +291,10 @@ async def get_user_followers(
 )
 async def get_user_following(
     user_id: UUID,
-    self_id: Optional[UUID] = Depends(optional_token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: TokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserFollowingData:
     counted = await database.query_user_following(user_id=user_id, offset=offset, limit=limit)
 
@@ -308,12 +303,12 @@ async def get_user_following(
 
     items, count = counted
 
-    is_user_accessible = await create_user_accessible_predicate(self_id)
+    is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
 
     items = iter(items).filter(is_user_accessible).list()
 
     user_following = UserFollowing(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_following.into_data()
@@ -331,10 +326,10 @@ inaccessible_friends = INACCESSIBLE_FRIENDS.format
 )
 async def get_user_friends(
     user_id: UUID,
-    self_id: Optional[UUID] = Depends(optional_token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: TokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: int = DEFAULT_LIMIT,
 ) -> UserFriendsData:
     counted = await database.query_user_friends(user_id=user_id, offset=offset, limit=limit)
 
@@ -343,12 +338,12 @@ async def get_user_friends(
 
     items, count = counted
 
-    is_user_accessible = await create_user_accessible_predicate(self_id)
+    is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
 
     items = iter(items).filter(is_user_accessible).list()
 
     user_friends = UserFriends(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return user_friends.into_data()

@@ -1,20 +1,19 @@
 from typing import List, Optional
+from typing_extensions import Annotated
 from uuid import UUID
 
-from fastapi import Body, Depends, File, Query, UploadFile
+from fastapi import Body, Depends
 from fastapi.responses import FileResponse
-from yarl import URL
 
 from melody.kit.code import generate_code_for_uri
-from melody.kit.constants import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    MAX_LIMIT,
-    MIN_LIMIT,
-    MIN_OFFSET,
-)
+from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import request_url_dependency
+from melody.kit.dependencies import (
+    FileDependency,
+    LimitDependency,
+    OffsetDependency,
+    RequestURLDependency,
+)
 from melody.kit.enums import EntityType, Platform, PrivacyType, Tag
 from melody.kit.errors import NotFound, ValidationError
 from melody.kit.models.pagination import Pagination
@@ -40,7 +39,19 @@ from melody.kit.models.user import (
     UserTracksData,
 )
 from melody.kit.models.user_settings import UserSettingsData
-from melody.kit.oauth2 import token_dependency
+from melody.kit.oauth2 import (
+    FollowingReadTokenDependency,
+    FollowingWriteTokenDependency,
+    ImageReadTokenDependency,
+    ImageWriteTokenDependency,
+    LibraryReadTokenDependency,
+    LibraryWriteTokenDependency,
+    PlaylistsReadTokenDependency,
+    SettingsReadTokenDependency,
+    SettingsWriteTokenDependency,
+    StreamsReadTokenDependency,
+    UserBasedTokenDependency,
+)
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_TYPE
 from melody.shared.image import check_image_type, validate_and_save_image
@@ -77,13 +88,17 @@ can_not_find_user = CAN_NOT_FIND_USER.format
 CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
 can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
 
+UUIDListDependency = Annotated[List[UUID], Body()]
+
 
 @v1.get(
     "/me",
     tags=[Tag.SELF],
     summary="Fetches self.",
 )
-async def get_self(self_id: UUID = Depends(token_dependency)) -> UserData:
+async def get_self(context: UserBasedTokenDependency) -> UserData:
+    self_id = context.user_id
+
     self = await database.query_user(user_id=self_id)
 
     if self is None:
@@ -97,10 +112,8 @@ async def get_self(self_id: UUID = Depends(token_dependency)) -> UserData:
     tags=[Tag.SELF],
     summary="Fetches self link.",
 )
-async def get_self_link(
-    self_id: UUID = Depends(token_dependency),
-) -> FileResponse:
-    uri = URI(type=EntityType.USER, id=self_id)
+async def get_self_link(context: UserBasedTokenDependency) -> FileResponse:
+    uri = URI(type=EntityType.USER, id=context.user_id)
 
     path = await generate_code_for_uri(uri)
 
@@ -112,7 +125,9 @@ async def get_self_link(
     tags=[Tag.SELF],
     summary="Fetches self image.",
 )
-async def get_self_image(self_id: UUID = Depends(token_dependency)) -> FileResponse:
+async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
+    self_id = context.user_id
+
     uri = URI(type=EntityType.USER, id=self_id)
 
     path = config.images / uri.image_name
@@ -132,18 +147,31 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     tags=[Tag.SELF],
     summary="Changes self image.",
 )
-async def change_self_image(
-    image: UploadFile = File(), self_id: UUID = Depends(token_dependency)
-) -> None:
+async def change_self_image(image: FileDependency, context: ImageWriteTokenDependency) -> None:
     if not check_image_type(image):
         raise ValidationError(EXPECTED_IMAGE_TYPE)
 
-    uri = URI(type=EntityType.USER, id=self_id)
+    uri = URI(type=EntityType.USER, id=context.user_id)
 
     path = config.images / uri.image_name
 
     if not await validate_and_save_image(image, path):
         raise ValidationError(EXPECTED_SQUARE_IMAGE)
+
+
+@v1.delete(
+    "/me/image",
+    tags=[Tag.SELF],
+    summary="Removes self image.",
+)
+async def remove_self_image(context: ImageWriteTokenDependency) -> None:
+    self_id = context.user_id
+
+    uri = URI(type=EntityType.USER, id=self_id)
+
+    path = config.images / uri.image_name
+
+    path.unlink(missing_ok=True)
 
 
 @v1.get(
@@ -152,11 +180,13 @@ async def change_self_image(
     summary="Fetches saved tracks.",
 )
 async def get_self_tracks(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: LibraryReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserTracksData:
+    self_id = context.user_id
+
     counted = await database.query_user_tracks(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -165,7 +195,7 @@ async def get_self_tracks(
     items, count = counted
 
     self_tracks = UserTracks(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_tracks.into_data()
@@ -176,10 +206,8 @@ async def get_self_tracks(
     tags=[Tag.SELF],
     summary="Saves tracks.",
 )
-async def save_self_tracks(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
-) -> None:
-    await database.save_user_tracks(user_id=self_id, ids=ids)
+async def save_self_tracks(context: LibraryWriteTokenDependency, ids: UUIDListDependency) -> None:
+    await database.save_user_tracks(user_id=context.user_id, ids=ids)
 
 
 @v1.delete(
@@ -187,10 +215,8 @@ async def save_self_tracks(
     tags=[Tag.SELF],
     summary="Removes saved tracks.",
 )
-async def remove_self_tracks(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
-) -> None:
-    await database.remove_user_tracks(user_id=self_id, ids=ids)
+async def remove_self_tracks(context: LibraryWriteTokenDependency, ids: UUIDListDependency) -> None:
+    await database.remove_user_tracks(user_id=context.user_id, ids=ids)
 
 
 @v1.get(
@@ -199,11 +225,13 @@ async def remove_self_tracks(
     summary="Fetches saved artists.",
 )
 async def get_self_artists(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: LibraryReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserArtistsData:
+    self_id = context.user_id
+
     counted = await database.query_user_artists(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -212,7 +240,7 @@ async def get_self_artists(
     items, count = counted
 
     self_artists = UserArtists(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_artists.into_data()
@@ -223,10 +251,8 @@ async def get_self_artists(
     tags=[Tag.SELF],
     summary="Saves artists.",
 )
-async def save_self_artists(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
-) -> None:
-    await database.save_user_artists(user_id=self_id, ids=ids)
+async def save_self_artists(context: LibraryWriteTokenDependency, ids: UUIDListDependency) -> None:
+    await database.save_user_artists(user_id=context.user_id, ids=ids)
 
 
 @v1.delete(
@@ -235,9 +261,9 @@ async def save_self_artists(
     summary="Removes saved artists.",
 )
 async def remove_self_artists(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    context: LibraryWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.remove_user_artists(user_id=self_id, ids=ids)
+    await database.remove_user_artists(user_id=context.user_id, ids=ids)
 
 
 @v1.get(
@@ -246,11 +272,13 @@ async def remove_self_artists(
     summary="Fetches saved albums.",
 )
 async def get_self_albums(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: LibraryReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserAlbumsData:
+    self_id = context.user_id
+
     counted = await database.query_user_albums(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -259,7 +287,7 @@ async def get_self_albums(
     items, count = counted
 
     self_albums = UserAlbums(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_albums.into_data()
@@ -270,10 +298,8 @@ async def get_self_albums(
     tags=[Tag.SELF],
     summary="Saves albums.",
 )
-async def save_self_albums(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
-) -> None:
-    await database.save_user_albums(user_id=self_id, ids=ids)
+async def save_self_albums(context: LibraryWriteTokenDependency, ids: UUIDListDependency) -> None:
+    await database.save_user_albums(user_id=context.user_id, ids=ids)
 
 
 @v1.delete(
@@ -281,10 +307,8 @@ async def save_self_albums(
     tags=[Tag.SELF],
     summary="Removes saved albums.",
 )
-async def remove_self_albums(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
-) -> None:
-    await database.remove_user_albums(user_id=self_id, ids=ids)
+async def remove_self_albums(context: LibraryWriteTokenDependency, ids: UUIDListDependency) -> None:
+    await database.remove_user_albums(user_id=context.user_id, ids=ids)
 
 
 @v1.get(
@@ -293,11 +317,13 @@ async def remove_self_albums(
     summary="Fetches playlists.",
 )
 async def get_self_playlists(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: PlaylistsReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserPlaylistsData:
+    self_id = context.user_id
+
     counted = await database.query_user_playlists(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -306,7 +332,7 @@ async def get_self_playlists(
     items, count = counted
 
     self_playlists = UserPlaylists(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_playlists.into_data()
@@ -318,11 +344,13 @@ async def get_self_playlists(
     summary="Fetches streams.",
 )
 async def get_self_streams(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: StreamsReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserStreamsData:
+    self_id = context.user_id
+
     counted = await database.query_user_streams(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -331,7 +359,7 @@ async def get_self_streams(
     items, count = counted
 
     self_streams = UserStreams(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_streams.into_data()
@@ -343,11 +371,13 @@ async def get_self_streams(
     summary="Fetches friends.",
 )
 async def get_self_friends(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: FollowingReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFriendsData:
+    self_id = context.user_id
+
     counted = await database.query_user_friends(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -356,7 +386,7 @@ async def get_self_friends(
     items, count = counted
 
     self_friends = UserFriends(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_friends.into_data()
@@ -368,11 +398,13 @@ async def get_self_friends(
     summary="Fetches followers.",
 )
 async def get_self_followers(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: FollowingReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFollowersData:
+    self_id = context.user_id
+
     counted = await database.query_user_followers(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -381,7 +413,7 @@ async def get_self_followers(
     items, count = counted
 
     self_followers = UserFollowers(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_followers.into_data()
@@ -393,11 +425,13 @@ async def get_self_followers(
     summary="Fetches following.",
 )
 async def get_self_following(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: FollowingReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFollowingData:
+    self_id = context.user_id
+
     counted = await database.query_user_following(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
@@ -406,7 +440,7 @@ async def get_self_following(
     items, count = counted
 
     self_following = UserFollowing(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_following.into_data()
@@ -418,9 +452,9 @@ async def get_self_following(
     summary="Follows users.",
 )
 async def add_self_following(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    context: FollowingWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.add_user_following(user_id=self_id, ids=ids)
+    await database.add_user_following(user_id=context.user_id, ids=ids)
 
 
 @v1.delete(
@@ -429,9 +463,9 @@ async def add_self_following(
     summary="Unfollows users.",
 )
 async def remove_self_following(
-    self_id: UUID = Depends(token_dependency), ids: List[UUID] = Body()
+    context: FollowingWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.remove_user_following(user_id=self_id, ids=ids)
+    await database.remove_user_following(user_id=context.user_id, ids=ids)
 
 
 @v1.get(
@@ -440,11 +474,13 @@ async def remove_self_following(
     summary="Fetches followed playlists.",
 )
 async def get_self_followed_playlists(
-    self_id: UUID = Depends(token_dependency),
-    url: URL = Depends(request_url_dependency),
-    offset: int = Query(default=DEFAULT_OFFSET, ge=MIN_OFFSET),
-    limit: int = Query(default=DEFAULT_LIMIT, ge=MIN_LIMIT, le=MAX_LIMIT),
+    context: LibraryReadTokenDependency,
+    request_url: RequestURLDependency,
+    offset: OffsetDependency = DEFAULT_OFFSET,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFollowedPlaylistsData:
+    self_id = context.user_id
+
     counted = await database.query_user_followed_playlists(
         user_id=self_id, offset=offset, limit=limit
     )
@@ -455,7 +491,7 @@ async def get_self_followed_playlists(
     items, count = counted
 
     self_followed_playlists = UserFollowedPlaylists(
-        items, Pagination.paginate(url=url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
     )
 
     return self_followed_playlists.into_data()
@@ -467,10 +503,9 @@ async def get_self_followed_playlists(
     summary="Follows playlists.",
 )
 async def add_self_followed_playlists(
-    self_id: UUID = Depends(token_dependency),
-    ids: List[UUID] = Body(),
+    context: LibraryWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.add_user_followed_playlists(user_id=self_id, ids=ids)
+    await database.add_user_followed_playlists(user_id=context.user_id, ids=ids)
 
 
 @v1.delete(
@@ -479,10 +514,9 @@ async def add_self_followed_playlists(
     summary="Unfollows playlists.",
 )
 async def remove_self_followed_playlists(
-    self_id: UUID = Depends(token_dependency),
-    ids: List[UUID] = Body(),
+    context: LibraryWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.remove_user_followed_playlists(user_id=self_id, ids=ids)
+    await database.remove_user_followed_playlists(user_id=context.user_id, ids=ids)
 
 
 @v1.get(
@@ -490,9 +524,9 @@ async def remove_self_followed_playlists(
     tags=[Tag.SELF],
     summary="Fetches self settings.",
 )
-async def get_self_settings(
-    self_id: UUID = Depends(token_dependency),
-) -> UserSettingsData:
+async def get_self_settings(context: SettingsReadTokenDependency) -> UserSettingsData:
+    self_id = context.user_id
+
     self_settings = await database.query_user_settings(user_id=self_id)
 
     if self_settings is None:
@@ -501,19 +535,49 @@ async def get_self_settings(
     return self_settings.into_data()
 
 
+OptionalNameDependency = Annotated[Optional[str], Body()]
+OptionalExplicitDependency = Annotated[Optional[bool], Body()]
+OptionalAutoplayDependency = Annotated[Optional[bool], Body()]
+OptionalPlatformDependency = Annotated[Optional[Platform], Body()]
+OptionalPrivacyTypeDependency = Annotated[Optional[PrivacyType], Body()]
+
+
+class UpdateSelfSettingsPayload:
+    def __init__(
+        self,
+        name: OptionalNameDependency = None,
+        explicit: OptionalExplicitDependency = None,
+        autoplay: OptionalAutoplayDependency = None,
+        platform: OptionalPlatformDependency = None,
+        privacy_type: OptionalPrivacyTypeDependency = None,
+    ) -> None:
+        self.name = name
+        self.explicit = explicit
+        self.autoplay = autoplay
+        self.platform = platform
+        self.privacy_type = privacy_type
+
+
+UpdateSelfSettingsPayloadDependency = Annotated[UpdateSelfSettingsPayload, Depends()]
+
+
 @v1.put(
     "/me/settings",
     tags=[Tag.SELF],
     summary="Changes self settings.",
 )
 async def update_self_settings(
-    self_id: UUID = Depends(token_dependency),
-    name: Optional[str] = Body(default=None),
-    explicit: Optional[bool] = Body(default=None),
-    autoplay: Optional[bool] = Body(default=None),
-    platform: Optional[Platform] = Body(default=None),
-    privacy_type: Optional[PrivacyType] = Body(default=None),
+    context: SettingsWriteTokenDependency,
+    payload: UpdateSelfSettingsPayloadDependency,
 ) -> None:
+    self_id = context.user_id
+
+    name = payload.name
+    explicit = payload.explicit
+    autoplay = payload.autoplay
+    platform = payload.platform
+    privacy_type = payload.privacy_type
+
     if (
         name is None
         and explicit is None

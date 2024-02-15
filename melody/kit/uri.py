@@ -1,4 +1,4 @@
-from typing import Type, TypeVar
+from typing import ClassVar, Protocol, Type, TypeVar
 from uuid import UUID
 
 from attrs import frozen
@@ -8,7 +8,7 @@ from melody.kit.enums import EntityType
 from melody.shared.constants import IMAGE_TYPE
 from melody.shared.converter import CONVERTER
 
-__all__ = ("URI", "URI_HEADER", "URI_SEPARATOR")
+__all__ = ("URI", "URI_HEADER", "URI_SEPARATOR", "Locatable")
 
 # image constants
 
@@ -69,3 +69,13 @@ def unstructure_uri(uri: URI) -> str:
 
 CONVERTER.register_structure_hook(URI, structure_uri)
 CONVERTER.register_unstructure_hook(URI, unstructure_uri)
+
+
+class Locatable(Protocol):
+    TYPE: ClassVar[EntityType]
+
+    id: UUID
+
+    @property
+    def uri(self) -> URI:
+        return URI(type=self.TYPE, id=self.id)
