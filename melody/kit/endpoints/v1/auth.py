@@ -9,6 +9,7 @@ from typing_aliases import NormalError
 from melody.kit.authorization import (
     OptionalAuthorizationCodeDependency,
     delete_authorization_codes_with,
+    generate_authorization_code_with,
 )
 from melody.kit.contexts import ClientContext, Context, UserContext
 from melody.kit.core import database, hasher, v1
@@ -16,7 +17,7 @@ from melody.kit.dependencies import EmailDeliverabilityDependency, EmailDependen
 from melody.kit.email import email_message, send_email_message, support
 from melody.kit.endpoints.v1.totp import validate_totp
 from melody.kit.enums import Tag
-from melody.kit.errors import AuthError, Conflict, NotFound, Unauthorized
+from melody.kit.errors import AuthInvalid, Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
 from melody.kit.oauth2 import (
     BoundTokenDependency,
@@ -145,13 +146,13 @@ async def tokens(
 
     if grant_type.is_authorization_code():
         if authorization_context is None:
-            raise AuthError(EXPECTED_CODE)
+            raise AuthInvalid(EXPECTED_CODE)
 
         if client_credentials is None:
-            raise AuthError(EXPECTED_CLIENT_CREDENTIALS)
+            raise AuthInvalid(EXPECTED_CLIENT_CREDENTIALS)
 
         if client_credentials.id != authorization_context.client_id:
-            raise AuthError(CLIENT_CREDENTIALS_MISMATCH)
+            raise AuthInvalid(CLIENT_CREDENTIALS_MISMATCH)
 
         await delete_authorization_codes_with(authorization_context)
 
@@ -159,7 +160,7 @@ async def tokens(
 
     if grant_type.is_client_credentials():
         if client_credentials is None:
-            raise AuthError(EXPECTED_CLIENT_CREDENTIALS)
+            raise AuthInvalid(EXPECTED_CLIENT_CREDENTIALS)
 
         client_id = client_credentials.id
 
@@ -167,7 +168,7 @@ async def tokens(
 
     if grant_type.is_refresh_token():
         if refresh_context is None:
-            raise AuthError(EXPECTED_REFRESH_TOKEN)
+            raise AuthInvalid(EXPECTED_REFRESH_TOKEN)
 
         context = refresh_context
 

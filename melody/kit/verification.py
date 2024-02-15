@@ -8,7 +8,7 @@ from pendulum import Duration
 from typing_extensions import Annotated
 
 from melody.kit.core import config, redis
-from melody.kit.errors import AuthError
+from melody.kit.errors import AuthInvalid
 from melody.shared.constants import NAME_SEPARATOR, STAR, VERIFICATION_CODE
 
 __all__ = (
@@ -112,7 +112,7 @@ async def bound_verification_code_dependency(
     self_id = await fetch_user_id_by_verification_code(verification_code)
 
     if self_id is None:
-        raise AuthError(invalid_verification_code(verification_code))
+        raise AuthInvalid(invalid_verification_code(verification_code))
 
     return BoundVerificationCode(verification_code, self_id)
 

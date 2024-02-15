@@ -16,7 +16,7 @@ from melody.kit.contexts import (
     is_user_context,
 )
 from melody.kit.core import config, database, hasher
-from melody.kit.errors import AuthError, AuthExpected, AuthInvalid
+from melody.kit.errors import AuthExpected, AuthInvalid
 from melody.kit.scopes import (
     SCOPE_SETUP,
     USER_FOLLOWING_READ,
@@ -37,7 +37,7 @@ from melody.kit.tokens import fetch_context_by_access_token, fetch_context_by_re
 from melody.shared.tokens import AUTHORIZATION, AUTHORIZATION_SEPARATOR, Scopes
 from melody.shared.typing import URLString
 
-AUTHORIZE = "authorize"
+AUTHORIZE = f"https://{config.open}.{config.domain}/authorize"
 TOKENS = "tokens"
 
 AUTHORIZATION_CODE = "authorizationCode"
@@ -111,7 +111,7 @@ async def client_credentials_dependency(
     basic_credentials: BasicCredentialsDependency,
 ) -> ClientCredentials:
     if basic_credentials is None:
-        raise AuthError(INVALID_CLIENT_CREDENTIALS)
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS)
 
     client_id_string = basic_credentials.username
 
@@ -119,14 +119,14 @@ async def client_credentials_dependency(
         client_id = UUID(client_id_string)
 
     except ValueError:
-        raise AuthError(INVALID_CLIENT_CREDENTIALS) from None
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS) from None
 
     client_secret = basic_credentials.password
 
     client = await database.query_client(client_id=client_id)
 
     if client is None:
-        raise AuthError(INVALID_CLIENT_CREDENTIALS)
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS)
 
     secret_hash = client.secret_hash
 
@@ -134,7 +134,7 @@ async def client_credentials_dependency(
         hasher.verify(secret_hash, client_secret)
 
     except VerifyMismatchError:
-        raise AuthError(INVALID_CLIENT_CREDENTIALS) from None
+        raise AuthInvalid(INVALID_CLIENT_CREDENTIALS) from None
 
     if hasher.check_needs_rehash(secret_hash):
         secret_hash = hasher.hash(client_secret)
@@ -182,12 +182,12 @@ async def bound_user_token_dependency(token: SchemeTokenDependency) -> BoundToke
     context = await fetch_context_by_access_token(token)
 
     if context is None:
-        raise AuthError(INVALID_TOKEN)
+        raise AuthInvalid(INVALID_TOKEN)
 
     if is_user_context(context):
         return BoundToken(token, context)
 
-    raise AuthError(EXPECTED_USER_TOKEN)
+    raise AuthInvalid(EXPECTED_USER_TOKEN)
 
 
 BoundUserTokenDependency = Annotated[BoundToken[UserContext], Depends(bound_user_token_dependency)]
@@ -212,7 +212,7 @@ async def bound_user_based_token_dependency(
     context = await fetch_context_by_access_token(token)
 
     if context is None:
-        raise AuthError(INVALID_TOKEN)
+        raise AuthInvalid(INVALID_TOKEN)
 
     if is_user_context(context):
         return BoundToken(token, context)
@@ -225,11 +225,11 @@ async def bound_user_based_token_dependency(
         if missing:
             scope = Scopes(missing).scope
 
-            raise AuthError(missing_scope(scope))
+            raise AuthInvalid(missing_scope(scope))
 
         return BoundToken(token, context)
 
-    raise AuthError(EXPECTED_USER_BASED_TOKEN)
+    raise AuthInvalid(EXPECTED_USER_BASED_TOKEN)
 
 
 BoundUserBasedTokenDependency = Annotated[
@@ -250,7 +250,7 @@ async def bound_token_dependency(token: SchemeTokenDependency) -> BoundToken[Con
     context = await fetch_context_by_access_token(token)
 
     if context is None:
-        raise AuthError(INVALID_TOKEN)
+        raise AuthInvalid(INVALID_TOKEN)
 
     return BoundToken(token, context)
 
@@ -313,7 +313,7 @@ async def refresh_token_dependency(refresh_token: FormRefreshTokenDependency) ->
     context = await fetch_context_by_refresh_token(refresh_token)
 
     if context is None:
-        raise AuthError(INVALID_REFRESH_TOKEN)
+        raise AuthInvalid(INVALID_REFRESH_TOKEN)
 
     return context
 

@@ -9,7 +9,7 @@ from typing_extensions import Annotated, Self
 from melody.kit.contexts import ClientUserContext
 
 from melody.kit.core import config, redis
-from melody.kit.errors import AuthError
+from melody.kit.errors import AuthInvalid
 from melody.shared.constants import AUTHORIZATION_CODE, NAME_SEPARATOR, STAR
 from melody.shared.converter import CONVERTER
 from melody.shared.tokens import (
@@ -146,7 +146,7 @@ async def bound_authorization_code_dependency(code: FormCodeDependency) -> Bound
     context = await fetch_context_by_authorization_code(code)
 
     if context is None:
-        raise AuthError(invalid_authorization_code(code))
+        raise AuthInvalid(invalid_authorization_code(code))
 
     return BoundAuthorizationCode(code, context)
 
