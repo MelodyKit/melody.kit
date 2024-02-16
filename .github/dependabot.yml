@@ -1,0 +1,17 @@
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+
+    labels:
+      - A-dependencies
+      - P-normal
+      - S-triage
+
+    schedule:
+      interval: daily
+
+    open-pull-requests-limit: 10
+
+    versioning-strategy: increase
