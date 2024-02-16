@@ -1,9 +1,9 @@
 from typing import Optional
-from typing_extensions import Annotated
 from uuid import UUID
 
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse
+from typing_extensions import Annotated
 
 from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET

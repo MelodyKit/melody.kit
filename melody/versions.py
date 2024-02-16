@@ -5,4 +5,4 @@ import melody
 
 __all__ = ("python_version_info", "version_info")
 
-version_info = get_version(melody)  # type: ignore
+version_info = get_version(melody)  # type: ignore[arg-type]

@@ -48,6 +48,8 @@ class ErrorCode(Enum):
     AUTH_ERROR = 13600
     AUTH_EXPECTED = 13601
     AUTH_INVALID = 13602
+    AUTH_EXPECTED_CODE = 13603
+    AUTH_INVALID_CODE = 13604
 
     @classmethod
     def from_status_code(cls, status_code: int) -> ErrorCode:
@@ -99,6 +101,18 @@ class AuthInvalid(AuthError):
     """Auth is invalid."""
 
     CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_INVALID
+
+
+class AuthExpectedCode(AuthError):
+    """Auth code was expected."""
+
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_EXPECTED_CODE
+
+
+class AuthInvalidCode(AuthError):
+    """Auth code is invalid."""
+
+    CODE: ClassVar[ErrorCode] = ErrorCode.AUTH_INVALID_CODE
 
 
 class ValidationError(Error):

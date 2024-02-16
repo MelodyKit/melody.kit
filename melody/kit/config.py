@@ -95,6 +95,11 @@ class RedisConfig:
 
 
 @define()
+class SecretConfig:
+    size: int
+
+
+@define()
 class ExpiresConfig:
     years: float
     months: float
@@ -201,6 +206,8 @@ EXPECTED_MELODY_LOG_LEVEL = expected("melody.log.level")
 EXPECTED_MELODY_REDIS = expected("melody.redis")
 EXPECTED_MELODY_REDIS_HOST = expected("melody.redis.host")
 EXPECTED_MELODY_REDIS_PORT = expected("melody.redis.port")
+EXPECTED_MELODY_SECRET = expected("melody.secret")
+EXPECTED_MELODY_SECRET_SIZE = expected("melody.secret.size")
 EXPECTED_MELODY_TOKEN = expected("melody.token")
 EXPECTED_MELODY_TOKEN_TYPE = expected("melody.token.type")
 EXPECTED_MELODY_TOKEN_ACCESS = expected("melody.token.access")
@@ -270,6 +277,7 @@ class Config:
     code: CodeConfig
     log: LogConfig
     redis: RedisConfig
+    secret: SecretConfig
     token: TokenConfig
     authorization: AuthorizationConfig
     verification: VerificationConfig
@@ -362,6 +370,11 @@ class Config:
             host=redis_data.host.unwrap_or(redis_config.host),
             port=redis_data.port.unwrap_or(redis_config.port),
         )
+
+        secret_data = config_data.secret.unwrap_or_else(AnyConfigData)
+        secret_config = default_config.secret
+
+        secret = SecretConfig(size=secret_data.size.unwrap_or(secret_config.size))
 
         token_data = config_data.token.unwrap_or_else(AnyConfigData)
         token_config = default_config.token
@@ -507,6 +520,7 @@ class Config:
             code=code,
             log=log,
             redis=redis,
+            secret=secret,
             token=token,
             authorization=authorization,
             verification=verification,
@@ -596,6 +610,10 @@ class Config:
             host=redis_data.host.expect(EXPECTED_MELODY_REDIS_HOST),
             port=redis_data.port.expect(EXPECTED_MELODY_REDIS_PORT),
         )
+
+        secret_data = config_data.secret.expect(EXPECTED_MELODY_SECRET)
+
+        secret = SecretConfig(size=secret_data.size.expect(EXPECTED_MELODY_SECRET_SIZE))
 
         token_data = config_data.token.expect(EXPECTED_MELODY_TOKEN)
 
@@ -793,6 +811,7 @@ class Config:
             code=code,
             log=log,
             redis=redis,
+            secret=secret,
             token=token,
             authorization=authorization,
             verification=verification,

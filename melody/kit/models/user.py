@@ -15,6 +15,7 @@ from melody.kit.links import (
     spotify_user,
     yandex_music_user,
 )
+from melody.kit.models.client import Client, ClientData
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.models.privacy import UserPrivacy
@@ -296,3 +297,21 @@ class UserFollowedPlaylists:
 
     def into_data(self) -> UserFollowedPlaylistsData:
         return CONVERTER.unstructure(self)  # type: ignore
+
+
+class UserClientsData(Data):
+    items: List[ClientData]
+    pagination: PaginationData
+
+
+@define()
+class UserClients:
+    items: List[Client] = field(factory=list)
+    pagination: Pagination = field(factory=Pagination)
+
+    @classmethod
+    def from_data(cls, data: UserClientsData) -> Self:
+        return CONVERTER.structure(data, cls)
+
+    def into_data(self) -> UserClientsData:
+        return CONVERTER.unstructure(self)  # type: ignore[no-any-return]

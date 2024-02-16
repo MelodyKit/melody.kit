@@ -1,3 +1,5 @@
+from typing import Optional
+
 from attrs import define
 from edgedb import Object
 from typing_extensions import Self
@@ -11,13 +13,13 @@ __all__ = ("Client", "ClientData")
 
 class ClientData(NamedData):
     creator: NamedData
-    secret_hash: str
+    description: Optional[str]
 
 
 @define(kw_only=True)
 class Client(Named):
     creator: Named
-    secret_hash: str
+    description: Optional[str] = None
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -26,7 +28,7 @@ class Client(Named):
             created_at=convert_standard_date_time(object.created_at),
             name=object.name,
             creator=Named.from_object(object.creator),
-            secret_hash=object.secret_hash,
+            description=object.description,
         )
 
     @classmethod

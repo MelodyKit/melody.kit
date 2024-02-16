@@ -1,6 +1,6 @@
-from typing_extensions import Annotated
 from fastapi import Query
 from iters.iters import iter
+from typing_extensions import Annotated
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import database, v1

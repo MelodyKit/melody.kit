@@ -1,4 +1,5 @@
 from fastapi import Depends
+
 from melody.kit.core import database, v1
 from melody.kit.enums import Tag
 from melody.kit.models.statistics import StatisticsData

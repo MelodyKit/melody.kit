@@ -1,6 +1,6 @@
 from uuid import UUID
-from fastapi import Depends
 
+from fastapi import Depends
 from fastapi.responses import FileResponse
 
 from melody.kit.code import generate_code_for_uri

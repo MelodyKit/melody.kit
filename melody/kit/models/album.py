@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import ClassVar, List, Optional, TypeVar
+from typing import ClassVar, List, Optional
 
 from attrs import define, field
 from edgedb import Object
@@ -124,9 +124,6 @@ from melody.kit.models.tracks import Track, TrackData
 class AlbumTracksData(Data):
     items: List[TrackData]
     pagination: PaginationData
-
-
-AT = TypeVar("AT", bound="AlbumTracks")
 
 
 @define()

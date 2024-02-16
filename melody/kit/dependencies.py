@@ -1,14 +1,14 @@
 from typing import Optional, Set
-from typing_extensions import Annotated
 
 from async_extensions import run_blocking_in_thread
 from email_validator import EmailNotValidError, validate_email
 from fastapi import Depends, File, Form, Query, UploadFile
 from fastapi.requests import Request
 from iters.iters import iter
+from typing_extensions import Annotated
 from yarl import URL
-from melody.kit.constants import MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 
+from melody.kit.constants import MAX_LIMIT, MIN_LIMIT, MIN_OFFSET
 from melody.kit.enums import EntityType
 from melody.kit.errors import ValidationError
 

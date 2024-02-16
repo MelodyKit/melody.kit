@@ -1,19 +1,19 @@
 from typing import Optional
-from typing_extensions import Annotated
 
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import Form
 from typing_aliases import NormalError
+from typing_extensions import Annotated
 
 from melody.kit.authorization import (
-    OptionalAuthorizationCodeDependency, delete_authorization_codes_with
+    OptionalAuthorizationCodeDependency,
+    delete_authorization_codes_with,
 )
 from melody.kit.contexts import ClientContext, Context, UserContext
 from melody.kit.core import database, hasher, v1
 from melody.kit.dependencies import EmailDeliverabilityDependency, EmailDependency
 from melody.kit.email import email_message, send_email_message, support
-from melody.kit.endpoints.v1.totp import validate_totp
 from melody.kit.enums import Tag
 from melody.kit.errors import AuthInvalid, Conflict, NotFound, Unauthorized
 from melody.kit.models.base import BaseData
@@ -31,6 +31,7 @@ from melody.kit.tokens import (
     delete_refresh_tokens_with,
     generate_tokens_with,
 )
+from melody.kit.totp import OptionalCodeDependency, validate_optional
 from melody.kit.verification import (
     VerificationCodeDependency,
     delete_verification_code,
@@ -65,7 +66,6 @@ can_not_find_user = CAN_NOT_FIND_USER.format
 
 
 PasswordDependency = Annotated[str, Form()]
-CodeDependency = Annotated[Optional[str], Form()]
 
 
 @v1.post(
@@ -76,7 +76,7 @@ CodeDependency = Annotated[Optional[str], Form()]
 async def login(
     email: EmailDependency,
     password: PasswordDependency,
-    code: CodeDependency = None,
+    code: OptionalCodeDependency = None,
 ) -> TokensData:
     user_info = await database.query_user_info_by_email(email=email)
 
@@ -98,7 +98,7 @@ async def login(
 
     secret = user_info.secret
 
-    validate_totp(secret, code)
+    validate_optional(secret, code)
 
     context = UserContext(user_id)
 
@@ -288,7 +288,7 @@ temporary_token_content = TEMPORARY_TOKEN_CONTENT.format
     tags=[Tag.AUTH],
     summary="Allows the user to reset their password via the email.",
 )
-async def forgot(email: EmailDependency, code: CodeDependency = None) -> None:
+async def forgot(email: EmailDependency, code: OptionalCodeDependency = None) -> None:
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
@@ -296,7 +296,7 @@ async def forgot(email: EmailDependency, code: CodeDependency = None) -> None:
 
     secret = user_info.secret
 
-    validate_totp(secret, code)
+    validate_optional(secret, code)
 
     context = UserContext(user_info.id)
 

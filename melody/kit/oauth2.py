@@ -1,5 +1,4 @@
 from typing import Generic, Optional, TypeVar
-from typing_extensions import Annotated
 from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
@@ -7,7 +6,9 @@ from attrs import frozen
 from fastapi import Depends, Form, Security
 from fastapi.requests import Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials, OAuth2, SecurityScopes
+from typing_extensions import Annotated
 
+from melody.kit.client_credentials import ClientCredentials
 from melody.kit.contexts import (
     Context,
     UserBasedContext,
@@ -81,6 +82,9 @@ class OAuth2Scheme(OAuth2):
 
         token_type, _, token = authorization.partition(AUTHORIZATION_SEPARATOR)
 
+        if not token:
+            raise AuthInvalid(INVALID_TOKEN)
+
         expected_type = config.token.type
 
         if token_type != expected_type:
@@ -94,12 +98,6 @@ scheme = OAuth2Scheme(authorize_url=AUTHORIZE, tokens_url=TOKENS, scope_setup=SC
 BASIC_DESCRIPTION = "This is used solely for sending `client_id` and `client_secret` credentials."
 
 basic = HTTPBasic(description=BASIC_DESCRIPTION, auto_error=False)
-
-
-@frozen()
-class ClientCredentials:
-    id: UUID
-    secret: str
 
 
 INVALID_CLIENT_CREDENTIALS = "invalid client credentials"
@@ -123,12 +121,12 @@ async def client_credentials_dependency(
 
     client_secret = basic_credentials.password
 
-    client = await database.query_client(client_id=client_id)
+    client_info = await database.query_client_info(client_id=client_id)
 
-    if client is None:
+    if client_info is None:
         raise AuthInvalid(INVALID_CLIENT_CREDENTIALS)
 
-    secret_hash = client.secret_hash
+    secret_hash = client_info.secret_hash
 
     try:
         hasher.verify(secret_hash, client_secret)
@@ -310,7 +308,7 @@ OptionalFormRefreshTokenDependency = Annotated[Optional[str], Form()]
 
 
 async def bound_refresh_token_dependency(
-    refresh_token: FormRefreshTokenDependency
+    refresh_token: FormRefreshTokenDependency,
 ) -> BoundToken[Context]:
     context = await fetch_context_by_refresh_token(refresh_token)
 

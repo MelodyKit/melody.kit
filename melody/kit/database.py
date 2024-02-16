@@ -12,6 +12,7 @@ from melody.kit.models.album import Album
 from melody.kit.models.artist import Artist
 from melody.kit.models.base import Base
 from melody.kit.models.client import Client
+from melody.kit.models.client_info import ClientInfo
 from melody.kit.models.playlist import Playlist
 from melody.kit.models.privacy import PlaylistPrivacy, UserPrivacy
 from melody.kit.models.statistics import Statistics
@@ -126,8 +127,8 @@ CHECK_USER_FRIENDS = load_query("users/friends/check")
 
 QUERY_USER_PRIVACY = load_query("users/query_privacy")
 
-QUERY_USER_INFO = load_query("users/info/query")
-QUERY_USER_INFO_BY_EMAIL = load_query("users/info/query_by_email")
+QUERY_USER_INFO = load_query("users/query_info")
+QUERY_USER_INFO_BY_EMAIL = load_query("users/query_info_by_email")
 
 QUERY_USER_SETTINGS = load_query("users/settings/query")
 UPDATE_USER_SETTINGS = load_query("users/settings/update")
@@ -144,7 +145,11 @@ QUERY_STATISTICS = load_query("statistics/query")
 QUERY_CLIENT = load_query("clients/query")
 INSERT_CLIENT = load_query("clients/insert")
 DELETE_CLIENT = load_query("clients/delete")
+UPDATE_CLIENT = load_query("clients/update")
+
 UPDATE_CLIENT_SECRET_HASH = load_query("clients/update_secret_hash")
+
+QUERY_CLIENT_INFO = load_query("clients/query_info")
 
 
 @define()
@@ -581,12 +586,28 @@ class Database:
 
         return None if option is None else Client.from_object(option)
 
-    async def insert_client(self, client_id: UUID, secret_hash: str, creator_id: UUID) -> Base:
+    async def query_client_info(self, client_id: UUID) -> Optional[ClientInfo]:
+        option = await self.client.query_single(QUERY_CLIENT_INFO, client_id=client_id)
+
+        return None if option is None else ClientInfo.from_object(option)
+
+    async def insert_client(
+        self, name: str, description: Optional[str], secret_hash: str, creator_id: UUID
+    ) -> Base:
         object = await self.client.query_single(
-            INSERT_CLIENT, client_id=client_id, secret_hash=secret_hash, creator_id=creator_id
+            INSERT_CLIENT,
+            name=name,
+            description=description,
+            secret_hash=secret_hash,
+            creator_id=creator_id,
         )
 
         return Base.from_object(object)
+
+    async def update_client(self, client_id: UUID, name: str, description: Optional[str]) -> None:
+        await self.client.query_single(
+            UPDATE_CLIENT, client_id=client_id, name=name, description=description
+        )
 
     async def delete_client(self, client_id: UUID) -> None:
         await self.client.query_single(DELETE_CLIENT, client_id=client_id)

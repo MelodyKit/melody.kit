@@ -183,6 +183,10 @@ module default {
         artist_count := count(.artists);  # used in pagination
         playlist_count := count(.playlists);  # used in pagination
 
+        required admin: bool {
+            default := false;
+        };
+
         required verified: bool {
             default := false;
         };
@@ -241,6 +245,8 @@ module default {
         };
 
         multi users := .<clients[is User];
+
+        description: str;
 
         required secret_hash: str;
     }

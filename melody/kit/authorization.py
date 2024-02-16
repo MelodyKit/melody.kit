@@ -6,8 +6,8 @@ from attrs import frozen
 from fastapi import Depends, Form
 from pendulum import Duration
 from typing_extensions import Annotated, Self
-from melody.kit.contexts import ClientUserContext
 
+from melody.kit.contexts import ClientUserContext
 from melody.kit.core import config, redis
 from melody.kit.errors import AuthInvalid
 from melody.shared.constants import AUTHORIZATION_CODE, NAME_SEPARATOR, STAR

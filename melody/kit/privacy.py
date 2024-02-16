@@ -10,6 +10,7 @@ from melody.kit.models.playlist import Playlist
 from melody.kit.models.user import User
 from melody.kit.oauth2 import PlaylistsWriteTokenDependency, TokenDependency
 from melody.kit.scopes import USER_FOLLOWING_READ
+from melody.kit.totp import TwoFactorTokenDependency
 
 
 async def are_friends(self_id: UUID, user_id: UUID) -> bool:
@@ -169,3 +170,26 @@ async def create_playlist_accessible_predicate(
         return playlist_privacy.is_accessible_by(self_id, playlist_privacy.owner.id in friends)
 
     return privacy_predicate
+
+
+CAN_NOT_FIND_CLIENT = "can not find the client with ID `{}`"
+can_not_find_client = CAN_NOT_FIND_CLIENT.format
+
+INACCESSIBLE_CLIENT = "the client with ID `{}` is inaccessible"
+inaccessible_client = INACCESSIBLE_CLIENT.format
+
+
+async def check_client_changeable(client_id: UUID, self_id: UUID) -> None:
+    client = await database.query_client_info(client_id=client_id)
+
+    if client is None:
+        raise NotFound(can_not_find_client(client_id))
+
+    if client.creator_id != self_id:
+        raise Forbidden(inaccessible_client(client_id))
+
+
+async def check_client_changeable_dependency(
+    client_id: UUID, context: TwoFactorTokenDependency
+) -> None:
+    await check_client_changeable(client_id, context.user_id)
