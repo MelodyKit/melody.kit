@@ -2,38 +2,47 @@ from typing import Optional
 
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
-from fastapi import Form
+from fastapi import BackgroundTasks, Form
 from typing_aliases import NormalError
 from typing_extensions import Annotated
 
-from melody.kit.authorization import (
-    OptionalAuthorizationCodeDependency,
-    delete_authorization_codes_with,
-)
-from melody.kit.contexts import ClientContext, Context, UserContext
-from melody.kit.core import database, hasher, v1
-from melody.kit.dependencies import EmailDeliverabilityDependency, EmailDependency
-from melody.kit.email import email_message, send_email_message, support
+from melody.kit.authorization.dependencies import OptionalAuthorizationCodeDependency
+from melody.kit.authorization.operations import delete_authorization_codes_with
+from melody.kit.clients.dependencies import OptionalClientCredentialsDependency
+from melody.kit.core import config, database, hasher, v1
+from melody.kit.dependencies.emails import EmailDeliverabilityDependency, EmailDependency
+from melody.kit.emails import email_message, send_email_message, support
 from melody.kit.enums import Tag
-from melody.kit.errors import AuthInvalid, Conflict, NotFound, Unauthorized
+from melody.kit.errors.auth import (
+    AuthAuthorizationCodeExpected,
+    AuthClientCredentialsExpected,
+    AuthClientCredentialsMismatch,
+    AuthEmailConflict,
+    AuthEmailFailed,
+    AuthEmailNotFound,
+    AuthPasswordMismatch,
+    AuthRefreshTokenExpected,
+    AuthUserUnverified,
+)
 from melody.kit.models.base import BaseData
-from melody.kit.oauth2 import (
+from melody.kit.tokens.context import ClientContext, Context, UserContext
+from melody.kit.tokens.dependencies import (
     BoundTokenDependency,
     OptionalBoundRefreshTokenDependency,
-    OptionalClientCredentialsDependency,
     TokenDependency,
     UserTokenDependency,
 )
-from melody.kit.tokens import (
+from melody.kit.tokens.operations import (
     delete_access_token,
     delete_access_tokens_with,
     delete_refresh_token,
     delete_refresh_tokens_with,
     generate_tokens_with,
 )
-from melody.kit.totp import OptionalCodeDependency, validate_optional
-from melody.kit.verification import (
-    VerificationCodeDependency,
+from melody.kit.totp.core import validate_totp
+from melody.kit.totp.dependencies import OptionalCodeDependency
+from melody.kit.verification.dependencies import VerificationCodeDependency
+from melody.kit.verification.operations import (
     delete_verification_code,
     delete_verification_codes_for,
     generate_verification_code_for,
@@ -53,17 +62,6 @@ __all__ = (
     "forgot",
 )
 
-CAN_NOT_FIND_USER_BY_EMAIL = "can not find the user with the email `{}`"
-can_not_find_user_by_email = CAN_NOT_FIND_USER_BY_EMAIL.format
-
-PASSWORD_MISMATCH = "password mismatch"
-
-UNVERIFIED = "user with ID `{}` is not verified"
-unverified = UNVERIFIED.format
-
-CAN_NOT_FIND_USER = "can not find the user with the ID `{}`"
-can_not_find_user = CAN_NOT_FIND_USER.format
-
 
 PasswordDependency = Annotated[str, Form()]
 
@@ -81,12 +79,12 @@ async def login(
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
-        raise NotFound(can_not_find_user_by_email(email))
+        raise AuthEmailNotFound(email)
 
     user_id = user_info.id
 
     if not user_info.is_verified():
-        raise Unauthorized(unverified(user_id))
+        raise AuthUserUnverified(user_id)
 
     password_hash = user_info.password_hash
 
@@ -94,11 +92,11 @@ async def login(
         hasher.verify(password_hash, password)
 
     except VerifyMismatchError:
-        raise Unauthorized(PASSWORD_MISMATCH) from None
+        raise AuthPasswordMismatch() from None
 
     secret = user_info.secret
 
-    validate_optional(secret, code)
+    validate_totp(secret, code)
 
     context = UserContext(user_id)
 
@@ -121,14 +119,9 @@ async def revoke(bound_token: BoundTokenDependency) -> None:
     await delete_access_token(bound_token.token)
 
 
-EXPECTED_CODE = "expected code for `authorization_code` grant type"
-INVALID_CODE = "invalid code"
-
-EXPECTED_CLIENT_CREDENTIALS = "expected client credentials"
-CLIENT_CREDENTIALS_MISMATCH = "client credentials mismatch"
-
-EXPECTED_REFRESH_TOKEN = "expected refresh token for `refresh_token` grant type"
-INVALID_REFRESH_TOKEN = "invalid refresh token"
+@v1.post("/authorize", tags=[Tag.AUTH], summary="Authorizes the client to access the user's data.")
+async def authorize() -> None:
+    ...
 
 
 GrantTypeDependency = Annotated[GrantType, Form()]
@@ -145,13 +138,13 @@ async def tokens(
 
     if grant_type.is_authorization_code():
         if authorization_context is None:
-            raise AuthInvalid(EXPECTED_CODE)
+            raise AuthAuthorizationCodeExpected()
 
         if client_credentials is None:
-            raise AuthInvalid(EXPECTED_CLIENT_CREDENTIALS)
+            raise AuthClientCredentialsExpected()
 
         if client_credentials.id != authorization_context.client_id:
-            raise AuthInvalid(CLIENT_CREDENTIALS_MISMATCH)
+            raise AuthClientCredentialsMismatch()
 
         await delete_authorization_codes_with(authorization_context)
 
@@ -159,7 +152,7 @@ async def tokens(
 
     if grant_type.is_client_credentials():
         if client_credentials is None:
-            raise AuthInvalid(EXPECTED_CLIENT_CREDENTIALS)
+            raise AuthClientCredentialsExpected()
 
         client_id = client_credentials.id
 
@@ -167,7 +160,7 @@ async def tokens(
 
     if grant_type.is_refresh_token():
         if bound_refresh_token is None:
-            raise AuthInvalid(EXPECTED_REFRESH_TOKEN)
+            raise AuthRefreshTokenExpected()
 
         await delete_refresh_token(bound_refresh_token.token)
 
@@ -191,18 +184,6 @@ async def revoke_all(context: TokenDependency) -> None:
     await delete_refresh_tokens_with(context)
 
 
-EMAIL_TAKEN = "the email `{}` is taken"
-email_taken = EMAIL_TAKEN.format
-
-VERIFICATION = "MelodyKit verification code"
-VERIFICATION_CONTENT = """
-Here is your verification code:
-
-{verification_code}
-""".strip()
-verification_content = VERIFICATION_CONTENT.format
-
-
 NameDependency = Annotated[str, Form()]
 
 
@@ -215,6 +196,7 @@ async def register(
     name: NameDependency,
     email: EmailDeliverabilityDependency,
     password: PasswordDependency,
+    background_tasks: BackgroundTasks,
 ) -> BaseData:
     password_hash = hasher.hash(password)
 
@@ -222,20 +204,22 @@ async def register(
         self = await database.insert_user(name=name, email=email, password_hash=password_hash)
 
     except ConstraintViolationError:
-        raise Conflict(email_taken(email)) from None
+        raise AuthEmailConflict(email) from None
 
     else:
         self_id = self.id
 
         verification_code = await generate_verification_code_for(self_id)
 
+        verification_config = config.email.verification
+
         try:
             await send_email_message(
                 email_message(
                     author=support(),
                     target=email,
-                    subject=VERIFICATION,
-                    content=verification_content(verification_code=verification_code),
+                    subject=verification_config.subject.format(name=config.name),
+                    content=verification_config.content.format(verification_code=verification_code),
                 )
             )
 
@@ -243,7 +227,7 @@ async def register(
             await database.delete_user(user_id=self_id)
             await delete_verification_code(verification_code)
 
-            raise
+            raise AuthEmailFailed(email) from None
 
         return self.into_data()
 
@@ -274,15 +258,6 @@ async def reset(context: UserTokenDependency, password: PasswordDependency) -> N
     await database.update_user_password_hash(user_id=self_id, password_hash=password_hash)
 
 
-TEMPORARY_TOKEN = "MelodyKit temporary token"
-TEMPORARY_TOKEN_CONTENT = """
-Here is your temporary token:
-
-{temporary_token}
-""".strip()
-temporary_token_content = TEMPORARY_TOKEN_CONTENT.format
-
-
 @v1.post(
     "/forgot",
     tags=[Tag.AUTH],
@@ -292,23 +267,33 @@ async def forgot(email: EmailDependency, code: OptionalCodeDependency = None) ->
     user_info = await database.query_user_info_by_email(email=email)
 
     if user_info is None:
-        raise NotFound(can_not_find_user_by_email(email))
+        raise AuthEmailNotFound(email)
 
     secret = user_info.secret
 
-    validate_optional(secret, code)
+    validate_totp(secret, code)
 
     context = UserContext(user_info.id)
 
     tokens = await generate_tokens_with(context)
 
+    await delete_refresh_token(tokens.refresh_token)
+
     temporary_token = tokens.access_token
 
-    await send_email_message(
-        email_message(
-            author=support(),
-            target=email,
-            subject=TEMPORARY_TOKEN,
-            content=temporary_token_content(temporary_token=temporary_token),
+    temporary_config = config.email.temporary
+
+    try:
+        await send_email_message(
+            email_message(
+                author=support(),
+                target=email,
+                subject=temporary_config.subject.format(name=config.name),
+                content=temporary_config.content.format(temporary_token=temporary_token),
+            )
         )
-    )
+
+    except NormalError:
+        await delete_access_token(temporary_token)
+
+        raise AuthEmailFailed(email) from None

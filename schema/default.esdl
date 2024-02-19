@@ -100,8 +100,8 @@ module default {
         multi tracks := .<artists[is Track];
         multi albums := .<artists[is Album];
 
-        track_count := count(.tracks);  # used in pagination
-        album_count := count(.albums);  # used in pagination
+        track_count := count(.tracks);
+        album_count := count(.albums);
     }
 
     type Album extending Entity, Genres {
@@ -163,25 +163,25 @@ module default {
 
         multi friends := .following intersect .followers;
 
-        following_count := count(.following);  # used in pagination
+        following_count := count(.following);
 
         follower_count := count(.followers);
 
-        friend_count := count(.friends);  # used in pagination
+        friend_count := count(.friends);
 
         multi followed_playlists extending with_linked_at: Playlist;
 
-        followed_playlist_count := count(.followed_playlists);  # used in pagination
+        followed_playlist_count := count(.followed_playlists);
 
         multi streams := .<user[is Stream];
 
         stream_count := count(.streams);
         stream_duration_ms := sum(.streams.duration_ms);
 
-        track_count := count(.tracks);  # used in pagination
-        album_count := count(.albums);  # used in pagination
-        artist_count := count(.artists);  # used in pagination
-        playlist_count := count(.playlists);  # used in pagination
+        track_count := count(.tracks);
+        album_count := count(.albums);
+        artist_count := count(.artists);
+        playlist_count := count(.playlists);
 
         required admin: bool {
             default := false;

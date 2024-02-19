@@ -1,29 +1,19 @@
-from secrets import token_hex
 from typing import AsyncIterator, Optional
 
-from attrs import define, field
-from pendulum import Duration
-
-from melody.kit.contexts import Context, context_from_data, context_into_data
-from melody.kit.core import config, redis
-from melody.shared.constants import ACCESS_TOKEN, NAME_SEPARATOR, REFRESH_TOKEN, STAR
-from melody.shared.tokens import Tokens as SharedTokens
+from melody.kit.core import redis
+from melody.kit.tokens.context import Context, context_from_data, context_into_data
+from melody.kit.tokens.core import Tokens
+from melody.kit.tokens.factories import refresh_expires_in_factory
+from melody.kit.tokens.keys import (
+    access_token_key,
+    key_access_token,
+    key_refresh_token,
+    refresh_token_key,
+)
+from melody.shared.constants import STAR
+from melody.shared.date_time import unstructure_duration
 
 __all__ = (
-    # tokens with factories
-    "Tokens",
-    # factories
-    "access_token_factory",
-    "expires_in_factory",
-    "token_type_factory",
-    "refresh_token_factory",
-    "refresh_expires_in_factory",
-    # keys
-    "access_token_key",
-    "refresh_token_key",
-    "key_access_token",
-    "key_refresh_token",
-    # tokens
     "generate_tokens_with",
     "delete_access_token",
     "delete_refresh_token",
@@ -36,60 +26,11 @@ __all__ = (
 )
 
 
-def access_token_factory() -> str:
-    return token_hex(config.token.access.size)
-
-
-def expires_in_factory() -> Duration:
-    return config.token.access.expires.duration
-
-
-def token_type_factory() -> str:
-    return config.token.type
-
-
-def refresh_token_factory() -> str:
-    return token_hex(config.token.refresh.size)
-
-
-def refresh_expires_in_factory() -> Duration:
-    return config.token.refresh.expires.duration
-
-
-@define()
-class Tokens(SharedTokens):
-    # NOTE: here we simply provide defaults to fields in `melody.shared` without them
-
-    access_token: str = field(factory=access_token_factory)
-    expires_in: Duration = field(factory=expires_in_factory)
-    token_type: str = field(factory=token_type_factory)
-    refresh_token: str = field(factory=refresh_token_factory)
-
-
-ACCESS_TOKEN_KEY = f"{ACCESS_TOKEN}{NAME_SEPARATOR}{{}}"
-access_token_key = ACCESS_TOKEN_KEY.format
-
-REFRESH_TOKEN_KEY = f"{REFRESH_TOKEN}{NAME_SEPARATOR}{{}}"
-refresh_token_key = REFRESH_TOKEN_KEY.format
-
-
-def key_access_token(key: str) -> Optional[str]:
-    _, _, access_token = key.partition(NAME_SEPARATOR)
-
-    return access_token if access_token else None
-
-
-def key_refresh_token(key: str) -> Optional[str]:
-    _, _, refresh_token = key.partition(NAME_SEPARATOR)
-
-    return refresh_token if refresh_token else None
-
-
 async def generate_tokens_with(context: Context) -> Tokens:
     tokens = Tokens()
 
-    expires = int(tokens.expires_in.total_seconds())
-    refresh_expires = int(refresh_expires_in_factory().total_seconds())
+    expires = unstructure_duration(tokens.expires_in)
+    refresh_expires = unstructure_duration(refresh_expires_in_factory())
 
     data = context_into_data(context)
 

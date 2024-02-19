@@ -20,7 +20,7 @@ async def get_self(interaction: Interaction[Melody]) -> None:
             embed=not_linked_embed(not_linked(discord_id)), ephemeral=True
         )
 
-    result = at_path(config.images / self.uri.image_name)
+    result = at_path(config.image.path / self.uri.image_name)
 
     if result is None:
         return await interaction.response.send_message(embed=user_embed(self), ephemeral=True)

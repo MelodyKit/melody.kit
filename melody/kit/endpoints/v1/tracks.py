@@ -6,9 +6,9 @@ from fastapi.responses import FileResponse
 from melody.kit.code import generate_code_for_uri
 from melody.kit.core import database, v1
 from melody.kit.enums import EntityType, Tag
-from melody.kit.errors import NotFound
+from melody.kit.errors.tracks import TrackNotFound
 from melody.kit.models.tracks import TrackData
-from melody.kit.oauth2 import token_dependency
+from melody.kit.tokens.dependencies import token_dependency
 from melody.kit.uri import URI
 
 __all__ = ("get_track", "get_track_link")
@@ -27,7 +27,7 @@ async def get_track(track_id: UUID) -> TrackData:
     track = await database.query_track(track_id=track_id)
 
     if track is None:
-        raise NotFound(can_not_find_track(track_id))
+        raise TrackNotFound(track_id)
 
     return track.into_data()
 

@@ -18,7 +18,7 @@ __all__ = ("CONFIG", "Config", "ConfigData", "get_config", "get_default_config")
 T = TypeVar("T")
 
 
-def expand_user_directory(path: Path) -> Path:
+def ensure_directory(path: Path) -> Path:
     directory = path.expanduser()
 
     directory.mkdir(parents=True, exist_ok=True)
@@ -35,14 +35,14 @@ DEFAULT_PATH = ROOT / NAME
 PATH = HOME / CONFIG_NAME / MELODY_NAME / NAME
 
 
-def ensure_path(path: Path, default_path: Path) -> None:
+def ensure_file(path: Path, default_path: Path) -> None:
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
 
         path.write_bytes(default_path.read_bytes())
 
 
-ensure_path(PATH, DEFAULT_PATH)
+ensure_file(PATH, DEFAULT_PATH)
 
 
 class ConfigData(StringDict[T]):
@@ -54,12 +54,20 @@ AnyConfigData = ConfigData[Any]
 
 
 @define()
+class EmailMessageConfig:
+    subject: str
+    content: str
+
+
+@define()
 class EmailConfig:
     host: str
     port: int
     support: str
     name: str
     password: str
+    verification: EmailMessageConfig
+    temporary: EmailMessageConfig
 
 
 @define()
@@ -84,6 +92,13 @@ class CodeConfig:
 
 
 @define()
+class ImageConfig:
+    path: Path
+    size_limit: int
+    data_size_limit: int
+
+
+@define()
 class LogConfig:
     level: LogLevel
 
@@ -97,6 +112,13 @@ class RedisConfig:
 @define()
 class SecretConfig:
     size: int
+
+
+@define()
+class TOTPConfig:
+    digits: int
+    interval: int
+    valid_window: int
 
 
 @define()
@@ -181,7 +203,6 @@ EXPECTED_MELODY = expected("melody")
 EXPECTED_MELODY_NAME = expected("melody.name")
 EXPECTED_MELODY_DOMAIN = expected("melody.domain")
 EXPECTED_MELODY_OPEN = expected("melody.open")
-EXPECTED_MELODY_IMAGES = expected("melody.images")
 EXPECTED_MELODY_SESSION_KEY = expected("melody.session_key")
 EXPECTED_MELODY_EMAIL = expected("melody.email")
 EXPECTED_MELODY_EMAIL_HOST = expected("melody.email.host")
@@ -189,6 +210,12 @@ EXPECTED_MELODY_EMAIL_PORT = expected("melody.email.port")
 EXPECTED_MELODY_EMAIL_SUPPORT = expected("melody.email.support")
 EXPECTED_MELODY_EMAIL_NAME = expected("melody.email.name")
 EXPECTED_MELODY_EMAIL_PASSWORD = expected("melody.email.password")
+EXPECTED_MELODY_EMAIL_VERIFICATION = expected("melody.email.verification")
+EXPECTED_MELODY_EMAIL_VERIFICATION_SUBJECT = expected("melody.email.verification.subject")
+EXPECTED_MELODY_EMAIL_VERIFICATION_CONTENT = expected("melody.email.verification.content")
+EXPECTED_MELODY_EMAIL_TEMPORARY = expected("melody.email.temporary")
+EXPECTED_MELODY_EMAIL_TEMPORARY_SUBJECT = expected("melody.email.temporary.subject")
+EXPECTED_MELODY_EMAIL_TEMPORARY_CONTENT = expected("melody.email.temporary.content")
 EXPECTED_MELODY_HASH = expected("melody.hash")
 EXPECTED_MELODY_HASH_TIME_COST = expected("melody.hash.time_cost")
 EXPECTED_MELODY_HASH_MEMORY_COST = expected("melody.hash.memory_cost")
@@ -201,6 +228,10 @@ EXPECTED_MELODY_CODE_CACHE = expected("melody.code.cache")
 EXPECTED_MELODY_CODE_ERROR_CORRECTION = expected("melody.code.error_correction")
 EXPECTED_MELODY_CODE_BOX_SIZE = expected("melody.code.box_size")
 EXPECTED_MELODY_CODE_BORDER = expected("melody.code.border")
+EXPECTED_MELODY_IMAGE = expected("melody.image")
+EXPECTED_MELODY_IMAGE_PATH = expected("melody.image.path")
+EXPECTED_MELODY_IMAGE_SIZE_LIMIT = expected("melody.image.size_limit")
+EXPECTED_MELODY_IMAGE_DATA_SIZE_LIMIT = expected("melody.image.data_size_limit")
 EXPECTED_MELODY_LOG = expected("melody.log")
 EXPECTED_MELODY_LOG_LEVEL = expected("melody.log.level")
 EXPECTED_MELODY_REDIS = expected("melody.redis")
@@ -208,6 +239,10 @@ EXPECTED_MELODY_REDIS_HOST = expected("melody.redis.host")
 EXPECTED_MELODY_REDIS_PORT = expected("melody.redis.port")
 EXPECTED_MELODY_SECRET = expected("melody.secret")
 EXPECTED_MELODY_SECRET_SIZE = expected("melody.secret.size")
+EXPECTED_MELODY_TOTP = expected("melody.totp")
+EXPECTED_MELODY_TOTP_DIGITS = expected("melody.totp.digits")
+EXPECTED_MELODY_TOTP_INTERVAL = expected("melody.totp.interval")
+EXPECTED_MELODY_TOTP_VALID_WINDOW = expected("melody.totp.valid_window")
 EXPECTED_MELODY_TOKEN = expected("melody.token")
 EXPECTED_MELODY_TOKEN_TYPE = expected("melody.token.type")
 EXPECTED_MELODY_TOKEN_ACCESS = expected("melody.token.access")
@@ -269,15 +304,16 @@ class Config:
     name: str
     domain: str
     open: str
-    images: Path
     session_key: str
     email: EmailConfig
     hash: HashConfig
     kit: KitConfig
     code: CodeConfig
+    image: ImageConfig
     log: LogConfig
     redis: RedisConfig
     secret: SecretConfig
+    totp: TOTPConfig
     token: TokenConfig
     authorization: AuthorizationConfig
     verification: VerificationConfig
@@ -287,11 +323,13 @@ class Config:
     spotify: ClientConfig
 
     def ensure_directories(self) -> Self:
-        self.images = expand_user_directory(self.images)
+        image = self.image
+
+        image.path = ensure_directory(image.path)
 
         code = self.code
 
-        code.cache = expand_user_directory(code.cache)
+        code.cache = ensure_directory(code.cache)
 
         return self
 
@@ -321,12 +359,30 @@ class Config:
         email_data = config_data.email.unwrap_or_else(AnyConfigData)
         email_config = default_config.email
 
+        email_verification_data = email_data.verification.unwrap_or_else(AnyConfigData)
+        email_verification_config = email_config.verification
+
+        email_temporary_data = email_data.temporary.unwrap_or_else(AnyConfigData)
+        email_temporary_config = email_config.temporary
+
         email = EmailConfig(
             host=email_data.host.unwrap_or(email_config.host),
             port=email_data.port.unwrap_or(email_config.port),
             support=email_data.support.unwrap_or(email_config.support),
             name=email_data.name.expect(EXPECTED_MELODY_EMAIL_NAME),
             password=email_data.password.expect(EXPECTED_MELODY_EMAIL_PASSWORD),
+            verification=EmailMessageConfig(
+                subject=email_verification_data.subject.unwrap_or(
+                    email_verification_config.subject
+                ),
+                content=email_verification_data.content.unwrap_or(
+                    email_verification_config.content
+                ),
+            ),
+            temporary=EmailMessageConfig(
+                subject=email_temporary_data.subject.unwrap_or(email_temporary_config.subject),
+                content=email_temporary_data.content.unwrap_or(email_temporary_config.content),
+            ),
         )
 
         hash_data = config_data.hash.unwrap_or_else(AnyConfigData)
@@ -358,6 +414,15 @@ class Config:
             border=code_data.border.unwrap_or(code_config.border),
         )
 
+        image_data = config_data.image.unwrap_or_else(AnyConfigData)
+        image_config = default_config.image
+
+        image = ImageConfig(
+            path=image_data.path.map_or(image_config.path, Path),
+            size_limit=image_data.size_limit.unwrap_or(image_config.size_limit),
+            data_size_limit=image_data.data_size_limit.unwrap_or(image_config.data_size_limit),
+        )
+
         log_data = config_data.log.unwrap_or_else(AnyConfigData)
         log_config = default_config.log
 
@@ -375,6 +440,15 @@ class Config:
         secret_config = default_config.secret
 
         secret = SecretConfig(size=secret_data.size.unwrap_or(secret_config.size))
+
+        totp_data = config_data.totp.unwrap_or_else(AnyConfigData)
+        totp_config = default_config.totp
+
+        totp = TOTPConfig(
+            digits=totp_data.digits.unwrap_or(totp_config.digits),
+            interval=totp_data.interval.unwrap_or(totp_config.interval),
+            valid_window=totp_data.valid_window.unwrap_or(totp_config.valid_window),
+        )
 
         token_data = config_data.token.unwrap_or_else(AnyConfigData)
         token_config = default_config.token
@@ -504,7 +578,6 @@ class Config:
         name = config_data.name.unwrap_or(default_config.name)
         domain = config_data.domain.unwrap_or(default_config.domain)
         open = config_data.open.unwrap_or(default_config.open)
-        images = config_data.images.map_or(default_config.images, Path)
 
         session_key = config_data.session_key.expect(EXPECTED_MELODY_SESSION_KEY)
 
@@ -512,15 +585,16 @@ class Config:
             name=name,
             domain=domain,
             open=open,
-            images=images,
             session_key=session_key,
             email=email,
             hash=hash,
             kit=kit,
             code=code,
+            image=image,
             log=log,
             redis=redis,
             secret=secret,
+            totp=totp,
             token=token,
             authorization=authorization,
             verification=verification,
@@ -558,6 +632,10 @@ class Config:
 
         email_data = config_data.email.expect(EXPECTED_MELODY_EMAIL)
 
+        email_temporary_data = email_data.temporary.expect(EXPECTED_MELODY_EMAIL_TEMPORARY)
+
+        email_verification_data = email_data.verification.expect(EXPECTED_MELODY_EMAIL_VERIFICATION)
+
         email = EmailConfig(
             host=email_data.host.expect(EXPECTED_MELODY_EMAIL_HOST),
             port=email_data.port.expect(EXPECTED_MELODY_EMAIL_PORT),
@@ -571,6 +649,22 @@ class Config:
                 email_data.password.unwrap_or(EMPTY)
                 if ignore_sensitive
                 else email_data.password.expect(EXPECTED_MELODY_EMAIL_PASSWORD)
+            ),
+            verification=EmailMessageConfig(
+                subject=email_verification_data.subject.expect(
+                    EXPECTED_MELODY_EMAIL_VERIFICATION_SUBJECT
+                ),
+                content=email_verification_data.content.expect(
+                    EXPECTED_MELODY_EMAIL_VERIFICATION_CONTENT
+                ),
+            ),
+            temporary=EmailMessageConfig(
+                subject=email_temporary_data.subject.expect(
+                    EXPECTED_MELODY_EMAIL_TEMPORARY_SUBJECT
+                ),
+                content=email_temporary_data.content.expect(
+                    EXPECTED_MELODY_EMAIL_TEMPORARY_CONTENT
+                ),
             ),
         )
 
@@ -600,6 +694,16 @@ class Config:
             border=code_data.border.expect(EXPECTED_MELODY_CODE_BORDER),
         )
 
+        image_data = config_data.image.expect(EXPECTED_MELODY_IMAGE)
+
+        image = ImageConfig(
+            path=image_data.path.map(Path).expect(EXPECTED_MELODY_IMAGE_PATH),
+            size_limit=image_data.size_limit.expect(EXPECTED_MELODY_IMAGE_SIZE_LIMIT),
+            data_size_limit=image_data.data_size_limit.expect(
+                EXPECTED_MELODY_IMAGE_DATA_SIZE_LIMIT
+            ),
+        )
+
         log_data = config_data.log.expect(EXPECTED_MELODY_LOG)
 
         log = LogConfig(level=log_data.level.expect(EXPECTED_MELODY_LOG_LEVEL))
@@ -614,6 +718,14 @@ class Config:
         secret_data = config_data.secret.expect(EXPECTED_MELODY_SECRET)
 
         secret = SecretConfig(size=secret_data.size.expect(EXPECTED_MELODY_SECRET_SIZE))
+
+        totp_data = config_data.totp.expect(EXPECTED_MELODY_TOTP)
+
+        totp = TOTPConfig(
+            digits=totp_data.digits.expect(EXPECTED_MELODY_TOTP_DIGITS),
+            interval=totp_data.interval.expect(EXPECTED_MELODY_TOTP_INTERVAL),
+            valid_window=totp_data.valid_window.expect(EXPECTED_MELODY_TOTP_VALID_WINDOW),
+        )
 
         token_data = config_data.token.expect(EXPECTED_MELODY_TOKEN)
 
@@ -791,7 +903,6 @@ class Config:
         name = config_data.name.expect(EXPECTED_MELODY_NAME)
         domain = config_data.domain.expect(EXPECTED_MELODY_DOMAIN)
         open = config_data.open.expect(EXPECTED_MELODY_OPEN)
-        images = config_data.images.map(Path).expect(EXPECTED_MELODY_IMAGES)
 
         session_key = (
             config_data.session_key.unwrap_or(EMPTY)
@@ -803,15 +914,16 @@ class Config:
             name=name,
             domain=domain,
             open=open,
-            images=images,
             session_key=session_key,
             email=email,
             hash=hash,
             kit=kit,
             code=code,
+            image=image,
             log=log,
             redis=redis,
             secret=secret,
+            totp=totp,
             token=token,
             authorization=authorization,
             verification=verification,

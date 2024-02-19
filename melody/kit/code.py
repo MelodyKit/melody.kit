@@ -2,8 +2,7 @@ from pathlib import Path
 
 from async_extensions import run_blocking_in_thread
 from colors import Color
-from qrcode.image.styledpil import StyledPilImage as StyledPILImage
-from qrcode.image.styles.colormasks import VerticalGradiantColorMask
+from qrcode.image.svg import SvgPathFillImage as SVGPathFillImage
 from qrcode.main import QRCode
 
 from melody.kit.core import config
@@ -33,27 +32,19 @@ def generate_code_sync(string: str, image_name: str) -> Path:
     if path.exists():
         return path
 
-    qr: QRCode[StyledPILImage] = QRCode(
+    qr: QRCode[SVGPathFillImage] = QRCode(
         version=None,
         error_correction=code_config.error_correction.into_error_correction(),
         box_size=code_config.box_size,
         border=code_config.border,
+        image_factory=SVGPathFillImage,
     )
 
     qr.add_data(string)
 
     qr.make()
 
-    image = qr.make_image(
-        image_factory=StyledPILImage,  # type: ignore[type-abstract]
-        color_mask=VerticalGradiantColorMask(
-            back_color=TRANSPARENT,
-            top_color=TOP_COLOR,
-            bottom_color=BOTTOM_COLOR,
-        ),
-    )
-
-    image.save(path)
+    qr.make_image().save(path)
 
     return path
 

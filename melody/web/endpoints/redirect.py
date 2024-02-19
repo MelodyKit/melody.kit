@@ -15,6 +15,7 @@ X_NAME = "x"
 YOUTUBE_NAME = "youtube"
 TELEGRAM_NAME = "telegram"
 DOCS_NAME = "docs"
+DEV_NAME = "dev"
 
 INTRO_NAME = "intro"
 
@@ -24,6 +25,7 @@ X_LINK = "https://x.com/MelodyKitApp"
 YOUTUBE_LINK = "https://youtube.com/MelodyKit"
 TELEGRAM_LINK = "https://t.me/MelodyKitApp"
 DOCS_LINK = "https://docs.melodykit.app/"
+DEV_LINK = "https://dev.melodykit.app/"
 
 INTRO_LINK = "https://youtu.be/dQw4w9WgXcQ"
 

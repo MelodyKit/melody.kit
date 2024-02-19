@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from aiofiles import open as async_open
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse
 from typing_extensions import Annotated
@@ -8,25 +9,21 @@ from typing_extensions import Annotated
 from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import (
-    FileDependency,
-    LimitDependency,
-    OffsetDependency,
-    RequestURLDependency,
-)
+from melody.kit.dependencies.common import LimitDependency, OffsetDependency
+from melody.kit.dependencies.images import ImageDependency
+from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.enums import EntityType, PrivacyType, Tag
-from melody.kit.errors import NotFound, ValidationError
+from melody.kit.errors.playlists import PlaylistImageNotFound, PlaylistNotFound
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import PlaylistData, PlaylistTracks, PlaylistTracksData
-from melody.kit.oauth2 import PlaylistsWriteTokenDependency, token_dependency
-from melody.kit.privacy import (
+from melody.kit.privacy.playlists import (
     check_playlist_accessible_dependency,
     check_playlist_changeable_dependency,
 )
+from melody.kit.tokens.dependencies import PlaylistsWriteTokenDependency, token_dependency
 from melody.kit.uri import URI
-from melody.shared.constants import IMAGE_TYPE
-from melody.shared.image import check_image_type, validate_and_save_image
+from melody.shared.constants import IMAGE_TYPE, WRITE_BINARY
 
 __all__ = (
     "create_playlist",
@@ -39,16 +36,6 @@ __all__ = (
     "remove_playlist_image",
     "get_playlist_tracks",
 )
-
-CAN_NOT_FIND_PLAYLIST = "can not find the playlist with ID `{}`"
-can_not_find_playlist = CAN_NOT_FIND_PLAYLIST.format
-
-CAN_NOT_FIND_PLAYLIST_IMAGE = "can not find the image for the playlist with ID `{}`"
-can_not_find_playlist_image = CAN_NOT_FIND_PLAYLIST_IMAGE.format
-
-INACCESSIBLE_PLAYLIST = "the playlist with ID `{}` is inaccessible"
-inaccessible_playlist = INACCESSIBLE_PLAYLIST.format
-
 
 NameDependency = Annotated[str, Body()]
 OptionalDescriptionDependency = Annotated[Optional[str], Body()]
@@ -99,7 +86,7 @@ async def get_playlist(playlist_id: UUID) -> PlaylistData:
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(can_not_find_playlist(playlist_id))
+        raise PlaylistNotFound(playlist_id)
 
     return playlist.into_data()
 
@@ -143,7 +130,7 @@ async def update_playlist(
     playlist = await database.query_playlist(playlist_id=playlist_id)
 
     if playlist is None:
-        raise NotFound(can_not_find_playlist(playlist_id))
+        raise PlaylistNotFound(playlist_id)
 
     if name is None:
         name = playlist.name
@@ -169,11 +156,6 @@ async def update_playlist(
     dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def delete_playlist(playlist_id: UUID) -> None:
-    playlist = await database.query_playlist(playlist_id=playlist_id)
-
-    if playlist is None:
-        raise NotFound(can_not_find_playlist(playlist_id))
-
     await database.delete_playlist(playlist_id=playlist_id)
 
 
@@ -200,10 +182,10 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
 async def get_playlist_image(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
     if not path.exists():
-        raise NotFound(can_not_find_playlist_image(playlist_id))
+        raise PlaylistImageNotFound(playlist_id)
 
     return FileResponse(path)
 
@@ -218,16 +200,13 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     summary="Changes the playlist's image.",
     dependencies=[Depends(check_playlist_changeable_dependency)],
 )
-async def change_playlist_image(playlist_id: UUID, image: FileDependency) -> None:
-    if not check_image_type(image):
-        raise ValidationError(EXPECTED_IMAGE_TYPE)
-
+async def change_playlist_image(playlist_id: UUID, data: ImageDependency) -> None:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
-    if not await validate_and_save_image(image, path):
-        raise ValidationError(EXPECTED_SQUARE_IMAGE)
+    async with async_open(path, WRITE_BINARY) as file:
+        await file.write(data)
 
 
 @v1.delete(
@@ -239,7 +218,7 @@ async def change_playlist_image(playlist_id: UUID, image: FileDependency) -> Non
 async def remove_playlist_image(playlist_id: UUID) -> None:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
     path.unlink(missing_ok=True)
 
@@ -261,7 +240,7 @@ async def get_playlist_tracks(
     )
 
     if counted is None:
-        raise NotFound(can_not_find_playlist(playlist_id))
+        raise PlaylistNotFound(playlist_id)
 
     items, count = counted
 

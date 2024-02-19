@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import ClassVar, Literal, Type, Union
+from typing import ClassVar, Generic, Literal, Type, TypeVar, Union
 from uuid import UUID
 
 from attrs import frozen
@@ -24,6 +24,11 @@ __all__ = (
     "ClientContextData",
     "ClientUserContext",
     "ClientUserContextData",
+    # unions
+    "Context",
+    "ContextData",
+    "UserBasedContext",
+    "UserBasedContextData",
     # converters
     "context_from_data",
     "context_into_data",
@@ -31,6 +36,8 @@ __all__ = (
     "is_user_context",
     "is_client_context",
     "is_client_user_context",
+    # bound token
+    "BoundToken",
 )
 
 
@@ -132,15 +139,15 @@ def literal_of_context_type(context_type: Type[Context]) -> ContextLiteral:
 
 
 def is_user_context(context: Context) -> TypeGuard[UserContext]:
-    return type_of_context(context) is USER_TYPE
+    return type_of_context(context).is_user()
 
 
 def is_client_context(context: Context) -> TypeGuard[ClientContext]:
-    return type_of_context(context) is CLIENT_TYPE
+    return type_of_context(context).is_client()
 
 
 def is_client_user_context(context: Context) -> TypeGuard[ClientUserContext]:
-    return type_of_context(context) is CLIENT_USER_TYPE
+    return type_of_context(context).is_client_user()
 
 
 CONTEXT_TYPE = "context_type"
@@ -155,3 +162,12 @@ def context_from_data(data: ContextData) -> Context:
 
 def context_into_data(context: Context) -> ContextData:
     return CONVERTER.unstructure(context, Context)  # type: ignore[no-any-return]
+
+
+C = TypeVar("C", bound=Context)
+
+
+@frozen()
+class BoundToken(Generic[C]):
+    token: str
+    context: C

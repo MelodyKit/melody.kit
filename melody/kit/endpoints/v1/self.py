@@ -1,6 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
+from aiofiles import open as async_open
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse
 from typing_extensions import Annotated
@@ -8,14 +9,11 @@ from typing_extensions import Annotated
 from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import (
-    FileDependency,
-    LimitDependency,
-    OffsetDependency,
-    RequestURLDependency,
-)
+from melody.kit.dependencies.common import LimitDependency, OffsetDependency
+from melody.kit.dependencies.images import ImageDependency
+from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.enums import EntityType, Platform, PrivacyType, Tag
-from melody.kit.errors import NotFound, ValidationError
+from melody.kit.errors.users import UserImageNotFound, UserNotFound
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.user import (
     UserAlbums,
@@ -39,7 +37,7 @@ from melody.kit.models.user import (
     UserTracksData,
 )
 from melody.kit.models.user_settings import UserSettingsData
-from melody.kit.oauth2 import (
+from melody.kit.tokens.dependencies import (
     FollowingReadTokenDependency,
     FollowingWriteTokenDependency,
     ImageReadTokenDependency,
@@ -53,8 +51,7 @@ from melody.kit.oauth2 import (
     UserBasedTokenDependency,
 )
 from melody.kit.uri import URI
-from melody.shared.constants import IMAGE_TYPE
-from melody.shared.image import check_image_type, validate_and_save_image
+from melody.shared.constants import WRITE_BINARY
 
 __all__ = (
     "get_self",
@@ -82,12 +79,6 @@ __all__ = (
     "update_self_settings",
 )
 
-CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
-can_not_find_user = CAN_NOT_FIND_USER.format
-
-CAN_NOT_FIND_USER_IMAGE = "can not find the image for the user with ID `{}`"
-can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
-
 UUIDListDependency = Annotated[List[UUID], Body()]
 
 
@@ -102,7 +93,7 @@ async def get_self(context: UserBasedTokenDependency) -> UserData:
     self = await database.query_user(user_id=self_id)
 
     if self is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     return self.into_data()
 
@@ -130,16 +121,12 @@ async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
     if not path.exists():
-        raise NotFound(can_not_find_user_image(self_id))
+        raise UserImageNotFound(self_id)
 
     return FileResponse(path)
-
-
-EXPECTED_IMAGE_TYPE = f"expected `{IMAGE_TYPE}` image type"
-EXPECTED_SQUARE_IMAGE = "expected square image"
 
 
 @v1.put(
@@ -147,16 +134,13 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     tags=[Tag.SELF],
     summary="Changes self image.",
 )
-async def change_self_image(image: FileDependency, context: ImageWriteTokenDependency) -> None:
-    if not check_image_type(image):
-        raise ValidationError(EXPECTED_IMAGE_TYPE)
-
+async def change_self_image(context: ImageWriteTokenDependency, data: ImageDependency) -> None:
     uri = URI(type=EntityType.USER, id=context.user_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
-    if not await validate_and_save_image(image, path):
-        raise ValidationError(EXPECTED_SQUARE_IMAGE)
+    async with async_open(path, WRITE_BINARY) as file:
+        await file.write(data)
 
 
 @v1.delete(
@@ -169,7 +153,7 @@ async def remove_self_image(context: ImageWriteTokenDependency) -> None:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
     path.unlink(missing_ok=True)
 
@@ -190,7 +174,7 @@ async def get_self_tracks(
     counted = await database.query_user_tracks(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -235,7 +219,7 @@ async def get_self_artists(
     counted = await database.query_user_artists(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -282,7 +266,7 @@ async def get_self_albums(
     counted = await database.query_user_albums(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -327,7 +311,7 @@ async def get_self_playlists(
     counted = await database.query_user_playlists(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -354,7 +338,7 @@ async def get_self_streams(
     counted = await database.query_user_streams(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -381,7 +365,7 @@ async def get_self_friends(
     counted = await database.query_user_friends(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -408,7 +392,7 @@ async def get_self_followers(
     counted = await database.query_user_followers(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -435,7 +419,7 @@ async def get_self_following(
     counted = await database.query_user_following(user_id=self_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -486,7 +470,7 @@ async def get_self_followed_playlists(
     )
 
     if counted is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     items, count = counted
 
@@ -530,7 +514,7 @@ async def get_self_settings(context: SettingsReadTokenDependency) -> UserSetting
     self_settings = await database.query_user_settings(user_id=self_id)
 
     if self_settings is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     return self_settings.into_data()
 
@@ -590,7 +574,7 @@ async def update_self_settings(
     settings = await database.query_user_settings(user_id=self_id)
 
     if settings is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise UserNotFound(self_id)
 
     if name is None:
         name = settings.name

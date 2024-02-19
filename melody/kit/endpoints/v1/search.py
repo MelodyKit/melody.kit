@@ -4,12 +4,9 @@ from typing_extensions import Annotated
 
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import database, v1
-from melody.kit.dependencies import (
-    LimitDependency,
-    OffsetDependency,
-    RequestURLDependency,
-    TypesDependency,
-)
+from melody.kit.dependencies.common import LimitDependency, OffsetDependency
+from melody.kit.dependencies.request_urls import RequestURLDependency
+from melody.kit.dependencies.types import TypesDependency
 from melody.kit.enums import EntityType, Tag
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.search import (
@@ -21,12 +18,10 @@ from melody.kit.models.search import (
     SearchTracks,
     SearchUsers,
 )
-from melody.kit.oauth2 import TokenDependency
-from melody.kit.privacy import (
-    create_playlist_accessible_predicate,
-    create_user_accessible_predicate,
-    self_id_from_context,
-)
+from melody.kit.privacy.playlists import create_playlist_accessible_predicate
+from melody.kit.privacy.shared import user_id_from_context
+from melody.kit.privacy.users import create_user_accessible_predicate
+from melody.kit.tokens.dependencies import TokenDependency
 
 __all__ = ("search_entities",)
 
@@ -66,7 +61,7 @@ async def search_entities(
         all_playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
 
         is_playlist_accessible = await create_playlist_accessible_predicate(
-            self_id_from_context(context)
+            user_id_from_context(context)
         )
 
         playlists = iter(all_playlists).filter(is_playlist_accessible).list()
@@ -77,7 +72,7 @@ async def search_entities(
     if EntityType.USER in types:
         all_users = await database.search_users(query=query, offset=offset, limit=limit)
 
-        is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
+        is_user_accessible = await create_user_accessible_predicate(user_id_from_context(context))
 
         users = iter(all_users).filter(is_user_accessible).list()
 

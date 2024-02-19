@@ -7,9 +7,10 @@ from iters.iters import iter
 from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
-from melody.kit.dependencies import OffsetDependency, RequestURLDependency
+from melody.kit.dependencies.common import LimitDependency, OffsetDependency
+from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.enums import EntityType, Tag
-from melody.kit.errors import NotFound
+from melody.kit.errors.users import UserImageNotFound, UserNotFound
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.user import (
     UserAlbums,
@@ -30,14 +31,16 @@ from melody.kit.models.user import (
     UserTracks,
     UserTracksData,
 )
-from melody.kit.oauth2 import TokenDependency
-from melody.kit.privacy import (
-    check_user_accessible_dependency,
+from melody.kit.privacy.playlists import (
     create_partial_playlist_accessible_predicate,
     create_playlist_accessible_predicate,
-    create_user_accessible_predicate,
-    self_id_from_context,
 )
+from melody.kit.privacy.shared import user_id_from_context
+from melody.kit.privacy.users import (
+    check_user_accessible_dependency,
+    create_user_accessible_predicate,
+)
+from melody.kit.tokens.dependencies import TokenDependency
 from melody.kit.uri import URI
 
 __all__ = (
@@ -53,9 +56,6 @@ __all__ = (
     "get_user_friends",
 )
 
-CAN_NOT_FIND_USER = "can not find the user with ID `{}`"
-can_not_find_user = CAN_NOT_FIND_USER.format
-
 
 @v1.get(
     "/users/{user_id}",
@@ -67,7 +67,7 @@ async def get_user(user_id: UUID) -> UserData:
     user = await database.query_user(user_id=user_id)
 
     if user is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
     return user.into_data()
 
@@ -98,10 +98,10 @@ can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
 async def get_user_image(user_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = config.images / uri.image_name
+    path = config.image.path / uri.image_name
 
     if not path.exists():
-        raise NotFound(can_not_find_user_image(user_id))
+        raise UserImageNotFound(user_id)
 
     return FileResponse(path)
 
@@ -116,12 +116,12 @@ async def get_user_tracks(
     user_id: UUID,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserTracksData:
     counted = await database.query_user_tracks(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
     items, count = counted
 
@@ -142,12 +142,12 @@ async def get_user_artists(
     user_id: UUID,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserArtistsData:
     counted = await database.query_user_artists(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
     items, count = counted
 
@@ -168,12 +168,12 @@ async def get_user_albums(
     user_id: UUID,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserAlbumsData:
     counted = await database.query_user_albums(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
     items, count = counted
 
@@ -195,23 +195,23 @@ async def get_user_playlists(
     context: TokenDependency,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserPlaylistsData:
     counted = await database.query_user_playlists(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
-    items, count = counted
+    items, _ = counted
 
     is_partial_playlist_accessible = await create_partial_playlist_accessible_predicate(
-        user_id, self_id_from_context(context)
+        user_id, user_id_from_context(context)
     )
 
     items = iter(items).filter(is_partial_playlist_accessible).list()
 
     user_playlists = UserPlaylists(
-        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=len(items))
     )
 
     return user_playlists.into_data()
@@ -228,25 +228,25 @@ async def get_user_followed_playlists(
     context: TokenDependency,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFollowedPlaylistsData:
     counted = await database.query_user_followed_playlists(
         user_id=user_id, offset=offset, limit=limit
     )
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
-    items, count = counted
+    items, _ = counted
 
     is_playlist_accessible = await create_playlist_accessible_predicate(
-        self_id_from_context(context)
+        user_id_from_context(context)
     )
 
     items = iter(items).filter(is_playlist_accessible).list()
 
     user_followed_playlists = UserFollowedPlaylists(
-        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=len(items))
     )
 
     return user_followed_playlists.into_data()
@@ -263,21 +263,21 @@ async def get_user_followers(
     context: TokenDependency,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFollowersData:
     counted = await database.query_user_followers(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
-    items, count = counted
+    items, _ = counted
 
-    is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
+    is_user_accessible = await create_user_accessible_predicate(user_id_from_context(context))
 
     items = iter(items).filter(is_user_accessible).list()
 
     user_followers = UserFollowers(
-        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=len(items))
     )
 
     return user_followers.into_data()
@@ -294,21 +294,21 @@ async def get_user_following(
     context: TokenDependency,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFollowingData:
     counted = await database.query_user_following(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
-    items, count = counted
+    items, _ = counted
 
-    is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
+    is_user_accessible = await create_user_accessible_predicate(user_id_from_context(context))
 
     items = iter(items).filter(is_user_accessible).list()
 
     user_following = UserFollowing(
-        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=len(items))
     )
 
     return user_following.into_data()
@@ -329,21 +329,21 @@ async def get_user_friends(
     context: TokenDependency,
     request_url: RequestURLDependency,
     offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: int = DEFAULT_LIMIT,
+    limit: LimitDependency = DEFAULT_LIMIT,
 ) -> UserFriendsData:
     counted = await database.query_user_friends(user_id=user_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_user(user_id))
+        raise UserNotFound(user_id)
 
-    items, count = counted
+    items, _ = counted
 
-    is_user_accessible = await create_user_accessible_predicate(self_id_from_context(context))
+    is_user_accessible = await create_user_accessible_predicate(user_id_from_context(context))
 
     items = iter(items).filter(is_user_accessible).list()
 
     user_friends = UserFriends(
-        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=count)
+        items, Pagination.paginate(url=request_url, offset=offset, limit=limit, count=len(items))
     )
 
     return user_friends.into_data()

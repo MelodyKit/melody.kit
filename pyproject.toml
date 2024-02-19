@@ -21,7 +21,7 @@ classifiers = [
 ]
 
 [tool.poetry.urls]
-Discord = "https://melodykit.app/discord"
+Chat = "https://melodykit.app/discord"
 Issues = "https://github.com/MelodyKit/melody.web/issues"
 
 [[tool.poetry.packages]]
@@ -37,7 +37,9 @@ include = "melody"
 python = ">= 3.8"
 versions = "^2.0.0"
 attrs = "^23.2.0"
+loguru = "^0.7.2"
 # melody.kit
+qrcode = "^7.4.2"
 authlib = "^1.3.0"
 httpx = "^0.26.0"  # for `authlib`
 itsdangerous = "^2.1.2"  # for `starlette`
@@ -64,6 +66,7 @@ aiofiles = "^23.2.1"
 cattrs = "^23.2.3"
 typing-aliases = "^1.4.1"
 yarl = "^1.9.4"
+pillow = "^10.2.0"
 
 [tool.poetry.dependencies.aiosmtplib]  # melody.kit
 version = "^3.0.1"
@@ -85,10 +88,28 @@ mypy = "1.8.0"
 types-toml = "0.10.8.7"
 types-redis = "4.6.0.20240218"
 types-aiofiles = "23.2.0.20240106"
+types-qrcode = "7.4.0.20240106"
+types-pillow = "10.2.0.20240213"
 
-[tool.poetry.group.dev.dependencies.ipython]
-version = "8.20.0"
-python = ">= 3.10"
+[tool.poetry.group.check.dependencies.pre-commit]
+version = "3.6.1"
+python = ">= 3.9"
+
+[tool.poetry.group.test.dependencies]
+coverage = "7.4.1"
+pytest = "8.0.1"
+pytest-cov = "4.1.0"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "1.5.3"
+mkdocs-material = "9.5.9"
+
+[tool.poetry.group.docs.dependencies.mkdocstrings]
+version = "0.24.0"
+extras = ["python"]
 
 [tool.poetry.group.release]
 optional = true

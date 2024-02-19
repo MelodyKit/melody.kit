@@ -5,14 +5,14 @@ from attrs import frozen
 from typing_extensions import Self
 
 from melody.kit.enums import EntityType
-from melody.shared.constants import IMAGE_TYPE
+from melody.shared.constants import CODE_TYPE
 from melody.shared.converter import CONVERTER
 
 __all__ = ("URI", "URI_HEADER", "URI_SEPARATOR", "Locatable")
 
 # image constants
 
-IMAGE_NAME = f"{{type}}.{{id}}.{IMAGE_TYPE}"
+IMAGE_NAME = f"{{type}}.{{id}}.{CODE_TYPE}"
 image_name = IMAGE_NAME.format
 
 # URI constants

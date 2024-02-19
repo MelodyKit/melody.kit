@@ -3,18 +3,13 @@ from fastapi.responses import FileResponse
 from melody.kit.code import generate_code
 from melody.kit.core import database, v1
 from melody.kit.enums import Tag
-from melody.kit.errors import Conflict, NotFound
-from melody.kit.oauth2 import UserTokenDependency
-from melody.kit.totp import (
-    CodeDependency,
-    TwoFactorTokenDependency,
-    delete_secret_for,
-    fetch_secret_for,
-    generate_secret_for,
-    provisioning_url,
-    secret_image_name,
-    validate_optional,
-)
+from melody.kit.errors.auth import AuthCodeConflict, AuthCodeNotFound, AuthUserNotFound
+from melody.kit.tokens.dependencies import UserTokenDependency
+from melody.kit.totp.core import validate_totp
+from melody.kit.totp.dependencies import CodeDependency, OptionalCodeDependency
+from melody.kit.totp.operations import delete_secret_for, fetch_secret_for, generate_secret_for
+from melody.kit.totp.provisioning import provisioning_image_name, provisioning_url
+from melody.shared.converter import unstructure_url
 
 __all__ = (
     "generate_totp",
@@ -39,10 +34,10 @@ async def generate_totp(context: UserTokenDependency) -> str:
     self_info = await database.query_user_info(user_id=self_id)
 
     if self_info is None:
-        raise NotFound(can_not_find_user(self_id))
+        raise AuthUserNotFound(self_id)
 
     if self_info.is_totp_enabled():
-        raise Conflict(TOTP_ALREADY_ENABLED)
+        raise AuthCodeConflict()
 
     secret = await fetch_secret_for(self_id)
 
@@ -57,7 +52,18 @@ async def generate_totp(context: UserTokenDependency) -> str:
     tags=[Tag.TOTP],
     summary="Removes TOTP secrets.",
 )
-async def remove_totp(context: TwoFactorTokenDependency) -> None:
+async def remove_totp(context: UserTokenDependency, code: OptionalCodeDependency = None) -> None:
+    self_id = context.user_id
+
+    self_info = await database.query_user_info(user_id=self_id)
+
+    if self_info is None:
+        raise AuthUserNotFound(self_id)
+
+    secret = self_info.secret
+
+    validate_totp(secret, code)
+
     await database.update_user_secret(user_id=context.user_id, secret=None)
 
 
@@ -68,13 +74,13 @@ async def link_totp(context: UserTokenDependency) -> FileResponse:
     secret = await fetch_secret_for(self_id)
 
     if secret is None:
-        raise NotFound(can_not_find_secret(self_id))
+        raise AuthCodeNotFound()
 
     url = provisioning_url(user_id=self_id, secret=secret)
 
-    image_name = secret_image_name(secret)
+    image_name = provisioning_image_name(secret)
 
-    path = await generate_code(str(url), image_name)
+    path = await generate_code(unstructure_url(url), image_name)
 
     return FileResponse(path)
 
@@ -90,9 +96,9 @@ async def verify_totp(context: UserTokenDependency, code: CodeDependency) -> Non
     secret = await fetch_secret_for(self_id)
 
     if secret is None:
-        raise NotFound(can_not_find_secret(self_id))
+        raise AuthCodeNotFound()
 
-    validate_optional(secret, code)
+    validate_totp(secret, code)
 
     await delete_secret_for(self_id)
 

@@ -13,8 +13,8 @@ __all__ = (
     "USER_IMAGE_WRITE",
     "USER_STREAMS_READ",
     "USER_STREAMS_WRITE",
-    "SCOPE_SETUP",
-    "ScopeSetup",
+    "DESCRIBED_SCOPES",
+    "DescribedScopes",
 )
 
 USER_FOLLOWING_READ = "user-following-read"
@@ -30,9 +30,9 @@ USER_IMAGE_WRITE = "user-image-write"
 USER_STREAMS_READ = "user-streams-read"
 USER_STREAMS_WRITE = "user-streams-write"
 
-ScopeSetup = StringDict[str]  # scope -> description
+DescribedScopes = StringDict[str]  # scope -> description
 
-SCOPE_SETUP = {
+DESCRIBED_SCOPES = {
     USER_FOLLOWING_READ: "Read access to the user's following.",
     USER_FOLLOWING_WRITE: "Write access to the user's following.",
     USER_LIBRARY_READ: "Read access to the user's library.",

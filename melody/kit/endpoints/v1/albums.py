@@ -6,18 +6,16 @@ from fastapi.responses import FileResponse
 from melody.kit.code import generate_code_for_uri
 from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import database, v1
-from melody.kit.dependencies import LimitDependency, OffsetDependency, RequestURLDependency
+from melody.kit.dependencies.common import LimitDependency, OffsetDependency
+from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.enums import EntityType, Tag
-from melody.kit.errors import NotFound
+from melody.kit.errors.albums import AlbumNotFound
 from melody.kit.models.album import AlbumData, AlbumTracks, AlbumTracksData
 from melody.kit.models.pagination import Pagination
-from melody.kit.oauth2 import token_dependency
+from melody.kit.tokens.dependencies import token_dependency
 from melody.kit.uri import URI
 
 __all__ = ("get_album", "get_album_link", "get_album_tracks")
-
-CAN_NOT_FIND_ALBUM = "can not find the album with ID `{}`"
-can_not_find_album = CAN_NOT_FIND_ALBUM.format
 
 
 @v1.get(
@@ -30,7 +28,7 @@ async def get_album(album_id: UUID) -> AlbumData:
     album = await database.query_album(album_id=album_id)
 
     if album is None:
-        raise NotFound(can_not_find_album(album_id))
+        raise AlbumNotFound(album_id)
 
     return album.into_data()
 
@@ -64,7 +62,7 @@ async def get_album_tracks(
     counted = await database.query_album_tracks(album_id=album_id, offset=offset, limit=limit)
 
     if counted is None:
-        raise NotFound(can_not_find_album(album_id))
+        raise AlbumNotFound(album_id)
 
     items, count = counted
 

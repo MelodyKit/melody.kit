@@ -32,13 +32,13 @@ def email_message(author: str, target: str, subject: str, content: str) -> Email
 
 
 async def send_email_message(message: EmailMessage) -> None:
-    email = config.email
+    email_config = config.email
 
     client = SMTP(
-        hostname=email.host,
-        port=email.port,
-        username=email.name,
-        password=email.password,
+        hostname=email_config.host,
+        port=email_config.port,
+        username=email_config.name,
+        password=email_config.password,
         start_tls=True,
     )
 

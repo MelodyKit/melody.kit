@@ -98,6 +98,8 @@ PYTHON = "Python"
 IMAGE_CONTENT_TYPE = "image/png"
 IMAGE_TYPE = "png"
 
+CODE_TYPE = "svg"
+
 # file modes
 
 READ: Literal["r"] = "r"
@@ -115,9 +117,17 @@ REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
 AUTHORIZATION_CODE: Literal["authorization_code"] = "authorization_code"
 VERIFICATION_CODE: Literal["verification_code"] = "verification_code"
 
+# secret
+
+SECRET: Literal["secret"] = "secret"
+
 # PKCE
 
 CODE_VERIFIER_SIZE = 96
+
+# chunks
+
+CHUNK_SIZE = 16384
 
 # colors
 

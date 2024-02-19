@@ -5,13 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
+from starlette.exceptions import HTTPException as HTTPError
 from starlette.middleware.sessions import SessionMiddleware  # XXX: use `fastapi` when implemented
 from typing_aliases import NormalError
 
 from melody.kit.config import CONFIG
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
-from melody.kit.errors import UNHANDLED_ERROR, Error, InternalError
+from melody.kit.errors.core import Error
+from melody.kit.errors.internal import InternalError
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, STAR
 
 __all__ = ("config", "database", "redis", "hasher", "oauth", "app", "v1")
@@ -51,6 +53,7 @@ oauth.register(
 )
 
 app = FastAPI(openapi_url=None, redoc_url=None)
+"""The main application."""
 
 ORIGIN = f"https://{config.open}.{config.domain}"
 
@@ -78,19 +81,29 @@ register_cors_middleware(app)
 register_session_middleware(app)
 
 
+UNHANDLED_ERROR = "unhandled error"
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Error)
     async def error_handler(request: Request, error: Error) -> JSONResponse:
-        return JSONResponse(error.into_data(), status_code=error.STATUS_CODE)
+        return JSONResponse(error.into_data(), status_code=error.status_code)
+
+    @app.exception_handler(HTTPError)
+    async def http_error_handler(request: Request, error: HTTPError) -> JSONResponse:
+        converted_error = Error.from_http_error(error)
+
+        return await error_handler(request, converted_error)
 
     @app.exception_handler(NormalError)
-    async def internal_error_handler(request: Request, error: NormalError) -> JSONResponse:
-        internal_error = InternalError(UNHANDLED_ERROR)
+    async def normal_error_handler(request: Request, error: NormalError) -> JSONResponse:
+        internal_error = InternalError()
 
         return await error_handler(request, internal_error)
 
 
 v1 = FastAPI(title=config.name, version=VERSION_1)
+"""The `/api/v1` application."""
 
 app.mount(V1, v1)
 

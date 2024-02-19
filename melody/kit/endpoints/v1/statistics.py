@@ -3,7 +3,7 @@ from fastapi import Depends
 from melody.kit.core import database, v1
 from melody.kit.enums import Tag
 from melody.kit.models.statistics import StatisticsData
-from melody.kit.oauth2 import token_dependency
+from melody.kit.tokens.dependencies import token_dependency
 
 __all__ = ("get_statistics",)
 

@@ -1,27 +1,5 @@
 from pathlib import Path
 
-__all__ = (
-    # root
-    "KIT_ROOT",
-    # v1
-    "V1",
-    "VERSION_1",
-    # config
-    "DEFAULT_IGNORE_SENSITIVE",
-    # models
-    "DEFAULT_COUNT",
-    "DEFAULT_DURATION",
-    "DEFAULT_EXPLICIT",
-    "DEFAULT_POSITION",
-    # user settings
-    "DEFAULT_AUTOPLAY",
-    # player settings
-    "DEFAULT_PLAYING",
-    "DEFAULT_SHUFFLE",
-    "DEFAULT_VOLUME",
-    "DEFAULT_VOLUME_STORE",
-)
-
 # root
 
 KIT_ROOT = Path(__file__).parent

@@ -1,6 +1,6 @@
 # This is the default configuration file for MelodyKit.
 # Configuration file is located at `~/.config/melody/kit.toml`.
-# You can read more about it here: `https://docs.melodykit.app/dev/config`.
+# You can read more about it here: `https://docs.melodykit.app/config`.
 # There are some sensitive fields that need to be manually defined:
 # - `melody.session_key`
 # - `melody.email.name`
@@ -16,12 +16,31 @@ name = "MelodyKit"
 domain = "melodykit.app"
 open = "open"
 
-images = "~/.melody/kit/images"
-
 [melody.email]
 host = "smtp.gmail.com"
 port = 587
 support = "support@melodykit.app"
+
+[melody.email.verification]
+# allowed formatting: `name`
+subject = "{name} verification code"
+
+# allowed formatting: `verification_code`
+content = """
+Here is your verification code:
+
+{verification_code}
+"""
+
+[melody.email.temporary]
+# allowed formatting: `name`
+subject = "{name} temporary token"
+# allowed formatting: `temporary_token`
+content = """
+Here is your temporary token:
+
+{temporary_token}
+"""
 
 [melody.hash]
 time_cost = 4
@@ -38,6 +57,11 @@ error_correction = "high"
 box_size = 10
 border = 4
 
+[melody.image]
+path = "~/.melody/kit/images"
+size_limit = 4096
+data_size_limit = 16777216
+
 [melody.log]
 level = "info"
 
@@ -47,6 +71,11 @@ port = 6379
 
 [melody.secret]
 size = 32
+
+[melody.totp]
+digits = 6
+interval = 30
+valid_window = 1
 
 [melody.token]
 type = "Bearer"

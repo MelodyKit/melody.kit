@@ -4,20 +4,16 @@ from uuid import UUID
 from fastapi import Body, Depends
 from typing_extensions import Annotated
 
-from melody.kit.client_credentials import ClientCredentials, ClientCredentialsData
+from melody.kit.clients.credentials import ClientCredentials, ClientCredentialsData
 from melody.kit.core import database, hasher, v1
 from melody.kit.enums import Tag
-from melody.kit.errors import NotFound
+from melody.kit.errors.clients import ClientNotFound
 from melody.kit.models.client import ClientData
-from melody.kit.oauth2 import token_dependency
-from melody.kit.privacy import check_client_changeable_dependency
+from melody.kit.privacy.clients import check_client_changeable_dependency
 from melody.kit.secrets import generate_secret
-from melody.kit.totp import TwoFactorTokenDependency
+from melody.kit.tokens.dependencies import UserTokenDependency, token_dependency
 
 __all__ = ("get_client",)
-
-CAN_NOT_FIND_CLIENT = "can not find the client with ID `{}`"
-can_not_find_client = CAN_NOT_FIND_CLIENT.format
 
 NameDependency = Annotated[str, Body()]
 OptionalDescriptionDependency = Annotated[Optional[str], Body()]
@@ -42,7 +38,7 @@ CreateClientPayloadDependency = Annotated[CreateClientPayload, Depends()]
     summary="Creates a new client.",
 )
 async def create_client(
-    context: TwoFactorTokenDependency,
+    context: UserTokenDependency,
     payload: CreateClientPayloadDependency,
 ) -> ClientCredentialsData:
     secret = generate_secret()
@@ -71,7 +67,7 @@ async def get_client(client_id: UUID) -> ClientData:
     client = await database.query_client(client_id=client_id)
 
     if client is None:
-        raise NotFound(can_not_find_client(client_id))
+        raise ClientNotFound(client_id)
 
     return client.into_data()
 
@@ -121,7 +117,7 @@ async def update_client(
     client = await database.query_client(client_id=client_id)
 
     if client is None:
-        raise NotFound(can_not_find_client(client_id))
+        raise ClientNotFound(client_id)
 
     if name is None:
         name = client.name

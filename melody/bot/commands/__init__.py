@@ -1,6 +1,5 @@
 from melody.bot.commands.album import get_album
 from melody.bot.commands.artist import get_artist
-from melody.bot.commands.search import search_items
 from melody.bot.commands.self import get_self
 from melody.bot.commands.statistics import get_statistics
 from melody.bot.commands.track import get_track
@@ -10,8 +9,6 @@ __all__ = (
     "get_album",
     # artist
     "get_artist",
-    # search
-    "search_items",
     # self
     "get_self",
     # statistics
