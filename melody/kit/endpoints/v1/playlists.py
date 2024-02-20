@@ -182,11 +182,9 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
 async def get_playlist_image(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    async_path = Path(path)
-
-    if not await async_path.exists():
+    if not await path.exists():
         raise PlaylistImageNotFound(playlist_id)
 
     return FileResponse(path)

@@ -24,10 +24,10 @@ BOTTOM_COLOR = MELODY_BLUE.to_rgba()
 TRANSPARENT = Color.black().to_rgba(ZERO)
 
 
-def generate_code_sync(string: str, image_name: str) -> Path:
+def generate_code_sync(string: str, code_name: str) -> Path:
     code_config = config.code
 
-    path = code_config.cache / image_name
+    path = code_config.cache / code_name
 
     if path.exists():
         return path
@@ -50,11 +50,11 @@ def generate_code_sync(string: str, image_name: str) -> Path:
 
 
 def generate_code_for_uri_sync(uri: URI) -> Path:
-    return generate_code_sync(str(uri), uri.image_name)
+    return generate_code_sync(str(uri), uri.code_name)
 
 
-async def generate_code(string: str, image_name: str) -> Path:
-    return await run_blocking_in_thread(generate_code_sync, string, image_name)
+async def generate_code(string: str, code_name: str) -> Path:
+    return await run_blocking_in_thread(generate_code_sync, string, code_name)
 
 
 async def generate_code_for_uri(uri: URI) -> Path:

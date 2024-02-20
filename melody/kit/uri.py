@@ -5,14 +5,19 @@ from attrs import frozen
 from typing_extensions import Self
 
 from melody.kit.enums import EntityType
-from melody.shared.constants import CODE_TYPE
+from melody.shared.constants import CODE_TYPE, IMAGE_TYPE
 from melody.shared.converter import CONVERTER
 
 __all__ = ("URI", "URI_HEADER", "URI_SEPARATOR", "Locatable")
 
+# code constants
+
+CODE_NAME = f"{{type}}.{{id}}.{CODE_TYPE}"
+code_name = CODE_NAME.format
+
 # image constants
 
-IMAGE_NAME = f"{{type}}.{{id}}.{CODE_TYPE}"
+IMAGE_NAME = f"{{type}}.{{id}}.{IMAGE_TYPE}"
 image_name = IMAGE_NAME.format
 
 # URI constants
@@ -57,6 +62,10 @@ class URI:
     @property
     def image_name(self) -> str:
         return image_name(type=self.type.value, id=self.id)
+
+    @property
+    def code_name(self) -> str:
+        return code_name(type=self.type.value, id=self.id)
 
 
 def structure_uri(string: str, uri_type: Type[U]) -> U:

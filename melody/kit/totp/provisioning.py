@@ -5,7 +5,7 @@ from yarl import URL
 from melody.kit.totp.core import create_totp
 from melody.shared.constants import CODE_TYPE, SECRET
 
-__all__ = ("provisioning_url", "provisioning_image_name")
+__all__ = ("provisioning_url", "provisioning_code_name")
 
 
 def provisioning_url(user_id: UUID, secret: str) -> URL:
@@ -18,5 +18,5 @@ def provisioning_url(user_id: UUID, secret: str) -> URL:
     return url
 
 
-PROVISIONING_IMAGE_NAME = f"{SECRET}.{{}}.{CODE_TYPE}"
-provisioning_image_name = PROVISIONING_IMAGE_NAME.format
+PROVISIONING_CODE_NAME = f"{SECRET}.{{}}.{CODE_TYPE}"
+provisioning_code_name = PROVISIONING_CODE_NAME.format

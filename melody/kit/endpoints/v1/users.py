@@ -99,11 +99,9 @@ can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
 async def get_user_image(user_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    async_path = Path(path)
-
-    if not await async_path.exists():
+    if not await path.exists():
         raise UserImageNotFound(user_id)
 
     return FileResponse(path)

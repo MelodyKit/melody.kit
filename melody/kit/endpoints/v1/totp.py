@@ -8,7 +8,7 @@ from melody.kit.tokens.dependencies import UserTokenDependency
 from melody.kit.totp.core import validate_totp
 from melody.kit.totp.dependencies import CodeDependency, OptionalCodeDependency
 from melody.kit.totp.operations import delete_secret_for, fetch_secret_for, generate_secret_for
-from melody.kit.totp.provisioning import provisioning_image_name, provisioning_url
+from melody.kit.totp.provisioning import provisioning_code_name, provisioning_url
 from melody.shared.converter import unstructure_url
 
 __all__ = (
@@ -78,9 +78,9 @@ async def link_totp(context: UserTokenDependency) -> FileResponse:
 
     url = provisioning_url(user_id=self_id, secret=secret)
 
-    image_name = provisioning_image_name(secret)
+    code_name = provisioning_code_name(secret)
 
-    path = await generate_code(unstructure_url(url), image_name)
+    path = await generate_code(unstructure_url(url), code_name)
 
     return FileResponse(path)
 
