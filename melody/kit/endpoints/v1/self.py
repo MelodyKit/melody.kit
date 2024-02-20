@@ -127,9 +127,11 @@ async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = config.image.path / uri.image_name
 
-    if not await path.exists():
+    async_path = Path(path)
+
+    if not await async_path.exists():
         raise UserImageNotFound(self_id)
 
     return FileResponse(path)

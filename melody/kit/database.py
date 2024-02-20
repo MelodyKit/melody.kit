@@ -136,6 +136,8 @@ UPDATE_USER_SETTINGS = load_query("users/settings/update")
 UPDATE_USER_DISCORD_ID = load_query("users/connections/update_discord_id")
 QUERY_USER_BY_DISCORD_ID = load_query("users/connections/query_by_discord_id")
 
+ADD_USER_CLIENT = load_query("users/clients/add")
+
 # statistics
 
 QUERY_STATISTICS = load_query("statistics/query")
@@ -616,3 +618,6 @@ class Database:
         await self.client.query_single(
             UPDATE_CLIENT_SECRET_HASH, client_id=client_id, secret_hash=secret_hash
         )
+
+    async def add_user_client(self, user_id: UUID, client_id: UUID) -> None:
+        await self.client.query_single(ADD_USER_CLIENT, user_id=user_id, client_id=client_id)

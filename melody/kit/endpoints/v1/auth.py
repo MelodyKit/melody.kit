@@ -178,13 +178,17 @@ async def tokens(
         if client_credentials is None:
             raise AuthClientCredentialsExpected()
 
-        if client_credentials.id != authorization_context.client_id:
+        client_id = client_credentials.id
+
+        if client_id != authorization_context.client_id:
             raise AuthClientCredentialsMismatch()
 
         if redirect_uri != authorization_context.redirect_uri:
             raise AuthAuthorizationCodeRedirectURIMismatch()
 
         await delete_authorization_codes_with(authorization_context)
+
+        await database.add_user_client(user_id=authorization_context.user_id, client_id=client_id)
 
         context = authorization_context.into_context()
 
