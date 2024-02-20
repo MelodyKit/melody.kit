@@ -2,15 +2,12 @@ from typing import Optional
 from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
-from fastapi import Depends
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import Depends, Form
 from typing_extensions import Annotated
 
 from melody.kit.clients.credentials import ClientCredentials
 from melody.kit.core import database, hasher
 from melody.kit.errors.auth import (
-    AuthClientCredentialsExpected,
-    AuthClientCredentialsInvalid,
     AuthClientCredentialsNotFound,
     AuthClientCredentialsSecretMismatch,
 )
@@ -24,29 +21,13 @@ __all__ = (
     "optional_client_credentials_dependency",
 )
 
-BASIC_DESCRIPTION = "This is used solely for sending `client_id` and `client_secret` credentials."
-
-basic = HTTPBasic(description=BASIC_DESCRIPTION, auto_error=False)
-
-BasicCredentialsDependency = Annotated[Optional[HTTPBasicCredentials], Depends(basic)]
+ClientIDDependency = Annotated[UUID, Form()]
+ClientSecretDependency = Annotated[str, Form()]
 
 
 async def client_credentials_dependency(
-    basic_credentials: BasicCredentialsDependency,
+    client_id: ClientIDDependency, client_secret: ClientSecretDependency
 ) -> ClientCredentials:
-    if basic_credentials is None:
-        raise AuthClientCredentialsExpected()
-
-    client_id_string = basic_credentials.username
-
-    try:
-        client_id = UUID(client_id_string)
-
-    except ValueError:
-        raise AuthClientCredentialsInvalid()
-
-    client_secret = basic_credentials.password
-
     client_info = await database.query_client_info(client_id=client_id)
 
     if client_info is None:
@@ -65,14 +46,18 @@ async def client_credentials_dependency(
 
 ClientCredentialsDependency = Annotated[ClientCredentials, Depends(client_credentials_dependency)]
 
+OptionalClientIDDependency = Annotated[Optional[UUID], Form()]
+OptionalClientSecretDependency = Annotated[Optional[str], Form()]
+
 
 async def optional_client_credentials_dependency(
-    basic_credentials: BasicCredentialsDependency,
+    client_id: OptionalClientIDDependency = None,
+    client_secret: OptionalClientSecretDependency = None,
 ) -> Optional[ClientCredentials]:
     return (
         None
-        if basic_credentials is None
-        else await client_credentials_dependency(basic_credentials)
+        if client_id is None or client_secret is None
+        else await client_credentials_dependency(client_id, client_secret)
     )
 
 
