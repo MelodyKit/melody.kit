@@ -5,16 +5,27 @@ from edgedb import ConstraintViolationError
 from fastapi import BackgroundTasks, Form
 from typing_aliases import NormalError
 from typing_extensions import Annotated
+from melody.kit.authorization.code import AuthorizationCode, AuthorizationCodeData
+from melody.kit.authorization.context import AuthorizationContext
 
 from melody.kit.authorization.dependencies import OptionalAuthorizationCodeDependency
-from melody.kit.authorization.operations import delete_authorization_codes_with
-from melody.kit.clients.dependencies import OptionalClientCredentialsDependency
+from melody.kit.authorization.operations import (
+    delete_authorization_codes_with,
+    generate_authorization_code_with,
+)
+from melody.kit.clients.dependencies import (
+    FormClientCredentialsDependency,
+    OptionalClientCredentialsDependency,
+)
 from melody.kit.core import config, database, hasher, v1
 from melody.kit.dependencies.emails import EmailDeliverabilityDependency, EmailDependency
+from melody.kit.dependencies.scopes import ScopesDependency
 from melody.kit.emails import email_message, send_email_message, support
 from melody.kit.enums import Tag
 from melody.kit.errors.auth import (
     AuthAuthorizationCodeExpected,
+    AuthAuthorizationCodeRedirectURIExpected,
+    AuthAuthorizationCodeRedirectURIMismatch,
     AuthClientCredentialsExpected,
     AuthClientCredentialsMismatch,
     AuthEmailConflict,
@@ -119,17 +130,41 @@ async def revoke(bound_token: BoundTokenDependency) -> None:
     await delete_access_token(bound_token.token)
 
 
+RedirectURIDependency = Annotated[str, Form()]
+StateDependency = Annotated[str, Form()]
+
+
 @v1.post("/authorize", tags=[Tag.AUTH], summary="Authorizes the client to access the user's data.")
-async def authorize() -> None:
-    ...
+async def authorize(
+    context: UserTokenDependency,
+    client_credentials: FormClientCredentialsDependency,
+    redirect_uri: RedirectURIDependency,
+    scopes: ScopesDependency,
+    state: StateDependency,
+) -> AuthorizationCodeData:
+    authorization_context = AuthorizationContext(
+        user_id=context.user_id,
+        client_id=client_credentials.id,
+        scopes=scopes,
+        redirect_uri=redirect_uri,
+    )
+
+    code = await generate_authorization_code_with(authorization_context)
+
+    authorization_code = AuthorizationCode(code, state)
+
+    return authorization_code.into_data()
 
 
 GrantTypeDependency = Annotated[GrantType, Form()]
+
+OptionalRedirectURIDependency = Annotated[Optional[str], Form()]
 
 
 @v1.post("/tokens", tags=[Tag.AUTH], summary="Returns tokens.")
 async def tokens(
     grant_type: GrantTypeDependency,
+    redirect_uri: OptionalRedirectURIDependency = None,
     authorization_context: OptionalAuthorizationCodeDependency = None,
     bound_refresh_token: OptionalBoundRefreshTokenDependency = None,
     client_credentials: OptionalClientCredentialsDependency = None,
@@ -140,11 +175,17 @@ async def tokens(
         if authorization_context is None:
             raise AuthAuthorizationCodeExpected()
 
+        if redirect_uri is None:
+            raise AuthAuthorizationCodeRedirectURIExpected()
+
         if client_credentials is None:
             raise AuthClientCredentialsExpected()
 
         if client_credentials.id != authorization_context.client_id:
             raise AuthClientCredentialsMismatch()
+
+        if redirect_uri != authorization_context.redirect_uri:
+            raise AuthAuthorizationCodeRedirectURIMismatch()
 
         await delete_authorization_codes_with(authorization_context)
 

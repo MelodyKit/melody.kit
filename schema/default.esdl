@@ -246,7 +246,7 @@ module default {
         required duration_ms: duration_ms;
     }
 
-    type Client extending Named {
+    type Client extending Named, RedirectURLs {
         required creator: User {
             on target delete delete source;
         };

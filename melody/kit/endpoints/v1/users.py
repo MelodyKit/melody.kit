@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from async_extensions.path import Path
 from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters.iters import iter
@@ -98,9 +99,9 @@ can_not_find_user_image = CAN_NOT_FIND_USER_IMAGE.format
 async def get_user_image(user_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.USER, id=user_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    if not path.exists():
+    if not await path.exists():
         raise UserImageNotFound(user_id)
 
     return FileResponse(path)

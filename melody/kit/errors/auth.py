@@ -33,6 +33,8 @@ __all__ = (
     "AuthAuthorizationCodeError",
     "AuthAuthorizationCodeExpected",
     "AuthAuthorizationCodeInvalid",
+    "AuthAuthorizationCodeRedirectURIExpected",
+    "AuthAuthorizationCodeRedirectURIMismatch",
     # verification
     "AuthVerificationCodeError",
     "AuthVerificationCodeInvalid",
@@ -226,6 +228,24 @@ INVALID_AUTHORIZATION_CODE = "invalid authorization code"
 class AuthAuthorizationCodeInvalid(AuthAuthorizationCodeError):
     def __init__(self) -> None:
         super().__init__(INVALID_AUTHORIZATION_CODE)
+
+
+REDIRECT_URI_EXPECTED = "redirect URI expected"
+
+
+@default_code(ErrorCode.AUTH_AUTHORIZATION_CODE_REDIRECT_URI_EXPECTED)
+class AuthAuthorizationCodeRedirectURIExpected(AuthAuthorizationCodeError):
+    def __init__(self) -> None:
+        super().__init__(REDIRECT_URI_EXPECTED)
+
+
+REDIRECT_URI_MISMATCH = "redirect URI mismatch"
+
+
+@default_code(ErrorCode.AUTH_AUTHORIZATION_CODE_REDIRECT_URI_MISMATCH)
+class AuthAuthorizationCodeRedirectURIMismatch(AuthAuthorizationCodeError):
+    def __init__(self) -> None:
+        super().__init__(REDIRECT_URI_MISMATCH)
 
 
 @default_code(ErrorCode.AUTH_VERIFICATION_CODE_ERROR)

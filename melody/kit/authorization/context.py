@@ -16,18 +16,20 @@ __all__ = ("AuthorizationContext", "AuthorizationContextData")
 
 
 class AuthorizationContextData(Data):
-    client_id: str
     user_id: str
+    client_id: str
     scope: str
+    redirect_uri: str
 
 
 @register_unstructure_hook_rename_scopes
 @register_structure_hook_rename_scopes
 @frozen()
 class AuthorizationContext:
-    client_id: UUID
     user_id: UUID
+    client_id: UUID
     scopes: Scopes
+    redirect_uri: str
 
     @classmethod
     def from_data(cls, data: AuthorizationContextData) -> Self:

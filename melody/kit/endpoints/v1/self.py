@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from aiofiles import open as async_open
+from async_extensions.path import Path
 from edgedb import QueryAssertionError
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse
@@ -127,9 +127,9 @@ async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    if not path.exists():
+    if not await path.exists():
         raise UserImageNotFound(self_id)
 
     return FileResponse(path)
@@ -143,9 +143,9 @@ async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
 async def change_self_image(context: ImageWriteTokenDependency, data: ImageDependency) -> None:
     uri = URI(type=EntityType.USER, id=context.user_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    async with async_open(path, WRITE_BINARY) as file:
+    async with await path.open(WRITE_BINARY) as file:
         await file.write(data)
 
 
@@ -159,9 +159,9 @@ async def remove_self_image(context: ImageWriteTokenDependency) -> None:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    path.unlink(missing_ok=True)
+    await path.unlink(missing_ok=True)
 
 
 @v1.get(

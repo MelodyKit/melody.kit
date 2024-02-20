@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
-from aiofiles import open as async_open
+from async_extensions.path import Path
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse
 from typing_extensions import Annotated
@@ -182,9 +182,9 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
 async def get_playlist_image(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    if not path.exists():
+    if not await path.exists():
         raise PlaylistImageNotFound(playlist_id)
 
     return FileResponse(path)
@@ -203,9 +203,9 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
 async def change_playlist_image(playlist_id: UUID, data: ImageDependency) -> None:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    async with async_open(path, WRITE_BINARY) as file:
+    async with await path.open(WRITE_BINARY) as file:
         await file.write(data)
 
 
@@ -218,9 +218,9 @@ async def change_playlist_image(playlist_id: UUID, data: ImageDependency) -> Non
 async def remove_playlist_image(playlist_id: UUID) -> None:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = config.image.path / uri.image_name
+    path = Path(config.image.path / uri.image_name)
 
-    path.unlink(missing_ok=True)
+    await path.unlink(missing_ok=True)
 
 
 @v1.get(
