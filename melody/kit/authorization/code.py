@@ -1,7 +1,7 @@
 from attrs import frozen
 from typing_extensions import Self
-from melody.shared.converter import CONVERTER
 
+from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
 
 __all__ = ("AuthorizationCode", "AuthorizationCodeData")

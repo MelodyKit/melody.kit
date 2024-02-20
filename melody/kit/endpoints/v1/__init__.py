@@ -6,6 +6,7 @@ from melody.kit.endpoints.v1.artists import (
     get_artist_tracks,
 )
 from melody.kit.endpoints.v1.auth import (
+    authorize,
     forgot,
     login,
     register,
@@ -147,6 +148,7 @@ __all__ = (
     "verify_totp",
     # auth
     "login",
+    "authorize",
     "tokens",
     "revoke",
     "revoke_all",

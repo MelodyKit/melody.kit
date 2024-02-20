@@ -1,22 +1,20 @@
 from typing import Optional
+from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
 from fastapi import BackgroundTasks, Form
 from typing_aliases import NormalError
 from typing_extensions import Annotated
+
 from melody.kit.authorization.code import AuthorizationCode, AuthorizationCodeData
 from melody.kit.authorization.context import AuthorizationContext
-
 from melody.kit.authorization.dependencies import OptionalAuthorizationCodeDependency
 from melody.kit.authorization.operations import (
     delete_authorization_codes_with,
     generate_authorization_code_with,
 )
-from melody.kit.clients.dependencies import (
-    FormClientCredentialsDependency,
-    OptionalClientCredentialsDependency,
-)
+from melody.kit.clients.dependencies import OptionalClientCredentialsDependency
 from melody.kit.core import config, database, hasher, v1
 from melody.kit.dependencies.emails import EmailDeliverabilityDependency, EmailDependency
 from melody.kit.dependencies.scopes import ScopesDependency
@@ -64,6 +62,7 @@ from melody.shared.tokens import TokensData
 
 __all__ = (
     "login",
+    "authorize",
     "revoke",
     "tokens",
     "revoke_all",
@@ -130,6 +129,7 @@ async def revoke(bound_token: BoundTokenDependency) -> None:
     await delete_access_token(bound_token.token)
 
 
+ClientIDDependency = Annotated[UUID, Form()]
 RedirectURIDependency = Annotated[str, Form()]
 StateDependency = Annotated[str, Form()]
 
@@ -137,16 +137,13 @@ StateDependency = Annotated[str, Form()]
 @v1.post("/authorize", tags=[Tag.AUTH], summary="Authorizes the client to access the user's data.")
 async def authorize(
     context: UserTokenDependency,
-    client_credentials: FormClientCredentialsDependency,
-    redirect_uri: RedirectURIDependency,
+    client_id: ClientIDDependency,
     scopes: ScopesDependency,
+    redirect_uri: RedirectURIDependency,
     state: StateDependency,
 ) -> AuthorizationCodeData:
     authorization_context = AuthorizationContext(
-        user_id=context.user_id,
-        client_id=client_credentials.id,
-        scopes=scopes,
-        redirect_uri=redirect_uri,
+        user_id=context.user_id, client_id=client_id, scopes=scopes, redirect_uri=redirect_uri
     )
 
     code = await generate_authorization_code_with(authorization_context)
