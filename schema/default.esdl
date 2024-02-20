@@ -171,6 +171,13 @@ module default {
 
         multi followed_playlists extending with_linked_at: Playlist;
 
+        trigger forbid_follow_self_playlists after insert, update for each do (
+            assert(
+                not exists (__new__.playlists intersect __new__.followed_playlists),
+                message := "users can not follow their own playlists",
+            )
+        );
+
         followed_playlist_count := count(.followed_playlists);
 
         multi streams := .<user[is Stream];

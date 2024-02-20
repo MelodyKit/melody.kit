@@ -2,6 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from aiofiles import open as async_open
+from edgedb import QueryAssertionError
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse
 from typing_extensions import Annotated
@@ -13,7 +14,12 @@ from melody.kit.dependencies.common import LimitDependency, OffsetDependency
 from melody.kit.dependencies.images import ImageDependency
 from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.enums import EntityType, Platform, PrivacyType, Tag
-from melody.kit.errors.users import UserImageNotFound, UserNotFound
+from melody.kit.errors.users import (
+    UserFollowSelfForbidden,
+    UserFollowSelfPlaylistsForbidden,
+    UserImageNotFound,
+    UserNotFound,
+)
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.user import (
     UserAlbums,
@@ -438,7 +444,13 @@ async def get_self_following(
 async def add_self_following(
     context: FollowingWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.add_user_following(user_id=context.user_id, ids=ids)
+    self_id = context.user_id
+
+    try:
+        await database.add_user_following(user_id=self_id, ids=ids)
+
+    except QueryAssertionError:
+        raise UserFollowSelfForbidden(self_id) from None
 
 
 @v1.delete(
@@ -489,7 +501,13 @@ async def get_self_followed_playlists(
 async def add_self_followed_playlists(
     context: LibraryWriteTokenDependency, ids: UUIDListDependency
 ) -> None:
-    await database.add_user_followed_playlists(user_id=context.user_id, ids=ids)
+    self_id = context.user_id
+
+    try:
+        await database.add_user_followed_playlists(user_id=self_id, ids=ids)
+
+    except QueryAssertionError:
+        raise UserFollowSelfPlaylistsForbidden(self_id) from None
 
 
 @v1.delete(

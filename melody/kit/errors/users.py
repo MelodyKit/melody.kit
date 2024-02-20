@@ -11,6 +11,8 @@ __all__ = (
     "UserNotFound",
     "UserInaccessible",
     "UserImageNotFound",
+    "UserFollowSelfForbidden",
+    "UserFollowSelfPlaylistsForbidden",
 )
 
 
@@ -63,3 +65,25 @@ user_image_not_found = USER_IMAGE_NOT_FOUND.format
 class UserImageNotFound(UserError):
     def __init__(self, user_id: UUID) -> None:
         super().__init__(user_id, user_image_not_found(user_id))
+
+
+USER_CAN_NOT_FOLLOW_SELF = "user `{}` can not follow themselves"
+user_can_not_follow_self = USER_CAN_NOT_FOLLOW_SELF.format
+
+
+@default_code(ErrorCode.USER_FOLLOW_SELF_FORBIDDEN)
+@default_status_code(status.HTTP_403_FORBIDDEN)
+class UserFollowSelfForbidden(UserError):
+    def __init__(self, user_id: UUID) -> None:
+        super().__init__(user_id, user_can_not_follow_self(user_id))
+
+
+USER_CAN_NOT_FOLLOW_SELF_PLAYLISTS = "user `{}` can not follow their own playlists"
+user_can_not_follow_self_playlists = USER_CAN_NOT_FOLLOW_SELF_PLAYLISTS.format
+
+
+@default_code(ErrorCode.USER_FOLLOW_SELF_PLAYLISTS_FORBIDDEN)
+@default_status_code(status.HTTP_403_FORBIDDEN)
+class UserFollowSelfPlaylistsForbidden(UserError):
+    def __init__(self, user_id: UUID) -> None:
+        super().__init__(user_id, user_can_not_follow_self_playlists(user_id))
