@@ -55,7 +55,7 @@ async def client_credentials_dependency(
     secret_hash = client_info.secret_hash
 
     try:
-        hasher.verify(client_secret, secret_hash)
+        hasher.verify(secret_hash, client_secret)
 
     except VerifyMismatchError:
         raise AuthClientCredentialsSecretMismatch() from None
