@@ -13,7 +13,7 @@ from melody.kit.privacy.clients import check_client_changeable_dependency
 from melody.kit.secrets import generate_secret
 from melody.kit.tokens.dependencies import UserTokenDependency, token_dependency
 
-__all__ = ("get_client",)
+__all__ = ("create_client", "get_client", "delete_client", "update_client")
 
 NameDependency = Annotated[str, Body()]
 OptionalDescriptionDependency = Annotated[Optional[str], Body()]

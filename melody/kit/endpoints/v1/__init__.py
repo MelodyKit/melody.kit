@@ -16,7 +16,7 @@ from melody.kit.endpoints.v1.auth import (
     tokens,
     verify,
 )
-from melody.kit.endpoints.v1.clients import get_client
+from melody.kit.endpoints.v1.clients import create_client, delete_client, get_client, update_client
 from melody.kit.endpoints.v1.playlists import (
     change_playlist_image,
     create_playlist,
@@ -159,5 +159,8 @@ __all__ = (
     # search
     "search_entities",
     # clients
+    "create_client",
     "get_client",
+    "delete_client",
+    "update_client",
 )
