@@ -3,7 +3,7 @@ from uuid import UUID
 
 from argon2.exceptions import VerifyMismatchError
 from edgedb import ConstraintViolationError
-from fastapi import BackgroundTasks, Form
+from fastapi import Form
 from typing_aliases import NormalError
 from typing_extensions import Annotated
 
@@ -238,7 +238,6 @@ async def register(
     name: NameDependency,
     email: EmailDeliverabilityDependency,
     password: PasswordDependency,
-    background_tasks: BackgroundTasks,
 ) -> BaseData:
     password_hash = hasher.hash(password)
 
