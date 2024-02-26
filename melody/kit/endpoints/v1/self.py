@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from async_extensions.path import Path
+from async_extensions.paths import Path
 from edgedb import QueryAssertionError
 from fastapi import Body, Depends
 from fastapi.responses import FileResponse

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from async_extensions.path import Path
+from async_extensions.paths import Path
 from fastapi import Depends
 from fastapi.responses import FileResponse
 from iters.iters import iter
