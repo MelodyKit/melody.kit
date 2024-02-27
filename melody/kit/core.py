@@ -1,5 +1,8 @@
+from typing import Any, Dict
+
 from argon2 import PasswordHasher
 from authlib.integrations.starlette_client import OAuth  # type: ignore[import-untyped]
+from fastapi import status
 from fastapi.applications import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,20 +11,23 @@ from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 from starlette.exceptions import HTTPException as HTTPError
 from starlette.middleware.sessions import SessionMiddleware  # XXX: use `fastapi` when implemented
-from typing_aliases import NormalError
+from typing_aliases import NormalError, StringDict
 
 from melody.kit.config import CONFIG
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
-from melody.kit.errors.core import Error
+from melody.kit.errors.core import Error, ErrorData
 from melody.kit.errors.internal import InternalError
 from melody.shared.constants import DEFAULT_ENCODING, DEFAULT_ERRORS, STAR
+from melody.shared.typing import IntString
 
 __all__ = ("config", "database", "redis", "hasher", "oauth", "app", "v1")
 
 database = Database()
+"""The database instance to use."""
 
 config = CONFIG
+"""The config instance to use."""
 
 redis = Redis(
     host=config.redis.host,
@@ -30,14 +36,17 @@ redis = Redis(
     encoding_errors=DEFAULT_ERRORS,
     decode_responses=True,
 )
+"""The redis instance to use."""
 
 hasher = PasswordHasher(
     time_cost=config.hash.time_cost,
     memory_cost=config.hash.memory_cost,
     parallelism=config.hash.parallelism,
 )
+"""The hasher instance to use."""
 
 oauth = OAuth()
+"""The oauth instance to use."""
 
 DISCORD = "discord"
 DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
@@ -111,7 +120,13 @@ def register_error_handlers(app: FastAPI) -> None:
         return await error_handler(request, internal_error)
 
 
-v1 = FastAPI(title=config.name, version=VERSION_1)
+VALIDATION_ERROR = "Validation error"
+
+OVERRIDE_VALIDATION_ERROR: Dict[IntString, StringDict[Any]] = {
+    status.HTTP_422_UNPROCESSABLE_ENTITY: dict(description=VALIDATION_ERROR, model=ErrorData),
+}
+
+v1 = FastAPI(title=config.name, version=VERSION_1, responses=OVERRIDE_VALIDATION_ERROR)
 """The `/api/v1` application."""
 
 app.mount(V1, v1)

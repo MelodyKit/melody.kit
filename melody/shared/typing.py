@@ -10,4 +10,5 @@ __all__ = (
 )
 
 URLString = Union[URL, str]
+IntString = Union[int, str]
 AnyString = Union[str, bytes]
