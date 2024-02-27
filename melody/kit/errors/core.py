@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import ClassVar, Optional, Type
 
+from fastapi import status
+from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as HTTPError
 from typing_aliases import NormalError
 from typing_extensions import Self
@@ -11,6 +13,8 @@ from melody.shared.strings import case_fold
 from melody.shared.typing import Data
 
 __all__ = ("ErrorCode", "Error", "ErrorData", "ErrorType")
+
+VALIDATION_ERROR = "validation error"
 
 
 class ErrorCode(Enum):
@@ -175,6 +179,16 @@ class Error(NormalError):
         message = case_fold(error.detail)
 
         status_code = error.status_code
+
+        code = ErrorCode.from_status_code(status_code)
+
+        return cls(message, code, status_code)
+
+    @classmethod
+    def from_validation_error(cls, error: RequestValidationError) -> Self:
+        message = VALIDATION_ERROR
+
+        status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
 
         code = ErrorCode.from_status_code(status_code)
 

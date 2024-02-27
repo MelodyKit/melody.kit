@@ -30,7 +30,7 @@ include = "melody"
 [tool.poetry.scripts]
 "melody.bot" = "melody.bot.main:bot"
 "melody.kit" = "melody.kit.main:run"
-"melody.web" = "melody.web.main:web"
+"melody.web" = "melody.web.main:run"
 
 [tool.poetry.dependencies]
 # melody
@@ -146,5 +146,5 @@ wrap_size = 100
 display = ["feature", "change", "fix", "security", "deprecation", "removal", "internal"]
 
 [build-system]
-requires = ["poetry-core >= 1.8.1"]
+requires = ["poetry-core >= 1.9.0"]
 build-backend = "poetry.core.masonry.api"

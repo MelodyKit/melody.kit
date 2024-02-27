@@ -1,6 +1,7 @@
 from argon2 import PasswordHasher
 from authlib.integrations.starlette_client import OAuth  # type: ignore[import-untyped]
 from fastapi.applications import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
@@ -92,6 +93,14 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(HTTPError)
     async def http_error_handler(request: Request, error: HTTPError) -> JSONResponse:
         converted_error = Error.from_http_error(error)
+
+        return await error_handler(request, converted_error)
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error_handler(
+        request: Request, error: RequestValidationError
+    ) -> JSONResponse:
+        converted_error = Error.from_validation_error(error)
 
         return await error_handler(request, converted_error)
 
