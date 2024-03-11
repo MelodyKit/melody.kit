@@ -4,6 +4,7 @@ from typing import Type
 
 from pendulum import UTC, Date, DateTime, Duration, date, duration, from_timestamp, now, parse
 from pendulum import datetime as date_time
+from typing_aliases import is_instance
 
 from melody.shared.converter import CONVERTER
 
@@ -45,28 +46,53 @@ def convert_standard_date_time(standard_date_time: StandardDateTime) -> DateTime
     )
 
 
-def structure_date_time_ignore_type(string: str, date_time_type: Type[DateTime]) -> DateTime:
-    return parse(string)  # type: ignore
-
-
 def unstructure_date_time(date_time: DateTime) -> str:
-    return str(date_time)
+    return date_time.to_iso8601_string()
 
 
-def structure_date_ignore_type(string: str, date_type: Type[Date]) -> Date:
-    return parse(string).date()  # type: ignore
+NOT_DATE_TIME = "`{}` does not represent date/time"
+not_date_time = NOT_DATE_TIME.format
+
+
+def structure_date_time(string: str) -> DateTime:
+    result = parse(string)
+
+    if is_instance(result, DateTime):
+        return result
+
+    raise ValueError(not_date_time(string))
+
+
+def structure_date_time_ignore_type(string: str, date_time_type: Type[DateTime]) -> DateTime:
+    return structure_date_time(string)
 
 
 def unstructure_date(date: Date) -> str:
-    return str(date)
+    return date.to_date_string()
 
 
-def structure_duration_ignore_type(seconds: int, duration_type: Type[Duration]) -> Duration:
-    return duration(seconds=seconds)
+def structure_date(string: str) -> Date:
+    return structure_date_time(string).date()
+
+
+def structure_date_ignore_type(string: str, date_type: Type[Date]) -> Date:
+    return structure_date(string)
+
+
+# NOTE: since we operate on `duration_ms` directly, durations are represented as seconds
+# the main usage of durations is to denote `expires_in` fields, which should be in seconds
 
 
 def unstructure_duration(duration: Duration) -> int:
     return int(duration.total_seconds())
+
+
+def structure_duration(seconds: int) -> Duration:
+    return duration(seconds=seconds)
+
+
+def structure_duration_ignore_type(seconds: int, duration_type: Type[Duration]) -> Duration:
+    return structure_duration(seconds)
 
 
 CONVERTER.register_structure_hook(DateTime, structure_date_time_ignore_type)
