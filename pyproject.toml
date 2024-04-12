@@ -79,7 +79,7 @@ extras = ["standard"]
 version = ">= 2.3.2"
 
 [tool.poetry.group.format.dependencies]
-ruff = "0.3.0"
+ruff = "0.3.6"
 
 [tool.poetry.group.check.dependencies]
 mypy = "1.8.0"
