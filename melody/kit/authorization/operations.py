@@ -8,7 +8,7 @@ from melody.kit.authorization.factories import (
 from melody.kit.authorization.keys import authorization_code_key, key_authorization_code
 from melody.kit.core import redis
 from melody.shared.constants import STAR
-from melody.shared.date_time import unstructure_duration
+from melody.shared.time import unstructure_duration
 
 __all__ = (
     "generate_authorization_code_with",

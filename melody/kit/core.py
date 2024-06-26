@@ -13,7 +13,8 @@ from starlette.exceptions import HTTPException as HTTPError
 from starlette.middleware.sessions import SessionMiddleware  # XXX: use `fastapi` when implemented
 from typing_aliases import NormalError, StringDict
 
-from melody.kit.config import CONFIG
+from melody.kit.config.core import CONFIG
+from melody.kit.config.keyring import KEYRING
 from melody.kit.constants import V1, VERSION_1
 from melody.kit.database import Database
 from melody.kit.errors.core import Error, ErrorData
@@ -28,6 +29,9 @@ database = Database()
 
 config = CONFIG
 """The config instance to use."""
+
+keyring = KEYRING
+"""The keyring instance to use."""
 
 redis = Redis(
     host=config.redis.host,
@@ -58,8 +62,22 @@ oauth.register(
     authorize_url=DISCORD_AUTHORIZE_URL,
     access_token_url=DISCORD_TOKEN_URL,
     scope=DISCORD_SCOPE,
-    client_id=config.discord.client_id,
-    client_secret=config.discord.client_secret,
+    client_id=keyring.discord.id,
+    client_secret=keyring.discord.secret,
+)
+
+SPOTIFY = "spotify"
+SPOTIFY_AUTHORIZE_URL = "https://accounts.spotify.com/authorize"
+SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+SPOTIFY_SCOPE = ""  # TODO
+
+oauth.register(
+    SPOTIFY,
+    authorize_url=SPOTIFY_AUTHORIZE_URL,
+    access_token_url=SPOTIFY_TOKEN_URL,
+    scope=SPOTIFY_SCOPE,
+    client_id=keyring.spotify.id,
+    client_secret=keyring.spotify.secret,
 )
 
 app = FastAPI(openapi_url=None, redoc_url=None)
@@ -84,7 +102,7 @@ def register_cors_middleware(app: FastAPI) -> None:
 
 
 def register_session_middleware(app: FastAPI) -> None:
-    app.add_middleware(SessionMiddleware, secret_key=config.session_key)
+    app.add_middleware(SessionMiddleware, secret_key=keyring.session)
 
 
 register_cors_middleware(app)
@@ -127,7 +145,7 @@ OVERRIDE_VALIDATION_ERROR: Dict[IntString, StringDict[Any]] = {
 }
 
 v1 = FastAPI(title=config.name, version=VERSION_1, responses=OVERRIDE_VALIDATION_ERROR)
-"""The `/api/v1` application."""
+"""The `/v1` application."""
 
 app.mount(V1, v1)
 

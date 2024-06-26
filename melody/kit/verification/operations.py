@@ -8,7 +8,7 @@ from melody.kit.verification.factories import (
 )
 from melody.kit.verification.keys import key_verification_code, verification_code_key
 from melody.shared.constants import STAR
-from melody.shared.date_time import unstructure_duration
+from melody.shared.time import unstructure_duration
 
 __all__ = (
     "generate_verification_code_for",

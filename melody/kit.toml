@@ -1,139 +1,15 @@
 # This is the default configuration file for MelodyKit.
 # Configuration file is located at `~/.config/melody/kit.toml`.
 # You can read more about it here: `https://docs.melodykit.app/config`.
-# There are some sensitive fields that need to be manually defined:
-# - `melody.session_key`
-# - `melody.email.name`
-# - `melody.email.password`
-# - `melody.bot.token`
-# - `melody.discord.client_id`
-# - `melody.discord.client_secret`
-# - `melody.spotify.client_id`
-# - `melody.spotify.client_secret`
 
-[melody]
-name = "MelodyKit"
-domain = "melodykit.app"
-open = "open"
+[access.expires]
+hours = 1
 
-[melody.email]
-host = "smtp.gmail.com"
-port = 587
-support = "support@melodykit.app"
+[refresh.expires]
+months = 1
 
-[melody.email.verification]
-# allowed formatting: `name`
-subject = "{name} verification code"
+[authorization.expires]
+hours = 1
 
-# allowed formatting: `verification_code`
-content = """
-Here is your verification code:
-
-{verification_code}
-"""
-
-[melody.email.temporary]
-# allowed formatting: `name`
-subject = "{name} temporary token"
-# allowed formatting: `temporary_token`
-content = """
-Here is your temporary token:
-
-{temporary_token}
-"""
-
-[melody.hash]
-time_cost = 4
-memory_cost = 65536
-parallelism = 4
-
-[melody.kit]
-host = "127.0.0.1"
-port = 1342
-
-[melody.code]
-cache = "~/.cache/melody/code"
-error_correction = "high"
-box_size = 10
-border = 4
-
-[melody.image]
-path = "~/.melody/kit/images"
-size_limit = 4096
-data_size_limit = 16777216
-
-[melody.log]
-level = "info"
-
-[melody.redis]
-host = "127.0.0.1"
-port = 6379
-
-[melody.secret]
-size = 32
-
-[melody.totp]
-digits = 6
-interval = 30
-valid_window = 1
-
-[melody.token]
-type = "Bearer"
-
-[melody.token.access]
-size = 32
-
-[melody.token.access.expires]
-years = 0
-months = 0
-weeks = 0
-days = 0
-hours = 0
-minutes = 0
-seconds = 0
-
-[melody.token.refresh]
-size = 32
-
-[melody.token.refresh.expires]
-years = 0
-months = 0
-weeks = 0
-days = 0
-hours = 0
-minutes = 0
-seconds = 0
-
-[melody.authorization]
-size = 32
-
-[melody.authorization.expires]
-years = 0
-months = 0
-weeks = 0
-days = 0
-hours = 0
-minutes = 0
-seconds = 0
-
-[melody.verification]
-size = 32
-
-[melody.verification.expires]
-years = 0
-months = 0
-weeks = 0
-days = 0
-hours = 0
-minutes = 0
-seconds = 0
-
-[melody.web]
-host = "127.0.0.1"
-port = 4269
-
-[melody.bot]
-
-[melody.discord]
-
-[melody.spotify]
+[verification.expires]
+hours = 1

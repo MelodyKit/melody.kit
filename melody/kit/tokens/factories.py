@@ -14,11 +14,11 @@ __all__ = (
 
 
 def access_token_factory() -> str:
-    return token_hex(config.token.access.size)
+    return token_hex(config.access.size)
 
 
 def expires_in_factory() -> Duration:
-    return config.token.access.expires.duration
+    return config.access.expires.duration
 
 
 def token_type_factory() -> str:
@@ -26,8 +26,8 @@ def token_type_factory() -> str:
 
 
 def refresh_token_factory() -> str:
-    return token_hex(config.token.refresh.size)
+    return token_hex(config.refresh.size)
 
 
 def refresh_expires_in_factory() -> Duration:
-    return config.token.refresh.expires.duration
+    return config.refresh.expires.duration

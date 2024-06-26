@@ -1,7 +1,7 @@
 select Client {
     id,
     name,
-    creator: {
+    owner: {
         id,
         name,
         created_at,

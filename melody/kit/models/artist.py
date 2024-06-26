@@ -1,11 +1,11 @@
 from typing import ClassVar, List, Optional
 
-from attrs import define, field
+from attrs import Factory, define
 from edgedb import Object
 from typing_extensions import Self
 from yarl import URL
 
-from melody.kit.config import CONFIG
+from melody.kit.config.core import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType
 from melody.kit.links import (
@@ -47,12 +47,12 @@ class ArtistData(EntityData):
 class Artist(Linked, Locatable, Entity):
     TYPE: ClassVar[EntityType] = EntityType.ARTIST
 
-    follower_count: int = field(default=DEFAULT_COUNT)
+    follower_count: int = DEFAULT_COUNT
 
-    stream_count: int = field(default=DEFAULT_COUNT)
-    stream_duration_ms: int = field(default=DEFAULT_DURATION)
+    stream_count: int = DEFAULT_COUNT
+    stream_duration_ms: int = DEFAULT_DURATION
 
-    genres: List[str] = field(factory=list)
+    genres: List[str] = Factory(list)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -108,8 +108,8 @@ class ArtistTracksData(Data):
 
 @define()
 class ArtistTracks:
-    items: List[Track] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Track] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: ArtistTracksData) -> Self:
@@ -126,8 +126,8 @@ class ArtistAlbumsData(Data):
 
 @define()
 class ArtistAlbums:
-    items: List[Album] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Album] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: ArtistAlbumsData) -> Self:

@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  python-version: "3.12"
+
 jobs:
   docs:
     name: Docs
@@ -13,10 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.12
+      - name: Setup Python ${{ env.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.python-version }}
 
       - name: Install Poetry
         run: pipx install poetry

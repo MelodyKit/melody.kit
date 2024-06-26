@@ -6,19 +6,19 @@ from typing_extensions import Self
 
 from melody.kit.models.named import Named, NamedData
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time
+from melody.shared.time import convert_standard_date_time
 
 __all__ = ("Client", "ClientData")
 
 
 class ClientData(NamedData):
-    creator: NamedData
+    owner: NamedData
     description: Optional[str]
 
 
 @define(kw_only=True)
 class Client(Named):
-    creator: Named
+    owner: Named
     description: Optional[str] = None
 
     @classmethod
@@ -27,7 +27,7 @@ class Client(Named):
             id=object.id,
             created_at=convert_standard_date_time(object.created_at),
             name=object.name,
-            creator=Named.from_object(object.creator),
+            owner=Named.from_object(object.owner),
             description=object.description,
         )
 

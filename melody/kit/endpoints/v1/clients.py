@@ -9,7 +9,6 @@ from melody.kit.core import database, hasher, v1
 from melody.kit.enums import Tag
 from melody.kit.errors.clients import ClientNotFound
 from melody.kit.models.client import ClientData
-from melody.kit.privacy.clients import check_client_changeable_dependency
 from melody.kit.secrets import generate_secret
 from melody.kit.tokens.dependencies import UserTokenDependency, token_dependency
 
@@ -26,7 +25,7 @@ class CreateClientPayload:
         description: OptionalDescriptionDependency = None,
     ) -> None:
         self.name = name
-        self.desciption = description
+        self.description = description
 
 
 CreateClientPayloadDependency = Annotated[CreateClientPayload, Depends()]
@@ -47,9 +46,9 @@ async def create_client(
 
     base = await database.insert_client(
         name=payload.name,
-        description=payload.desciption,
+        description=payload.description,
         secret_hash=secret_hash,
-        creator_id=context.user_id,
+        owner_id=context.user_id,
     )
 
     client_credentials = ClientCredentials(base.id, secret)
@@ -76,7 +75,6 @@ async def get_client(client_id: UUID) -> ClientData:
     "/clients/{client_id}",
     tags=[Tag.CLIENTS],
     summary="Deletes the client.",
-    dependencies=[Depends(check_client_changeable_dependency)],
 )
 async def delete_client(client_id: UUID) -> None:
     await database.delete_client(client_id=client_id)
@@ -102,7 +100,6 @@ UpdateClientPayloadDependency = Annotated[UpdateClientPayload, Depends()]
     "/clients/{client_id}",
     tags=[Tag.CLIENTS],
     summary="Updates the client.",
-    dependencies=[Depends(check_client_changeable_dependency)],
 )
 async def update_client(
     client_id: UUID,

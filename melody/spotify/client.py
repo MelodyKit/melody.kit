@@ -3,7 +3,7 @@ from typing import Optional
 from attrs import define, field
 from typing_extensions import Self
 
-from melody.kit.core import config
+from melody.kit.core import keyring
 from melody.shared.tokens import Tokens
 from melody.spotify.http import HTTPClient
 from melody.spotify.models.track import Track
@@ -14,11 +14,11 @@ TOKENS_NOT_ATTACHED = "`tokens` not attached to the client"
 
 
 def client_id_factory() -> str:
-    return config.spotify.client_id
+    return keyring.spotify.id
 
 
 def client_secret_factory() -> str:
-    return config.spotify.client_secret
+    return keyring.spotify.secret
 
 
 @define()

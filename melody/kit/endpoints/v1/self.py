@@ -8,7 +8,6 @@ from fastapi.responses import FileResponse
 from typing_extensions import Annotated
 
 from melody.kit.code import generate_code_for_uri
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies.common import LimitDependency, OffsetDependency
 from melody.kit.dependencies.images import ImageDependency
@@ -127,7 +126,7 @@ async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = Path(config.image.directory_path / uri.image_name)
 
     if not await path.exists():
         raise UserImageNotFound(self_id)
@@ -143,7 +142,7 @@ async def get_self_image(context: ImageReadTokenDependency) -> FileResponse:
 async def change_self_image(context: ImageWriteTokenDependency, data: ImageDependency) -> None:
     uri = URI(type=EntityType.USER, id=context.user_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = Path(config.image.directory_path / uri.image_name)
 
     async with await path.open(WRITE_BINARY) as file:
         await file.write(data)
@@ -159,7 +158,7 @@ async def remove_self_image(context: ImageWriteTokenDependency) -> None:
 
     uri = URI(type=EntityType.USER, id=self_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = Path(config.image.directory_path / uri.image_name)
 
     await path.unlink(missing_ok=True)
 
@@ -172,8 +171,8 @@ async def remove_self_image(context: ImageWriteTokenDependency) -> None:
 async def get_self_tracks(
     context: LibraryReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserTracksData:
     self_id = context.user_id
 
@@ -217,8 +216,8 @@ async def remove_self_tracks(context: LibraryWriteTokenDependency, ids: UUIDList
 async def get_self_artists(
     context: LibraryReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserArtistsData:
     self_id = context.user_id
 
@@ -264,8 +263,8 @@ async def remove_self_artists(
 async def get_self_albums(
     context: LibraryReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserAlbumsData:
     self_id = context.user_id
 
@@ -309,8 +308,8 @@ async def remove_self_albums(context: LibraryWriteTokenDependency, ids: UUIDList
 async def get_self_playlists(
     context: PlaylistsReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserPlaylistsData:
     self_id = context.user_id
 
@@ -336,8 +335,8 @@ async def get_self_playlists(
 async def get_self_streams(
     context: StreamsReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserStreamsData:
     self_id = context.user_id
 
@@ -363,8 +362,8 @@ async def get_self_streams(
 async def get_self_friends(
     context: FollowingReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserFriendsData:
     self_id = context.user_id
 
@@ -390,8 +389,8 @@ async def get_self_friends(
 async def get_self_followers(
     context: FollowingReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserFollowersData:
     self_id = context.user_id
 
@@ -417,8 +416,8 @@ async def get_self_followers(
 async def get_self_following(
     context: FollowingReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserFollowingData:
     self_id = context.user_id
 
@@ -472,8 +471,8 @@ async def remove_self_following(
 async def get_self_followed_playlists(
     context: LibraryReadTokenDependency,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> UserFollowedPlaylistsData:
     self_id = context.user_id
 

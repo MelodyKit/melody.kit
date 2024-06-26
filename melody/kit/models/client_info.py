@@ -17,11 +17,11 @@ class ClientInfoData(BaseData):
 @define(kw_only=True)
 class ClientInfo(Base):
     secret_hash: str
-    creator_id: UUID
+    owner_id: UUID
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
-        return cls(id=object.id, secret_hash=object.secret_hash, creator_id=object.creator.id)
+        return cls(id=object.id, secret_hash=object.secret_hash, owner_id=object.owner.id)
 
     @classmethod
     def from_data(cls, data: ClientInfoData) -> Self:  # type: ignore[override]

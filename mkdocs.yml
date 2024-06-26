@@ -1,9 +1,9 @@
-site_name: melody.web
+site_name: melody.kit
 site_author: MelodyKit
 site_description: All your music, in one place.
 
-repo_name: MelodyKit/melody.web
-repo_url: https://github.com/MelodyKit/melody.web
+repo_name: MelodyKit/melody.kit
+repo_url: https://github.com/MelodyKit/melody.kit
 
 remote_branch: github-pages
 
@@ -56,8 +56,6 @@ plugins:
             show_signature_annotations: true
             show_symbol_type_heading: true
             show_symbol_type_toc: true
-
-          paths: [melody]
 
           import:
             - https://docs.python.org/3/objects.inv

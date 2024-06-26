@@ -1,6 +1,6 @@
 from typing import FrozenSet, Iterable, List, Optional, Type, TypeVar
 
-from attrs import define, field, frozen
+from attrs import Factory, frozen
 from cattrs.gen import override
 from pendulum import DateTime, Duration
 from typing_extensions import Self
@@ -10,7 +10,7 @@ from melody.shared.converter import (
     register_structure_hook,
     register_unstructure_hook,
 )
-from melody.shared.date_time import unstructure_duration, utc_now
+from melody.shared.time import unstructure_duration, utc_now
 from melody.shared.typing import Data
 
 __all__ = ("Scopes", "TokensData", "Tokens", "AuthorizationData", "authorization")
@@ -35,11 +35,15 @@ S = TypeVar("S", bound="Scopes")
 
 @frozen()
 class Scopes:
-    tokens: FrozenSet[str] = field(factory=frozenset, converter=converter)
+    tokens: FrozenSet[str] = Factory(frozenset)
 
     @classmethod
     def from_scope(cls, scope: str) -> Self:
-        return cls(split_scope(scope))
+        return cls.from_iterable(split_scope(scope))
+
+    @classmethod
+    def from_iterable(cls, iterable: Iterable[str]) -> Self:
+        return cls(frozenset(iterable))
 
     def to_scope(self) -> str:
         return concat_scopes(self.tokens)
@@ -49,7 +53,7 @@ class Scopes:
         return self.to_scope()
 
     def has_tokens(self, tokens: Iterable[str]) -> bool:
-        return converter(tokens) <= self.tokens
+        return frozenset(tokens) <= self.tokens
 
     def has(self, *tokens: str) -> bool:
         return self.has_tokens(tokens)
@@ -88,22 +92,22 @@ register_structure_hook_rename_scopes = register_structure_hook(scopes=override(
 
 @register_unstructure_hook_rename_scopes
 @register_structure_hook_rename_scopes
-@define()
+@frozen()
 class Tokens:
-    access_token: str = field()
-    refresh_token: str = field()
+    access_token: str
+    refresh_token: str
 
-    token_type: str = field()
+    token_type: str
 
-    expires_in: Duration = field()
+    expires_in: Duration
 
-    scopes: Scopes = field(factory=Scopes)
+    scopes: Scopes = Factory(Scopes)
 
-    created_at: DateTime = field(factory=utc_now)
+    created_at: DateTime = Factory(utc_now)
 
     @property
     def expires_at(self) -> Optional[DateTime]:
-        # `expires_in = 0` means no expiration
+        # `expires_in` of `0` means no expiration
 
         expires_in = self.expires_in
 

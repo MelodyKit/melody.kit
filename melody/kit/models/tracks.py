@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import ClassVar, List, Optional
 
-from attrs import define, field
+from attrs import Factory, define
 from edgedb import Object
 from iters.iters import iter
 from typing_extensions import Self
 from yarl import URL
 
-from melody.kit.config import CONFIG
+from melody.kit.config.core import CONFIG
 from melody.kit.constants import (
     DEFAULT_COUNT,
     DEFAULT_DURATION,
@@ -59,18 +59,18 @@ ALBUM_NOT_ATTACHED = "`album` is not attached"
 class Track(Linked, Locatable, Entity):
     TYPE: ClassVar[EntityType] = EntityType.TRACK
 
-    album: Optional[Album] = field(default=None)
+    album: Optional[Album] = None
 
-    artists: List[Artist] = field(factory=list)
+    artists: List[Artist] = Factory(list)
 
-    explicit: bool = field(default=DEFAULT_EXPLICIT)
+    explicit: bool = DEFAULT_EXPLICIT
 
-    duration_ms: int = field(default=DEFAULT_DURATION)
+    duration_ms: int = DEFAULT_DURATION
 
-    stream_count: int = field(default=DEFAULT_COUNT)
-    stream_duration_ms: int = field(default=DEFAULT_DURATION)
+    stream_count: int = DEFAULT_COUNT
+    stream_duration_ms: int = DEFAULT_DURATION
 
-    genres: List[str] = field(factory=list)
+    genres: List[str] = Factory(list)
 
     def attach_album(self, album: Album) -> Self:
         self.album = album

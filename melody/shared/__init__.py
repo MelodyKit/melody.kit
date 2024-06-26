@@ -1,5 +1,5 @@
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import (
+from melody.shared.time import (
     convert_standard_date,
     convert_standard_date_time,
     utc_from_timestamp,
@@ -9,6 +9,7 @@ from melody.shared.date_time import (
 from melody.shared.enums import GrantType, ResponseType
 from melody.shared.http import Route, SharedHTTPClient
 from melody.shared.markers import unimplemented, unreachable
+from melody.shared.pkce import PKCE, generate_pkce
 from melody.shared.tokens import Scopes, Tokens, TokensData, authorization
 
 __all__ = (
@@ -29,6 +30,9 @@ __all__ = (
     # markers
     "unreachable",
     "unimplemented",
+    # PKCE
+    "PKCE",
+    "generate_pkce",
     # tokens
     "Scopes",
     "Tokens",

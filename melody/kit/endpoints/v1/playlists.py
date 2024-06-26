@@ -7,7 +7,6 @@ from fastapi.responses import FileResponse
 from typing_extensions import Annotated
 
 from melody.kit.code import generate_code_for_uri
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
 from melody.kit.core import config, database, v1
 from melody.kit.dependencies.common import LimitDependency, OffsetDependency
 from melody.kit.dependencies.images import ImageDependency
@@ -17,10 +16,6 @@ from melody.kit.errors.playlists import PlaylistImageNotFound, PlaylistNotFound
 from melody.kit.models.base import BaseData
 from melody.kit.models.pagination import Pagination
 from melody.kit.models.playlist import PlaylistData, PlaylistTracks, PlaylistTracksData
-from melody.kit.privacy.playlists import (
-    check_playlist_accessible_dependency,
-    check_playlist_changeable_dependency,
-)
 from melody.kit.tokens.dependencies import PlaylistsWriteTokenDependency, token_dependency
 from melody.kit.uri import URI
 from melody.shared.constants import IMAGE_TYPE, WRITE_BINARY
@@ -80,7 +75,6 @@ async def create_playlist(
     "/playlists/{playlist_id}",
     tags=[Tag.PLAYLISTS],
     summary="Fetches the playlist.",
-    dependencies=[Depends(check_playlist_accessible_dependency)],
 )
 async def get_playlist(playlist_id: UUID) -> PlaylistData:
     playlist = await database.query_playlist(playlist_id=playlist_id)
@@ -114,7 +108,6 @@ UpdatePlaylistPayloadDependency = Annotated[UpdatePlaylistPayload, Depends()]
     "/playlists/{playlist_id}",
     tags=[Tag.PLAYLISTS],
     summary="Updates the playlist.",
-    dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def update_playlist(
     playlist_id: UUID,
@@ -153,7 +146,6 @@ async def update_playlist(
     "/playlists/{playlist_id}",
     tags=[Tag.PLAYLISTS],
     summary="Deletes the playlist.",
-    dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def delete_playlist(playlist_id: UUID) -> None:
     await database.delete_playlist(playlist_id=playlist_id)
@@ -177,12 +169,11 @@ async def get_playlist_link(playlist_id: UUID) -> FileResponse:
     "/playlists/{playlist_id}/image",
     tags=[Tag.PLAYLISTS],
     summary="Fetches the playlist's image.",
-    dependencies=[Depends(check_playlist_accessible_dependency)],
 )
 async def get_playlist_image(playlist_id: UUID) -> FileResponse:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = Path(config.image.directory_path / uri.image_name)
 
     if not await path.exists():
         raise PlaylistImageNotFound(playlist_id)
@@ -198,12 +189,11 @@ EXPECTED_SQUARE_IMAGE = "expected square image"
     "/playlists/{playlist_id}/image",
     tags=[Tag.PLAYLISTS],
     summary="Changes the playlist's image.",
-    dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def change_playlist_image(playlist_id: UUID, data: ImageDependency) -> None:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = Path(config.image.directory_path / uri.image_name)
 
     async with await path.open(WRITE_BINARY) as file:
         await file.write(data)
@@ -213,12 +203,11 @@ async def change_playlist_image(playlist_id: UUID, data: ImageDependency) -> Non
     "/playlists/{playlist_id}/image",
     tags=[Tag.PLAYLISTS],
     summary="Removes the playlist's image.",
-    dependencies=[Depends(check_playlist_changeable_dependency)],
 )
 async def remove_playlist_image(playlist_id: UUID) -> None:
     uri = URI(type=EntityType.PLAYLIST, id=playlist_id)
 
-    path = Path(config.image.path / uri.image_name)
+    path = Path(config.image.directory_path / uri.image_name)
 
     await path.unlink(missing_ok=True)
 
@@ -227,13 +216,12 @@ async def remove_playlist_image(playlist_id: UUID) -> None:
     "/playlists/{playlist_id}/tracks",
     tags=[Tag.PLAYLISTS],
     summary="Fetches the playlist's tracks.",
-    dependencies=[Depends(check_playlist_accessible_dependency)],
 )
 async def get_playlist_tracks(
     playlist_id: UUID,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> PlaylistTracksData:
     counted = await database.query_playlist_tracks(
         playlist_id=playlist_id, offset=offset, limit=limit

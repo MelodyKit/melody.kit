@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Literal, Mapping
 
 from qrcode.constants import ERROR_CORRECT_H as ERROR_CORRECTION_HIGH
 from qrcode.constants import ERROR_CORRECT_L as ERROR_CORRECTION_LOW
@@ -147,6 +148,11 @@ class LogLevel(Enum):
     DEBUG = "debug"
     TRACE = "trace"
 
+    DEFAULT = INFO
+
+
+LiteralErrorCorrection = Literal[0, 1, 2, 3]
+
 
 class ErrorCorrection(Enum):
     LOW = "low"
@@ -154,11 +160,13 @@ class ErrorCorrection(Enum):
     QUARTER = "quarter"
     HIGH = "high"
 
-    def into_error_correction(self) -> int:
+    DEFAULT = HIGH
+
+    def into_error_correction(self) -> LiteralErrorCorrection:
         return ERROR_CORRECTION[self]
 
 
-ERROR_CORRECTION = {
+ERROR_CORRECTION: Mapping[ErrorCorrection, LiteralErrorCorrection] = {
     ErrorCorrection.LOW: ERROR_CORRECTION_LOW,
     ErrorCorrection.MEDIUM: ERROR_CORRECTION_MEDIUM,
     ErrorCorrection.QUARTER: ERROR_CORRECTION_QUARTER,

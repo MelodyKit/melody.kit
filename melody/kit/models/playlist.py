@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import ClassVar, List, Optional
 
-from attrs import define, field
+from attrs import Factory, define
 from edgedb import Object
 from typing_extensions import Self
 from yarl import URL
 
-from melody.kit.config import CONFIG
+from melody.kit.config.core import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.links import (
@@ -19,7 +19,6 @@ from melody.kit.links import (
 )
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
-from melody.kit.models.privacy import PlaylistPrivacy, UserPrivacy
 from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
@@ -55,17 +54,17 @@ OWNER_NOT_ATTACHED = "`owner` is not attached"
 class Playlist(Linked, Locatable, Entity):
     TYPE: ClassVar[EntityType] = EntityType.PLAYLIST
 
-    owner: Optional[User] = field(default=None)
+    owner: Optional[User] = None
 
-    follower_count: int = field(default=DEFAULT_COUNT)
+    follower_count: int = DEFAULT_COUNT
 
-    description: Optional[str] = field(default=None)
+    description: Optional[str] = None
 
-    duration_ms: int = field(default=DEFAULT_DURATION)
+    duration_ms: int = DEFAULT_DURATION
 
-    track_count: int = field(default=DEFAULT_COUNT)
+    track_count: int = DEFAULT_COUNT
 
-    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+    privacy_type: PrivacyType = PrivacyType.DEFAULT
 
     def attach_owner(self, owner: User) -> Self:
         self.owner = owner
@@ -85,13 +84,6 @@ class Playlist(Linked, Locatable, Entity):
             raise ValueError(OWNER_NOT_ATTACHED)
 
         return owner
-
-    @property
-    def privacy(self) -> PlaylistPrivacy:
-        return self.privacy_with(self.required_owner.privacy)
-
-    def privacy_with(self, owner: UserPrivacy) -> PlaylistPrivacy:
-        return PlaylistPrivacy(id=self.id, privacy_type=self.privacy_type, owner=owner)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -171,8 +163,8 @@ class PlaylistTracksData(Data):
 
 @define()
 class PlaylistTracks:
-    items: List[PositionTrack] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[PositionTrack] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: PlaylistTracksData) -> Self:

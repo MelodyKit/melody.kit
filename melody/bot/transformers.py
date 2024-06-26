@@ -9,7 +9,9 @@ __all__ = ("UUIDTransformer", "UUIDTransform")
 
 
 class UUIDTransformer(Transformer):
-    async def transform(self, interaction: Interaction[Melody], value: str) -> UUID:
+    async def transform(  # type: ignore[override]
+        self, interaction: Interaction[Melody], value: str
+    ) -> UUID:
         return UUID(value)
 
 

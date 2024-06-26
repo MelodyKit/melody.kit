@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import ClassVar, List, Optional
 
-from attrs import define, field
+from attrs import Factory, define
 from edgedb import Object
 from iters.iters import iter
 from pendulum import Date
 from typing_extensions import Self
 from yarl import URL
 
-from melody.kit.config import CONFIG
+from melody.kit.config.core import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import AlbumType, EntityType
 from melody.kit.links import (
@@ -23,7 +23,7 @@ from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
 from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date, utc_today
+from melody.shared.time import convert_standard_date, utc_today
 from melody.shared.typing import Data
 
 __all__ = (
@@ -55,18 +55,18 @@ class AlbumData(EntityData):
 class Album(Linked, Locatable, Entity):
     TYPE: ClassVar[EntityType] = EntityType.ALBUM
 
-    artists: List[Artist] = field(factory=list)
+    artists: List[Artist] = Factory(list)
 
-    album_type: AlbumType = field(default=AlbumType.DEFAULT)
-    release_date: Date = field(factory=utc_today)
+    album_type: AlbumType = AlbumType.DEFAULT
+    release_date: Date = Factory(utc_today)
 
-    duration_ms: int = field(default=DEFAULT_DURATION)
+    duration_ms: int = DEFAULT_DURATION
 
-    track_count: int = field(default=DEFAULT_COUNT)
+    track_count: int = DEFAULT_COUNT
 
-    label: Optional[str] = field(default=None)
+    label: Optional[str] = None
 
-    genres: List[str] = field(factory=list)
+    genres: List[str] = Factory(list)
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -128,8 +128,8 @@ class AlbumTracksData(Data):
 
 @define()
 class AlbumTracks:
-    items: List[Track] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Track] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: AlbumTracksData) -> Self:

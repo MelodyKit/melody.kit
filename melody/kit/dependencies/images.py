@@ -21,7 +21,7 @@ async def image_dependency(file: FileDependency) -> bytes:
 
     image_config = config.image
 
-    data_size_limit = image_config.data_size_limit
+    data_limit = image_config.data_limit
     size_limit = image_config.size_limit
 
     chunk_size = CHUNK_SIZE
@@ -39,7 +39,7 @@ async def image_dependency(file: FileDependency) -> bytes:
 
         size += len(chunk)
 
-        if size > data_size_limit:
+        if size > data_limit:
             raise ImageTooLarge()
 
     image = open_image(data)

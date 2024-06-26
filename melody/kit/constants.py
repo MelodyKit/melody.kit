@@ -1,4 +1,4 @@
-from pathlib import Path
+from melody.shared.paths import Path
 
 # root
 
@@ -7,20 +7,9 @@ KIT_ROOT = Path(__file__).parent
 # v1
 
 VERSION_1 = "1.0.0"
-V1 = "/api/v1"
-
-# API-related
-
-DEFAULT_OFFSET = 0
-MIN_OFFSET = 0
-
-DEFAULT_LIMIT = 100
-MIN_LIMIT = 1
-MAX_LIMIT = 100
+V1 = "/v1"
 
 # defaults
-
-DEFAULT_IGNORE_SENSITIVE = False
 
 DEFAULT_COUNT = 0
 DEFAULT_DURATION = 0

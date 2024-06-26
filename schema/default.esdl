@@ -1,4 +1,10 @@
 module default {
+    global current_user_id: uuid;
+
+    global current_user := (
+        select User filter .id = global current_user_id
+    );
+
     # enums
 
     scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
@@ -35,6 +41,12 @@ module default {
 
     abstract type Genres {
         required genres: array<str> {
+            default := <array<str>>[];
+        };
+    }
+
+    abstract type RedirectURLs {
+        required redirect_urls: array<str> {
             default := <array<str>>[];
         };
     }
@@ -124,6 +136,7 @@ module default {
     type Playlist extending Entity {
         required owner: User {
             on target delete delete source;
+            default := global current_user;
         };
 
         multi followers := .<followed_playlists[is User];
@@ -141,6 +154,10 @@ module default {
         duration_ms := sum(.tracks.duration_ms);
 
         track_count := count(.tracks);
+
+        access policy owner_has_full_access
+            allow all
+            using (global current_user ?= .owner);
     }
 
     type User extending Entity {
@@ -223,11 +240,9 @@ module default {
         };
         required password_hash: str;
 
-        discord_id: str {
-            constraint exclusive;
-        }
-
         secret: str;
+
+        discord_id: str;
 
         multi clients extending with_linked_at: Client;
     }
@@ -237,6 +252,7 @@ module default {
     type Stream extending Tracked {
         required user: User {
             on target delete delete source;
+            default := global current_user;
         };
 
         required track: Track {
@@ -247,8 +263,9 @@ module default {
     }
 
     type Client extending Named, RedirectURLs {
-        required creator: User {
+        required owner: User {
             on target delete delete source;
+            default := global current_user;
         };
 
         multi users := .<clients[is User];
@@ -256,5 +273,9 @@ module default {
         description: str;
 
         required secret_hash: str;
+
+        access policy owner_has_full_access
+            allow all
+            using (global current_user ?= .owner);
     }
 }

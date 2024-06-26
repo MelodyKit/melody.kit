@@ -5,18 +5,18 @@ from typing_extensions import Self
 
 from melody.discord.http import HTTPClient
 from melody.discord.models.entity import Entity
-from melody.kit.core import config
+from melody.kit.core import keyring
 from melody.shared.tokens import Tokens
 
 TOKENS_NOT_ATTACHED = "`tokens` not attached to the client"
 
 
 def client_id_factory() -> str:
-    return config.discord.client_id
+    return keyring.discord.id
 
 
 def client_secret_factory() -> str:
-    return config.discord.client_secret
+    return keyring.discord.secret
 
 
 @define()

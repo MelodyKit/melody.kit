@@ -10,7 +10,7 @@ from melody.kit.models.tracked import Tracked, TrackedData
 from melody.kit.models.tracks import Track
 from melody.kit.models.user import User
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time
+from melody.shared.time import convert_standard_date_time
 
 __all__ = ("Stream", "StreamData")
 

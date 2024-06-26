@@ -1,10 +1,10 @@
-from pathlib import Path
 from typing import Optional, Tuple
 
 from discord import File
 from yarl import URL
 
 from melody.bot.utils import attachment
+from melody.shared.paths import Path
 
 __all__ = ("at_path",)
 

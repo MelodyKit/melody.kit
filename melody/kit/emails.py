@@ -2,7 +2,7 @@ from email.message import EmailMessage
 
 from aiosmtplib import SMTP
 
-from melody.kit.core import config
+from melody.kit.core import config, keyring
 
 __all__ = ("support", "email_message", "send_email_message")
 
@@ -37,8 +37,8 @@ async def send_email_message(message: EmailMessage) -> None:
     client = SMTP(
         hostname=email_config.host,
         port=email_config.port,
-        username=email_config.name,
-        password=email_config.password,
+        username=keyring.email.username,
+        password=keyring.email.password,
         start_tls=True,
     )
 

@@ -1,6 +1,6 @@
 from typing import List
 
-from attrs import define, field
+from attrs import Factory, define
 from typing_extensions import Self
 
 from melody.kit.models.album import Album, AlbumData
@@ -41,8 +41,8 @@ class SearchAlbumsData(Data):
 
 @define()
 class SearchAlbums:
-    items: List[Album] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Album] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: SearchAlbumsData) -> Self:
@@ -59,8 +59,8 @@ class SearchArtistsData(Data):
 
 @define()
 class SearchArtists:
-    items: List[Artist] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Artist] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: SearchArtistsData) -> Self:
@@ -77,8 +77,8 @@ class SearchPlaylistsData(Data):
 
 @define()
 class SearchPlaylists:
-    items: List[Playlist] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Playlist] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: SearchPlaylistsData) -> Self:
@@ -95,8 +95,8 @@ class SearchTracksData(Data):
 
 @define()
 class SearchTracks:
-    items: List[Track] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Track] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: SearchTracksData) -> Self:
@@ -113,8 +113,8 @@ class SearchUsersData(Data):
 
 @define()
 class SearchUsers:
-    items: List[User] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[User] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: SearchUsersData) -> Self:
@@ -134,11 +134,11 @@ class SearchData(Data):
 
 @define(kw_only=True)
 class Search:
-    albums: SearchAlbums = field(factory=SearchAlbums)
-    artists: SearchArtists = field(factory=SearchArtists)
-    playlists: SearchPlaylists = field(factory=SearchPlaylists)
-    tracks: SearchTracks = field(factory=SearchTracks)
-    users: SearchUsers = field(factory=SearchUsers)
+    albums: SearchAlbums = Factory(SearchAlbums)
+    artists: SearchArtists = Factory(SearchArtists)
+    playlists: SearchPlaylists = Factory(SearchPlaylists)
+    tracks: SearchTracks = Factory(SearchTracks)
+    users: SearchUsers = Factory(SearchUsers)
 
     @classmethod
     def from_data(cls, data: SearchData) -> Self:

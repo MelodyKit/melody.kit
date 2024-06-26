@@ -1,7 +1,8 @@
-from pathlib import Path
 from typing import Literal
 
 from colors import Color
+
+from melody.shared.paths import Path
 
 __all__ = (
     # paths
@@ -146,8 +147,10 @@ DEFAULT_RETRIES = 3
 DEFAULT_ENCODING = "utf-8"
 DEFAULT_ERRORS = "strict"
 
-DEFAULT_CLOSEFD = True
-
 # redis
 
 NAME_SEPARATOR = ":"
+
+# credentials
+
+CREDENTIALS_SEPARATOR = ":"

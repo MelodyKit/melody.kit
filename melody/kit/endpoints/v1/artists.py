@@ -4,8 +4,7 @@ from fastapi import Depends
 from fastapi.responses import FileResponse
 
 from melody.kit.code import generate_code_for_uri
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
-from melody.kit.core import database, v1
+from melody.kit.core import config, database, v1
 from melody.kit.dependencies.common import LimitDependency, OffsetDependency
 from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.enums import EntityType, Tag
@@ -62,8 +61,8 @@ async def get_artist_link(artist_id: UUID) -> FileResponse:
 async def get_artist_tracks(
     artist_id: UUID,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> ArtistTracksData:
     counted = await database.query_artist_tracks(artist_id=artist_id, offset=offset, limit=limit)
 
@@ -88,8 +87,8 @@ async def get_artist_tracks(
 async def get_artist_albums(
     artist_id: UUID,
     request_url: RequestURLDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> ArtistAlbumsData:
     counted = await database.query_artist_albums(artist_id=artist_id, offset=offset, limit=limit)
 

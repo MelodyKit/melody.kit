@@ -1,7 +1,7 @@
 select Client {
     id,
     secret_hash,
-    creator: {
+    owner: {
         id
     },
 } filter .id = <uuid>$client_id;

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from attrs import define, field
+from attrs import define
 from edgedb import Object
 from typing_extensions import Self
 
@@ -18,9 +18,9 @@ class EntityData(NamedData):
 
 @define(kw_only=True)
 class Entity(Named):
-    spotify_id: Optional[str] = field(default=None)
-    apple_music_id: Optional[str] = field(default=None)
-    yandex_music_id: Optional[str] = field(default=None)
+    spotify_id: Optional[str] = None
+    apple_music_id: Optional[str] = None
+    yandex_music_id: Optional[str] = None
 
     @classmethod
     def from_object(cls, object: Object) -> Self:

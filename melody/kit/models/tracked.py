@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 from melody.kit.models.base import Base, BaseData
 from melody.shared.converter import CONVERTER
-from melody.shared.date_time import convert_standard_date_time
+from melody.shared.time import convert_standard_date_time
 
 __all__ = ("Tracked", "TrackedData")
 

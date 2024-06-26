@@ -1,11 +1,11 @@
 from typing import ClassVar, List, Optional
 
-from attrs import define, field
+from attrs import Factory, define
 from edgedb import Object
 from typing_extensions import Self
 from yarl import URL
 
-from melody.kit.config import CONFIG
+from melody.kit.config.core import CONFIG
 from melody.kit.constants import DEFAULT_COUNT, DEFAULT_DURATION
 from melody.kit.enums import EntityType, PrivacyType
 from melody.kit.links import (
@@ -18,7 +18,6 @@ from melody.kit.links import (
 from melody.kit.models.client import Client, ClientData
 from melody.kit.models.entity import Entity, EntityData
 from melody.kit.models.pagination import Pagination, PaginationData
-from melody.kit.models.privacy import UserPrivacy
 from melody.kit.uri import Locatable
 from melody.shared.converter import CONVERTER
 from melody.shared.typing import Data
@@ -72,18 +71,14 @@ class UserData(EntityData):
 class User(Linked, Locatable, Entity):
     TYPE: ClassVar[EntityType] = EntityType.USER
 
-    follower_count: int = field(default=DEFAULT_COUNT)
+    follower_count: int = DEFAULT_COUNT
 
-    stream_count: int = field(default=DEFAULT_COUNT)
-    stream_duration_ms: int = field(default=DEFAULT_DURATION)
+    stream_count: int = DEFAULT_COUNT
+    stream_duration_ms: int = DEFAULT_DURATION
 
-    privacy_type: PrivacyType = field(default=PrivacyType.DEFAULT)
+    privacy_type: PrivacyType = PrivacyType.DEFAULT
 
-    discord_id: Optional[str] = field(default=None)
-
-    @property
-    def privacy(self) -> UserPrivacy:
-        return UserPrivacy(id=self.id, privacy_type=self.privacy_type)
+    discord_id: Optional[str] = None
 
     @classmethod
     def from_object(cls, object: Object) -> Self:
@@ -144,8 +139,8 @@ class UserTracksData(Data):
 
 @define()
 class UserTracks:
-    items: List[Track] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Track] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserTracksData) -> Self:
@@ -162,8 +157,8 @@ class UserAlbumsData(Data):
 
 @define()
 class UserAlbums:
-    items: List[Album] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Album] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserAlbumsData) -> Self:
@@ -180,8 +175,8 @@ class UserPlaylistsData(Data):
 
 @define()
 class UserPlaylists:
-    items: List[Playlist] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Playlist] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserPlaylistsData) -> Self:
@@ -198,8 +193,8 @@ class UserArtistsData(Data):
 
 @define()
 class UserArtists:
-    items: List[Artist] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Artist] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserArtistsData) -> Self:
@@ -216,8 +211,8 @@ class UserFriendsData(Data):
 
 @define()
 class UserFriends:
-    items: List[User] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[User] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserFriendsData) -> Self:
@@ -234,8 +229,8 @@ class UserFollowersData(Data):
 
 @define()
 class UserFollowers:
-    items: List[User] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[User] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserFollowersData) -> Self:
@@ -252,8 +247,8 @@ class UserFollowingData(Data):
 
 @define()
 class UserFollowing:
-    items: List[User] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[User] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserFollowingData) -> Self:
@@ -270,8 +265,8 @@ class UserStreamsData(Data):
 
 @define()
 class UserStreams:
-    items: List[Stream] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Stream] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserStreamsData) -> Self:
@@ -288,8 +283,8 @@ class UserFollowedPlaylistsData(Data):
 
 @define()
 class UserFollowedPlaylists:
-    items: List[Playlist] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Playlist] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserFollowedPlaylistsData) -> Self:
@@ -306,8 +301,8 @@ class UserClientsData(Data):
 
 @define()
 class UserClients:
-    items: List[Client] = field(factory=list)
-    pagination: Pagination = field(factory=Pagination)
+    items: List[Client] = Factory(list)
+    pagination: Pagination = Factory(Pagination)
 
     @classmethod
     def from_data(cls, data: UserClientsData) -> Self:

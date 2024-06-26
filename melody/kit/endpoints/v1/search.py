@@ -1,9 +1,7 @@
 from fastapi import Query
-from iters.iters import iter
 from typing_extensions import Annotated
 
-from melody.kit.constants import DEFAULT_LIMIT, DEFAULT_OFFSET
-from melody.kit.core import database, v1
+from melody.kit.core import config, database, v1
 from melody.kit.dependencies.common import LimitDependency, OffsetDependency
 from melody.kit.dependencies.request_urls import RequestURLDependency
 from melody.kit.dependencies.types import TypesDependency
@@ -18,9 +16,6 @@ from melody.kit.models.search import (
     SearchTracks,
     SearchUsers,
 )
-from melody.kit.privacy.playlists import create_playlist_accessible_predicate
-from melody.kit.privacy.shared import user_id_from_context
-from melody.kit.privacy.users import create_user_accessible_predicate
 from melody.kit.tokens.dependencies import TokenDependency
 
 __all__ = ("search_entities",)
@@ -42,8 +37,8 @@ async def search_entities(
     types: TypesDependency,
     request_url: RequestURLDependency,
     context: TokenDependency,
-    offset: OffsetDependency = DEFAULT_OFFSET,
-    limit: LimitDependency = DEFAULT_LIMIT,
+    offset: OffsetDependency = config.offset.default,
+    limit: LimitDependency = config.limit.default,
 ) -> SearchData:
     albums = []
     artists = []
@@ -58,23 +53,13 @@ async def search_entities(
         artists = await database.search_artists(query=query, offset=offset, limit=limit)
 
     if EntityType.PLAYLIST in types:
-        all_playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
-
-        is_playlist_accessible = await create_playlist_accessible_predicate(
-            user_id_from_context(context)
-        )
-
-        playlists = iter(all_playlists).filter(is_playlist_accessible).list()
+        playlists = await database.search_playlists(query=query, offset=offset, limit=limit)
 
     if EntityType.TRACK in types:
         tracks = await database.search_tracks(query=query, offset=offset, limit=limit)
 
     if EntityType.USER in types:
-        all_users = await database.search_users(query=query, offset=offset, limit=limit)
-
-        is_user_accessible = await create_user_accessible_predicate(user_id_from_context(context))
-
-        users = iter(all_users).filter(is_user_accessible).list()
+        users = await database.search_users(query=query, offset=offset, limit=limit)
 
     search_albums = SearchAlbums(
         items=albums,
