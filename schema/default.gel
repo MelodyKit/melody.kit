@@ -1,0 +1,286 @@
+module default {
+    global self_id: uuid;
+
+    global self := (
+        select User filter .id = global self_id
+    );
+
+    # enums
+
+    scalar type AlbumType extending enum<`album`, `single`, `compilation`>;
+
+    # scalars
+
+    scalar type position extending int64 {
+        constraint min_value(0);
+    }
+
+    scalar type expression extending int64 {
+        constraint min_value(0);
+    }
+
+    scalar type date extending cal::local_date;
+
+    # abstract types
+
+    abstract type Tracked {
+        required created_at: datetime {
+            default := datetime_of_statement();
+            readonly := true;
+        };
+    }
+
+    abstract type Named {
+        required name: str;
+    }
+
+    abstract type Simple extending Tracked, Named;
+
+    abstract type Genres {
+        required genres: array<str> {
+            default := <array<str>>[];
+        };
+    }
+
+    # abstract links
+
+    abstract link with_position {
+        position: position {
+            default := 0;
+        };
+    }
+
+    abstract link with_linked_at {
+        linked_at: datetime {
+            default := datetime_of_statement();
+            readonly := true;
+        };
+    }
+
+    # entities
+
+    abstract type Entity extending Simple {
+        spotify_id: str;
+        apple_music_id: str;
+        yandex_music_id: str;
+    }
+
+    type Track extending Entity, Genres {
+        required multi artists extending with_position: Artist;
+
+        required explicit: bool {
+            default := false;
+        };
+
+        multi streams := .<track[is Stream];
+
+        stream_count := count(.streams);
+
+        album := assert_single(.<tracks[is Album]);
+    }
+
+    type Artist extending Entity, Genres {
+        multi followers := .<artists[is User];
+
+        follower_count := count(.followers);
+
+        multi streams := .<artists[is Track].<track[is Stream];
+
+        stream_count := count(.streams);
+
+        multi tracks := .<artists[is Track];
+        multi albums := .<artists[is Album];
+
+        track_count := count(.tracks);
+        album_count := count(.albums);
+    }
+
+    type Album extending Entity, Genres {
+        required multi artists extending with_position: Artist;
+        required multi tracks extending with_position: Track;
+
+        required album_type: AlbumType {
+            default := AlbumType.album;
+        };
+
+        required release_date: date;
+
+        label: str;
+
+        track_count := count(.tracks);
+    }
+
+    type Playlist extending Entity {
+        required owner: User {
+            on target delete delete source;
+            default := global self;
+        };
+
+        required private: bool {
+            default := false;
+        };
+
+        multi collaborators extending with_linked_at: User;
+
+        multi followers := .<followed_playlists[is User];
+
+        follower_count := count(.followers);
+
+        multi tracks extending with_linked_at, with_position: Track;
+
+        description: str;
+
+        track_count := count(.tracks);
+
+        access policy owner_has_full_access
+            allow all
+            using (global self ?= .owner);
+
+        access policy collaborators_can_update
+            allow update
+            using ((global self in .collaborators) ?? false);
+
+        access policy public_can_read
+            allow select
+            using (not .private);
+    }
+
+    type User extending Entity {
+        required account: Account {
+            on target delete delete source;
+            constraint exclusive;
+        };
+
+        tag: str {
+            constraint exclusive;
+            constraint min_len_value(2);
+            constraint max_len_value(32);
+        };
+
+        multi tracks extending with_linked_at: Track;
+        multi albums extending with_linked_at: Album;
+        multi artists extending with_linked_at: Artist;
+
+        multi playlists := .<owner[is Playlist];
+
+        required private: bool {
+            default := false;
+        };
+
+        multi blocked extending with_linked_at: User;
+
+        trigger forbid_block_self after insert, update for each do (
+            assert(
+                not __new__ in __new__.blocked,
+                message := "users can not block themselves",
+            )
+        );
+
+        multi following extending with_linked_at: User;
+
+        trigger forbid_follow_self after insert, update for each do (
+            assert(
+                not __new__ in __new__.following,
+                message := "users can not follow themselves",
+            )
+        );
+
+        multi followers := .<following[is User];
+
+        multi friends := .following intersect .followers;
+
+        following_count := count(.following);
+
+        follower_count := count(.followers);
+
+        friend_count := count(.friends);
+
+        multi followed_playlists extending with_linked_at: Playlist;
+
+        trigger forbid_follow_self_playlists after insert, update for each do (
+            assert(
+                not exists (__new__.playlists intersect __new__.followed_playlists),
+                message := "users can not follow their own playlists",
+            )
+        );
+
+        followed_playlist_count := count(.followed_playlists);
+
+        multi streams := .<user[is Stream];
+
+        stream_count := count(.streams);
+
+        track_count := count(.tracks);
+        album_count := count(.albums);
+        artist_count := count(.artists);
+        playlist_count := count(.playlists);
+
+        discord_id: str {
+            constraint exclusive;
+        };
+
+        multi clients extending with_linked_at: Client;
+
+        required explicit: bool {
+            default := false;
+        };
+    }
+
+    # non-entities
+
+    type Account extending Tracked {
+        required email: str {
+            constraint exclusive;
+        };
+
+        required password_hash: str;
+
+        secret: str;
+
+        user := .<account[is User];
+
+        required premium: bool {
+            default := false;
+        };
+
+        access policy owner_has_full_access
+            allow all
+            using (global self ?= .user);
+    }
+
+    type Stream extending Tracked {
+        required user: User {
+            on target delete delete source;
+            default := global self;
+        };
+
+        required track: Track {
+            on target delete delete source;
+        };
+
+        # required platform: Platform;
+    }
+
+    type Client extending Simple {
+        required owner: User {
+            on target delete delete source;
+            default := global self;
+        };
+
+        required redirect_urls: array<str> {
+            default := <array<str>>[];
+        };
+
+        multi users := .<clients[is User];
+
+        user_count := count(.users);
+
+        description: str;
+
+        required secret_hash: str;
+
+        access policy owner_has_full_access
+            allow all
+            using (global self ?= .owner);
+    }
+}

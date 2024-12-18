@@ -1,0 +1,120 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+homepage = "https://melodykit.app/"
+documentation = "https://docs.melodykit.app/"
+repository = "https://github.com/MelodyKit/melody.kit"
+authors = ["MelodyKit <hello@melodykit.app>"]
+license = "MIT"
+publish = false
+
+[workspace.dependencies.melody-cli]
+path = "crates/melody-cli"
+
+[workspace.dependencies.melody-kit]
+path = "crates/melody-kit"
+
+[workspace.dependencies.melody-bot]
+path = "crates/melody-bot"
+
+[workspace.dependencies.argon2]
+version = "0.5.3"
+features = ["std"]
+
+[workspace.dependencies.axum]
+version = "0.7.7"
+
+[workspace.dependencies.bon]
+version = "2.3.0"
+
+[workspace.dependencies.chrono]
+version = "0.4.38"
+features = ["serde"]
+
+[workspace.dependencies.clap]
+version = "4.5.20"
+features = ["derive"]
+
+[workspace.dependencies.edgedb-tokio]
+version = "0.5.1"
+features = ["miette-errors"]
+
+[workspace.dependencies.edgedb-protocol]
+version = "0.6.1"
+features = ["chrono", "serde"]
+
+[workspace.dependencies.env_logger]
+version = "0.11.5"
+
+[workspace.dependencies.expand-tilde]
+version = "0.1.0"
+
+[workspace.dependencies.handlebars]
+version = "6.2.0"
+
+[workspace.dependencies.keyring]
+version = "3.3.0"
+features = ["async-secret-service", "crypto-rust", "tokio"]
+
+[workspace.dependencies.lettre]
+version = "0.11.9"
+features = ["builder", "serde", "tokio1", "tokio1-rustls-tls"]
+default-features = false
+
+[workspace.dependencies.log]
+version = "0.4.22"
+
+[workspace.dependencies.miette]
+version = "7.2.0"
+features = ["fancy"]
+
+[workspace.dependencies.otp-std]
+version = "0.1.0"
+features = ["generate-secret", "auth", "serde"]
+
+[workspace.dependencies.poise]
+version = "0.6.1"
+
+[workspace.dependencies.rand]
+version = "0.8.5"
+
+[workspace.dependencies.redis]
+version = "0.27.4"
+features = ["uuid", "tokio-rustls-comp"]
+
+[workspace.dependencies.serde]
+version = "1.0.216"
+features = ["derive"]
+
+[workspace.dependencies.serde_json]
+version = "1.0.133"
+
+[workspace.dependencies.serenity]
+version = "0.12.4"
+features = ["framework", "standard_framework"]
+
+[workspace.dependencies.strum]
+version = "0.26.3"
+features = ["derive"]
+
+[workspace.dependencies.thiserror]
+version = "2.0.6"
+
+[workspace.dependencies.tokio]
+version = "1.40.0"
+features = ["full"]
+
+[workspace.dependencies.toml]
+version = "0.8.19"
+features = ["parse"]
+
+[workspace.dependencies.url]
+version = "2.5.2"
+features = ["serde"]
+
+[workspace.dependencies.uuid]
+version = "1.10.0"
+features = ["serde"]

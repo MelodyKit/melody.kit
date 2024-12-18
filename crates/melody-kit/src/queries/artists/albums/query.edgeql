@@ -1,0 +1,27 @@
+select Artist {
+    albums: {
+        id,
+        name,
+        artists: {
+            id,
+            name,
+            follower_count,
+            stream_count,
+            genres,
+            created_at,
+            spotify_id,
+            apple_music_id,
+            yandex_music_id,
+        },
+        album_type,
+        release_date,
+        track_count,
+        label,
+        genres,
+        created_at,
+        spotify_id,
+        apple_music_id,
+        yandex_music_id,
+    } order by .release_date desc offset <expression>$offset limit <expression>$limit,
+    album_count,
+} filter .id = <uuid>$artist_id;

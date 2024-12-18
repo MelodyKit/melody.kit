@@ -1,0 +1,12 @@
+pub const FOLLOWING_READ: &str = "following-read";
+pub const FOLLOWING_WRITE: &str = "following-write";
+pub const LIBRARY_READ: &str = "library-read";
+pub const LIBRARY_WRITE: &str = "library-write";
+pub const PLAYLISTS_READ: &str = "playlists-read";
+pub const PLAYLISTS_WRITE: &str = "playlists-write";
+pub const SETTINGS_READ: &str = "settings-read";
+pub const SETTINGS_WRITE: &str = "settings-write";
+pub const IMAGE_READ: &str = "image-read";
+pub const IMAGE_WRITE: &str = "image-write";
+pub const STREAMS_READ: &str = "streams-read";
+pub const STREAMS_WRITE: &str = "streams-write";
