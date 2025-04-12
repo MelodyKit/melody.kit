@@ -1,0 +1,18 @@
+[package]
+name = "melody-schema"
+version = "0.1.0"
+description = "MelodyKit schema."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+gel-derive.workspace = true
+gel-protocol.workspace = true
+melody-chrono.workspace = true
+serde.workspace = true
+uuid.workspace = true

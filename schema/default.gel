@@ -11,6 +11,10 @@ module default {
 
     # scalars
 
+    scalar type non_empty_str extending str {
+        constraint min_len_value(1);
+    }
+
     scalar type position extending int64 {
         constraint min_value(0);
     }
@@ -31,14 +35,14 @@ module default {
     }
 
     abstract type Named {
-        required name: str;
+        required name: non_empty_str;
     }
 
     abstract type Simple extending Tracked, Named;
 
     abstract type Genres {
-        required genres: array<str> {
-            default := <array<str>>[];
+        required genres: array<non_empty_str> {
+            default := <array<non_empty_str>>[];
         };
     }
 
@@ -60,9 +64,9 @@ module default {
     # entities
 
     abstract type Entity extending Simple {
-        spotify_id: str;
-        apple_music_id: str;
-        yandex_music_id: str;
+        spotify_id: non_empty_str;
+        apple_music_id: non_empty_str;
+        yandex_music_id: non_empty_str;
     }
 
     type Track extending Entity, Genres {
@@ -105,7 +109,7 @@ module default {
 
         required release_date: date;
 
-        label: str;
+        label: non_empty_str;
 
         track_count := count(.tracks);
     }
@@ -128,7 +132,7 @@ module default {
 
         multi tracks extending with_linked_at, with_position: Track;
 
-        description: str;
+        description: non_empty_str;
 
         track_count := count(.tracks);
 
@@ -215,7 +219,7 @@ module default {
         artist_count := count(.artists);
         playlist_count := count(.playlists);
 
-        discord_id: str {
+        discord_id: non_empty_str {
             constraint exclusive;
         };
 
@@ -229,13 +233,13 @@ module default {
     # non-entities
 
     type Account extending Tracked {
-        required email: str {
+        required email: non_empty_str {
             constraint exclusive;
         };
 
-        required password_hash: str;
+        required password_hash: non_empty_str;
 
-        secret: str;
+        secret: non_empty_str;
 
         user := .<account[is User];
 
@@ -267,17 +271,17 @@ module default {
             default := global self;
         };
 
-        required redirect_urls: array<str> {
-            default := <array<str>>[];
+        required redirect_urls: array<non_empty_str> {
+            default := <array<non_empty_str>>[];
         };
 
         multi users := .<clients[is User];
 
         user_count := count(.users);
 
-        description: str;
+        description: non_empty_str;
 
-        required secret_hash: str;
+        required secret_hash: non_empty_str;
 
         access policy owner_has_full_access
             allow all

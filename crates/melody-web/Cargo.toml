@@ -1,0 +1,27 @@
+[package]
+name = "melody-web"
+version = "0.1.0"
+description = "MelodyKit web pages."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+axum.workspace = true
+bon.workspace = true
+chrono.workspace = true
+expand-tilde.workspace = true
+maud.workspace = true
+melody-bridge.workspace = true
+melody-database.workspace = true
+melody-model.workspace = true
+melody-state.workspace = true
+miette.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tower.workspace = true
+tower-http.workspace = true

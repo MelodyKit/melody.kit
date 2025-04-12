@@ -1,9 +1,9 @@
 use axum::Router;
 
-use crate::state::RouterWithState;
+use melody_state::state::AppRouter;
 
 pub mod v1;
 
-pub fn router() -> RouterWithState {
+pub fn router() -> AppRouter {
     Router::new().nest("/v1", v1::router())
 }

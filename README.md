@@ -2,17 +2,25 @@
 
 # [`melody.kit`][Link]
 
-> *All your music, in one place.*
+> *MelodyKit core.*
 
-This project consists of 7 parts:
+## Architecture
 
--   [`melody.kit`][melody.kit] is the core API of MelodyKit;
--   [`melody.shared`][melody.shared] contains shared functionality;
--   [`melody.bot`][melody.bot] is the Discord bot which interacts with MelodyKit;
--   [`melody.match`][melody.match] matches identical tracks;
--   [`melody.spotify`][melody.spotify] is the API wrapper for Spotify;
--   [`melody.apple_music`][melody.apple_music] is the API wrapper for Apple Music;
--   [`melody.yandex_music`][melody.yandex_music] is the API wrapper for Yandex Music.
+MelodyKit core is composed of several crates, some larger, some smaller, as follows:
 
-[Image]: https://melodykit.app/static/icon.png
+| Crate                     | Description                |
+|---------------------------|----------------------------|
+| [`melody-app`][App]       | MelodyKit CLI application. |
+| [`melody-kit`][Kit]       | MelodyKit API.             |
+| [`melody-web`][Web]       | MelodyKit web pages.       |
+| [`melody-bot`][Bot]       | MelodyKit bots.            |
+| [`melody-config`][Config] | MelodyKit configuration.   |
+
+[App]: https://github.com/MelodyKit/melody.kit/tree/main/crates/melody-app
+[Kit]: https://github.com/MelodyKit/melody.kit/tree/main/crates/melody-kit
+[Web]: https://github.com/MelodyKit/melody.kit/tree/main/crates/melody-web
+[Bot]: https://github.com/MelodyKit/melody.kit/tree/main/crates/melody-bot
+[Config]: https://github.com/MelodyKit/melody.kit/tree/main/crates/melody-config
+
+[Image]: https://melodykit.app/static/images/gradient.svg
 [Link]: https://melodykit.app

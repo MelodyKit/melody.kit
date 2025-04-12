@@ -1,0 +1,22 @@
+[package]
+name = "melody-config"
+version = "0.1.0"
+description = "MelodyKit core configuration."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+expand-tilde.workspace = true
+from-path.workspace = true
+into-static.workspace = true
+miette.workspace = true
+non-empty-str.workspace = true
+otp-std.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true

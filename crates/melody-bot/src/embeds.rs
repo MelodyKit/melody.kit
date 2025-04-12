@@ -1,20 +1,33 @@
-use melody_kit::{
-    color::{MELODY_BLUE, MELODY_PURPLE},
-    models::Statistics,
-    types::Color,
-};
+use melody_model::models::statistics::Statistics;
+use rand::{Rng, rng};
 use serenity::all::CreateEmbed;
+
+use crate::format::tick;
+
+pub const MELODY_PURPLE: u32 = 0xCC55FF;
+pub const MELODY_BLUE: u32 = 0x55CCFF;
+
+pub const HALF: f64 = 0.5;
+
+pub fn melody_color() -> u32 {
+    if rng().random_bool(HALF) {
+        MELODY_PURPLE
+    } else {
+        MELODY_BLUE
+    }
+}
+
+pub const ERROR: u32 = 0xFF0000;
 
 pub const INTERNAL_ERROR: &str = "Internal Error";
 pub const INTERNAL_ERROR_DESCRIPTION: &str =
     "An internal error occurred while processing the command.";
-pub const INTERNAL_ERROR_COLOR: Color = 0xFF0000;
 
-pub fn internal_error() -> CreateEmbed {
+pub fn error_embed<E>(_error: E) -> CreateEmbed {
     CreateEmbed::default()
         .title(INTERNAL_ERROR)
         .description(INTERNAL_ERROR_DESCRIPTION)
-        .color(INTERNAL_ERROR_COLOR)
+        .color(ERROR)
 }
 
 pub const STATISTICS: &str = "Statistics";
@@ -28,21 +41,12 @@ pub const PLAYLISTS: &str = "Playlists";
 
 pub fn statistics_embed(statistics: &Statistics, inline: bool) -> CreateEmbed {
     CreateEmbed::new()
+        .color(melody_color())
         .title(STATISTICS)
-        .field(USERS, statistics.user_count.to_string(), inline)
-        .field(STREAMS, statistics.stream_count.to_string(), inline)
-        .field(TRACKS, statistics.track_count.to_string(), inline)
-        .field(ARTISTS, statistics.artist_count.to_string(), inline)
-        .field(PLAYLISTS, statistics.playlist_count.to_string(), inline)
+        .field(USERS, tick(statistics.user_count), inline)
+        .field(STREAMS, tick(statistics.stream_count), inline)
+        .field(TRACKS, tick(statistics.track_count), inline)
+        .field(ARTISTS, tick(statistics.artist_count), inline)
+        .field(ALBUMS, tick(statistics.album_count), inline)
+        .field(PLAYLISTS, tick(statistics.playlist_count), inline)
 }
-
-// def statistics_embed(statistics: Statistics, inline: bool = INLINE) -> Embed:
-//     return (
-//         Embed(color=choose_for_discord(), title=STATISTICS)
-//         .add_field(name=USERS, value=count(statistics.user_count), inline=inline)
-//         .add_field(name=STREAMS, value=count(statistics.stream_count), inline=inline)
-//         .add_field(name=TRACKS, value=count(statistics.track_count), inline=inline)
-//         .add_field(name=ARTISTS, value=count(statistics.artist_count), inline=inline)
-//         .add_field(name=ALBUMS, value=count(statistics.album_count), inline=inline)
-//         .add_field(name=PLAYLISTS, value=count(statistics.playlist_count), inline=inline)
-//     )

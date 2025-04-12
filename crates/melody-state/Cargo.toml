@@ -1,0 +1,20 @@
+[package]
+name = "melody-state"
+version = "0.1.0"
+description = "MelodyKit core state."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+axum.workspace = true
+bon.workspace = true
+into-static.workspace = true
+melody-config.workspace = true
+melody-database.workspace = true
+melody-hash.workspace = true
+melody-keyring.workspace = true
+melody-redis.workspace = true

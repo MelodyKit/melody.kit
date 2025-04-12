@@ -1,111 +1,95 @@
 use std::fmt;
 
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
+use into_static::IntoStatic;
+use melody_enum::melody_enum;
 use miette::Diagnostic;
+use non_empty_str::{CowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, EnumCount, EnumIs, EnumIter, EnumString, IntoStaticStr};
 use thiserror::Error;
-use uuid::Uuid;
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Default,
-    AsRefStr,
-    Display,
-    EnumCount,
-    EnumIs,
-    EnumIter,
-    EnumString,
-    IntoStaticStr,
-    Serialize,
-    Deserialize,
-)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
-#[non_exhaustive]
-pub enum Code {
-    // unknown
-    #[default]
-    Unknown,
-    // albums
-    AlbumNotFound,
-    // artists
-    ArtistNotFound,
-    // tracks
-    TrackNotFound,
-    // playlists
-    PlaylistNotFound,
-    PlaylistImageNotFound,
-    // users
-    UserNotFound,
-    UserImageNotFound,
-    UserBlockSelfForbidden,
-    UserFollowSelfForbidden,
-    UserFollowSelfPlaylistsForbidden,
-    // clients
-    ClientNotFound,
-    // streams
-    StreamNotFound,
-    // auth: access tokens
-    AuthAccessTokenNotFound,
-    AuthAccessTokenInvalid,
-    AuthAccessTokenExpectedType,
-    AuthAccessTokenExpectedUser,
-    AuthAccessTokenExpectedUserBased,
-    AuthAccessTokenScopesMissing,
-    // auth: refresh tokens
-    AuthRefreshTokenExpected,
-    AuthRefreshTokenInvalid,
-    // auth: client credentials
-    AuthClientCredentialsExpected,
-    AuthClientCredentialsInvalid,
-    AuthClientCredentialsMismatch,
-    AuthClientCredentialsNotFound,
-    AuthClientCredentialsSecretMismatch,
-    // auth: authorization codes
-    AuthAuthorizationCodeExpected,
-    AuthAuthorizationCodeInvalid,
-    AuthAuthorizationCodeRedirectUriExpected,
-    AuthAuthorizationCodeRedirectUriMismatch,
-    // auth: verification codes
-    AuthVerificationCodeInvalid,
-    // auth: emails
-    AuthEmailInvalid,
-    AuthEmailConflict,
-    AuthEmailFailed,
-    AuthEmailNotFound,
-    AuthEmailUnverified,
-    // auth: passwords
-    AuthPasswordInvalid,
-    AuthPasswordMismatch,
-    // auth: codes
-    AuthCodeExpected,
-    AuthCodeMismatch,
-    AuthCodeConflict,
-    AuthCodeNotFound,
-    // images
-    ImageUnexpectedType,
-    ImageExpectedSquare,
-    ImageDataTooLarge,
-    ImageSizeTooLarge,
+melody_enum! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+    #[non_exhaustive]
+    pub Code {
+        // unknown
+        #[default]
+        Unknown => unknown,
+        // albums
+        AlbumNotFound => album::not_found,
+        // artists
+        ArtistNotFound => artist::not_found,
+        // tracks
+        TrackNotFound => track::not_found,
+        // playlists
+        PlaylistNotFound => playlist::not_found,
+        PlaylistImageNotFound => playlist::image::not_found,
+        // users
+        UserNotFound => user::not_found,
+        UserImageNotFound => user::image::not_found,
+        SelfBlockForbidden => self::block::forbidden,
+        SelfFollowForbidden => self::follow::forbidden,
+        SelfPlaylistFollowForbidden => self::playlist::follow::forbidden,
+        // clients
+        ClientNotFound => client::not_found,
+        // streams
+        StreamNotFound => stream::not_found,
+        // auth: access tokens
+        AuthAccessTokenNotFound => auth::access_token::not_found,
+        AuthAccessTokenInvalid => auth::access_token::invalid,
+        AuthAccessTokenTypeExpected => auth::access_token::type::expected,
+        AuthAccessTokenUserExpected => auth::access_token::expected_user,
+        AuthAccessTokenUserBasedExpected => auth::access_token::user_based::expected,
+        AuthAccessTokenScopeMissing => auth::access_token::scope::missing,
+        // auth: refresh tokens
+        AuthRefreshTokenExpected => auth::refresh_token::expected,
+        AuthRefreshTokenInvalid => auth::refresh_token::invalid,
+        // auth: client credentials
+        AuthClientCredentialsExpected => auth::client_credentials::expected,
+        AuthClientCredentialsInvalid => auth::client_credentials::invalid,
+        AuthClientCredentialsMismatch => auth::client_credentials::mismatch,
+        AuthClientCredentialsNotFound => auth::client_credentials::not_found,
+        AuthClientCredentialsSecretMismatch => auth::client_credentials::secret::mismatch,
+        // auth: authorization codes
+        AuthAuthorizationCodeExpected => auth::authorization_code::expected,
+        AuthAuthorizationCodeInvalid => auth::authorization_code::invalid,
+        AuthAuthorizationCodeRedirectUriExpected => auth::authorization_code::redirect_uri::expected,
+        AuthAuthorizationCodeRedirectUriMismatch => auth::authorization_code::redirect_uri::mismatch,
+        // auth: verification codes
+        AuthVerificationCodeInvalid => auth::verification_code::invalid,
+        // auth: emails
+        AuthEmailInvalid => auth::email::invalid,
+        AuthEmailConflict => auth::email::conflict,
+        AuthEmailFailed => auth::email::failed,
+        AuthEmailNotFound => auth::email::not_found,
+        AuthEmailUnverified => auth::email::unverified,
+        // auth: passwords
+        AuthPasswordInvalid => auth::password::invalid,
+        AuthPasswordMismatch => auth::password::mismatch,
+        // auth: codes
+        AuthCodeExpected => auth::code::expected,
+        AuthCodeMismatch => auth::code::mismatch,
+        AuthCodeConflict => auth::code::conflict,
+        AuthCodeNotFound => auth::code::not_found,
+        // images
+        ImageUnexpectedType => image::type::unexpected,
+        ImageSquareExpected => image::square::expected,
+        ImageDataTooLarge => image::data::too_large,
+        ImageSizeTooLarge => image::size::too_large,
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Data {
+pub struct Data<'d> {
     pub code: Code,
-    pub message: String,
+    pub message: CowStr<'d>,
 }
 
-impl fmt::Display for Data {
+impl fmt::Display for Data<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             formatter,
@@ -116,61 +100,49 @@ impl fmt::Display for Data {
     }
 }
 
-impl Data {
-    pub const fn new(code: Code, message: String) -> Self {
+impl<'d> Data<'d> {
+    pub const fn new(code: Code, message: CowStr<'d>) -> Self {
         Self { code, message }
     }
 }
 
+pub const INTERNAL_ERROR: CowStr<'static> = const_borrowed_str!("internal error");
+
+impl Data<'_> {
+    pub const INTERNAL_ERROR: Self = Self::new(Code::Unknown, INTERNAL_ERROR);
+}
+
+impl IntoStatic for Data<'_> {
+    type Static = Data<'static>;
+
+    fn into_static(self) -> Self::Static {
+        Self::Static::new(self.code, self.message.into_static())
+    }
+}
+
+pub type StaticData = Data<'static>;
+
 #[derive(Debug, Error, Diagnostic)]
 #[error("{data}")]
-#[diagnostic(code(melody_kit::errors))]
+#[diagnostic(code(melody::kit::errors))]
 pub struct Error {
-    pub data: Data,
+    pub data: StaticData,
     pub status: StatusCode,
 }
 
-macro_rules! error {
-    ($status_code: expr, $code: expr, $($token: tt)*) => {
-        $crate::errors::Error::new(
-            $crate::errors::Data::new($code, format!($($token)*)),
-            $status_code
-        )
-    }
-}
-
-pub(crate) use error;
-
 impl Error {
-    pub const fn new(data: Data, status: StatusCode) -> Self {
+    pub const fn new(data: StaticData, status: StatusCode) -> Self {
         Self { data, status }
     }
 
-    pub fn internal() -> Self {
-        error!(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Code::Unknown,
-            "internal error"
-        )
+    pub fn internal<E>(_error: E) -> Self {
+        Self::INTERNAL
     }
 
-    pub fn user_not_found(user_id: Uuid) -> Self {
-        error!(
-            StatusCode::NOT_FOUND,
-            Code::UserNotFound,
-            "user with ID `{user_id}` not found",
-        )
-    }
-
-    pub fn user_not_found_by_tag<S: AsRef<str>>(tag: S) -> Self {
-        let tag = tag.as_ref();
-
-        error!(
-            StatusCode::NOT_FOUND,
-            Code::UserNotFound,
-            "user with tag `{tag}` not found",
-        )
-    }
+    pub const INTERNAL: Self = Self::new(
+        StaticData::INTERNAL_ERROR,
+        StatusCode::INTERNAL_SERVER_ERROR,
+    );
 }
 
 impl IntoResponse for Error {

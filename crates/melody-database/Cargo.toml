@@ -1,0 +1,22 @@
+[package]
+name = "melody-database"
+version = "0.1.0"
+description = "MelodyKit core database."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+gel-protocol.workspace = true
+gel-tokio.workspace = true
+melody-chrono.workspace = true
+melody-link.workspace = true
+melody-schema.workspace = true
+miette.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+uuid.workspace = true

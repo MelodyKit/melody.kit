@@ -1,0 +1,22 @@
+[package]
+name = "melody-model"
+version = "0.1.0"
+description = "MelodyKit core models."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+into-static.workspace = true
+melody-chrono.workspace = true
+melody-config.workspace = true
+melody-enum.workspace = true
+melody-link.workspace = true
+miette.workspace = true
+non-empty-str.workspace = true
+serde.workspace = true
+thiserror.workspace = true

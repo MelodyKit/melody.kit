@@ -1,0 +1,32 @@
+[package]
+name = "melody-app"
+version = "0.1.0"
+description = "MelodyKit core CLI."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+clap.workspace = true
+clap-verbosity-flag.workspace = true
+expand-tilde.workspace = true
+from-path.workspace = true
+melody-bot.workspace = true
+melody-config.workspace = true
+melody-database.workspace = true
+melody-hash.workspace = true
+melody-keyring.workspace = true
+melody-kit.workspace = true
+melody-redis.workspace = true
+melody-state.workspace = true
+melody-web.workspace = true
+miette.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

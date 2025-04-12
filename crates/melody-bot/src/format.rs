@@ -1,13 +1,15 @@
+use std::fmt::Display;
+
 pub const SEPARATOR: &str = ", ";
 
-pub fn tick<S: AsRef<str>>(string: S) -> String {
-    format!("`{}`", string.as_ref())
+pub fn tick<D: Display>(display: D) -> String {
+    format!("`{display}`")
 }
 
-pub fn bullet<S: AsRef<str>>(string: S) -> String {
-    format!("- {}", string.as_ref())
+pub fn bullet<D: Display>(display: D) -> String {
+    format!("- {display}")
 }
 
-pub fn with_url<T: AsRef<str>, U: AsRef<str>>(target: T, url: U) -> String {
-    format!("[{}]({})", target.as_ref(), url.as_ref())
+pub fn with_url<T: Display, U: Display>(target: T, url: U) -> String {
+    format!("[{target}]({url})")
 }

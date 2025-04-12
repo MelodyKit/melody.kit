@@ -1,0 +1,21 @@
+[package]
+name = "melody-link"
+version = "0.1.0"
+description = "MelodyKit link functionality."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+const-macros.workspace = true
+melody-config.workspace = true
+melody-enum.workspace = true
+into-static.workspace = true
+miette.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+url.workspace = true
+uuid.workspace = true

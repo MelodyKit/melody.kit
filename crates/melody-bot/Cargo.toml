@@ -1,17 +1,19 @@
 [package]
 name = "melody-bot"
 version = "0.1.0"
+description = "MelodyKit bot."
 authors.workspace = true
 edition.workspace = true
 readme.workspace = true
 homepage.workspace = true
 documentation.workspace = true
 repository.workspace = true
-publish.workspace = true
 
 [dependencies]
 clap.workspace = true
-melody-kit.workspace = true
+melody-bridge.workspace = true
+melody-model.workspace = true
+melody-state.workspace = true
 miette.workspace = true
 poise.workspace = true
 rand.workspace = true

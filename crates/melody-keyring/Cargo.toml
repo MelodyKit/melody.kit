@@ -1,0 +1,20 @@
+[package]
+name = "melody-keyring"
+version = "0.1.0"
+description = "MelodyKit core keyring."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+into-static.workspace = true
+keyring.workspace = true
+melody-config.workspace = true
+miette.workspace = true
+non-empty-str.workspace = true
+serde.workspace = true
+thiserror.workspace = true

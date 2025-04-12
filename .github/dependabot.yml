@@ -1,7 +1,7 @@
 version: 2
 
 updates:
-  - package-ecosystem: pip
+  - package-ecosystem: github-actions
     directory: "/"
 
     labels:
@@ -14,4 +14,15 @@ updates:
 
     open-pull-requests-limit: 10
 
-    versioning-strategy: increase
+  - package-ecosystem: cargo
+    directory: "/"
+
+    labels:
+      - A-dependencies
+      - P-normal
+      - S-triage
+
+    schedule:
+      interval: daily
+
+    open-pull-requests-limit: 10

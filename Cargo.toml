@@ -1,9 +1,11 @@
 [workspace]
 members = ["crates/*"]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
-edition = "2021"
+rust-version = "1.86"
+description = "MelodyKit core."
+edition = "2024"
 homepage = "https://melodykit.app/"
 documentation = "https://docs.melodykit.app/"
 repository = "https://github.com/MelodyKit/melody.kit"
@@ -11,110 +13,196 @@ authors = ["MelodyKit <hello@melodykit.app>"]
 license = "MIT"
 publish = false
 
-[workspace.dependencies.melody-cli]
-path = "crates/melody-cli"
+[workspace.dependencies.melody-config]
+path = "crates/melody-config"
+
+[workspace.dependencies.melody-keyring]
+path = "crates/melody-keyring"
+
+[workspace.dependencies.melody-database]
+path = "crates/melody-database"
+
+[workspace.dependencies.melody-redis]
+path = "crates/melody-redis"
+
+[workspace.dependencies.melody-hash]
+path = "crates/melody-hash"
+
+[workspace.dependencies.melody-link]
+path = "crates/melody-link"
+
+[workspace.dependencies.melody-state]
+path = "crates/melody-state"
+
+[workspace.dependencies.melody-chrono]
+path = "crates/melody-chrono"
+
+[workspace.dependencies.melody-model]
+path = "crates/melody-model"
+
+[workspace.dependencies.melody-bridge]
+path = "crates/melody-bridge"
+
+[workspace.dependencies.melody-schema]
+path = "crates/melody-schema"
+
+[workspace.dependencies.melody-enum]
+path = "crates/melody-enum"
 
 [workspace.dependencies.melody-kit]
 path = "crates/melody-kit"
 
+[workspace.dependencies.melody-web]
+path = "crates/melody-web"
+
 [workspace.dependencies.melody-bot]
 path = "crates/melody-bot"
+
+[workspace.dependencies.melody-app]
+path = "crates/melody-app"
 
 [workspace.dependencies.argon2]
 version = "0.5.3"
 features = ["std"]
 
 [workspace.dependencies.axum]
-version = "0.7.7"
+version = "0.8.3"
 
 [workspace.dependencies.bon]
-version = "2.3.0"
+version = "3.5.2"
 
 [workspace.dependencies.chrono]
-version = "0.4.38"
+version = "0.4.40"
 features = ["serde"]
 
 [workspace.dependencies.clap]
-version = "4.5.20"
+version = "4.5.36"
 features = ["derive"]
 
-[workspace.dependencies.edgedb-tokio]
-version = "0.5.1"
-features = ["miette-errors"]
+[workspace.dependencies.clap-verbosity-flag]
+version = "3.0.2"
+features = ["tracing"]
 
-[workspace.dependencies.edgedb-protocol]
-version = "0.6.1"
-features = ["chrono", "serde"]
+[workspace.dependencies.const-macros]
+version = "0.3.0"
 
 [workspace.dependencies.env_logger]
-version = "0.11.5"
+version = "0.11.8"
 
 [workspace.dependencies.expand-tilde]
+version = "0.6.0"
+features = ["diagnostics"]
+
+[workspace.dependencies.from-path]
 version = "0.1.0"
 
+[workspace.dependencies.gel-derive]
+version = "0.7.2"
+
+[workspace.dependencies.gel-protocol]
+version = "0.8.2"
+features = ["with-chrono", "with-serde"]
+
+[workspace.dependencies.gel-tokio]
+version = "0.10.10"
+features = ["miette-errors"]
+
 [workspace.dependencies.handlebars]
-version = "6.2.0"
+version = "6.3.2"
+
+[workspace.dependencies.into-static]
+version = "0.2.0"
 
 [workspace.dependencies.keyring]
-version = "3.3.0"
+version = "3.6.2"
 features = ["async-secret-service", "crypto-rust", "tokio"]
 
 [workspace.dependencies.lettre]
-version = "0.11.9"
+version = "0.11.15"
 features = ["builder", "serde", "tokio1", "tokio1-rustls-tls"]
 default-features = false
 
 [workspace.dependencies.log]
-version = "0.4.22"
+version = "0.4.27"
+
+[workspace.dependencies.maud]
+version = "0.27.0"
+features = ["axum"]
 
 [workspace.dependencies.miette]
-version = "7.2.0"
+version = "7.5.0"
 features = ["fancy"]
 
+[workspace.dependencies.non-empty-str]
+version = "0.5.0"
+features = ["serde", "into-static", "diagnostics"]
+
 [workspace.dependencies.otp-std]
-version = "0.1.0"
-features = ["generate-secret", "auth", "serde"]
+version = "0.2.3"
+features = ["serde"]
+
+[workspace.dependencies.password-hash]
+version = "0.5.0"
+
+[workspace.dependencies.paste]
+version = "1.0.15"
+
+[workspace.dependencies.pkce-std]
+version = "0.1.2"
 
 [workspace.dependencies.poise]
 version = "0.6.1"
 
 [workspace.dependencies.rand]
-version = "0.8.5"
+version = "0.9.0"
 
 [workspace.dependencies.redis]
-version = "0.27.4"
+version = "0.29.5"
 features = ["uuid", "tokio-rustls-comp"]
 
+[workspace.dependencies.refinement-types]
+version = "0.3.0"
+features = ["serde", "diagnostics"]
+
 [workspace.dependencies.serde]
-version = "1.0.216"
+version = "1.0.219"
 features = ["derive"]
 
 [workspace.dependencies.serde_json]
-version = "1.0.133"
+version = "1.0.140"
 
 [workspace.dependencies.serenity]
 version = "0.12.4"
 features = ["framework", "standard_framework"]
 
-[workspace.dependencies.strum]
-version = "0.26.3"
-features = ["derive"]
-
 [workspace.dependencies.thiserror]
-version = "2.0.6"
+version = "2.0.12"
 
 [workspace.dependencies.tokio]
-version = "1.40.0"
+version = "1.44.2"
 features = ["full"]
 
 [workspace.dependencies.toml]
-version = "0.8.19"
+version = "0.8.20"
 features = ["parse"]
 
+[workspace.dependencies.tower]
+version = "0.5.2"
+
+[workspace.dependencies.tower-http]
+version = "0.6.2"
+features = ["full"]
+
+[workspace.dependencies.tracing]
+version = "0.1.41"
+
+[workspace.dependencies.tracing-subscriber]
+version = "0.3.19"
+
 [workspace.dependencies.url]
-version = "2.5.2"
+version = "2.5.4"
 features = ["serde"]
 
 [workspace.dependencies.uuid]
-version = "1.10.0"
+version = "1.16.0"
 features = ["serde"]
