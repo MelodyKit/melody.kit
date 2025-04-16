@@ -62,12 +62,12 @@ impl IntoStatic for Keyring<'_> {
     type Static = Keyring<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .bot(self.bot.into_static())
-            .email(self.email.into_static())
-            .discord(self.discord.into_static())
-            .spotify(self.spotify.into_static())
-            .build()
+        Self::Static {
+            bot: self.bot.into_static(),
+            email: self.email.into_static(),
+            discord: self.discord.into_static(),
+            spotify: self.spotify.into_static(),
+        }
     }
 }
 
@@ -75,7 +75,9 @@ impl Keyring<'_> {
     pub fn load_with(config: &KeyringConfig<'_>) -> Result<Self, Error> {
         let service = config.service.as_ref();
 
-        let bot = find(service, config.bot.as_ref()).map_err(Error::find)?;
+        let bot = find(service, config.bot.as_ref())
+            .map(CowStr::from_owned_str)
+            .map_err(Error::find)?;
 
         let email: UserPair<'_> = find(service, config.email.as_ref())
             .map_err(Error::find)?
@@ -92,12 +94,12 @@ impl Keyring<'_> {
             .parse()
             .map_err(Error::pairs)?;
 
-        let keyring = Self::builder()
-            .bot(bot)
-            .email(email)
-            .discord(discord)
-            .spotify(spotify)
-            .build();
+        let keyring = Self {
+            bot,
+            email,
+            discord,
+            spotify,
+        };
 
         Ok(keyring)
     }

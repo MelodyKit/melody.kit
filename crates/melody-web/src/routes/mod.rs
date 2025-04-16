@@ -4,7 +4,7 @@ pub mod projects;
 
 use axum::{Router, extract::State, response::Redirect, routing::get};
 use maud::Markup;
-use melody_bridge::bridge::Bridge;
+use melody_model::models::statistics::Statistics;
 use melody_state::state::{AppRouter, AppState};
 
 use crate::templates::index::index;
@@ -14,10 +14,8 @@ async fn get_index(State(state): State<AppState>) -> Markup {
         .database
         .query_statistics()
         .await
-        .ok() // ignore database errors
-        .bridge()
-        .ok() // ignore bridge errors
-        .flatten();
+        .ok() // ignore query errors
+        .map(Statistics::from_schema);
 
     index(optional_statistics)
 }

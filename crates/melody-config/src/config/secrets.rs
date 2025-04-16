@@ -12,7 +12,7 @@ pub const DEFAULT_MINUTES: Unit = 0;
 pub const DEFAULT_SECONDS: Unit = 0;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Expires {
     #[builder(default = DEFAULT_YEARS)]
     pub years: Unit,
@@ -35,7 +35,7 @@ impl_default_with_builder!(Expires);
 pub const DEFAULT_VERIFICATION_SIZE: usize = 32;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Verification {
     #[builder(default)]
     pub expires: Expires,
@@ -48,7 +48,7 @@ impl_default_with_builder!(Verification);
 pub const DEFAULT_AUTHORIZATION_SIZE: usize = 32;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Authorization {
     #[builder(default)]
     pub expires: Expires,
@@ -61,7 +61,7 @@ impl_default_with_builder!(Authorization);
 pub const DEFAULT_ACCESS_SIZE: usize = 32;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Access {
     #[builder(default)]
     pub expires: Expires,
@@ -74,7 +74,7 @@ impl_default_with_builder!(Access);
 pub const DEFAULT_REFRESH_SIZE: usize = 32;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Refresh {
     #[builder(default)]
     pub expires: Expires,

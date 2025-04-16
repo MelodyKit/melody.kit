@@ -52,13 +52,13 @@ pub async fn setup(parts: Parts<'_>) -> Result<State<'_>, Error> {
 
     let database = Database::create().await.map_err(Error::database)?;
 
-    let state = State::builder()
-        .database(database)
-        .redis(redis)
-        .config(config)
-        .keyring(keyring)
-        .hasher(hasher)
-        .build();
+    let state = State {
+        database,
+        redis,
+        config,
+        keyring,
+        hasher,
+    };
 
     Ok(state)
 }

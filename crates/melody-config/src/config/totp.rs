@@ -9,7 +9,7 @@ pub const DEFAULT_SKEW: Skew = Skew::DEFAULT;
 pub const DEFAULT_PERIOD: Period = Period::DEFAULT;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Totp {
     #[builder(default = DEFAULT_DIGITS)]
     pub digits: Digits,

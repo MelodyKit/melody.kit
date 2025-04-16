@@ -44,10 +44,7 @@ impl Hasher {
 
         let context = Context::new(algorithm, version, parameters);
 
-        let hasher = Self::builder()
-            .context(context)
-            .salt_size(salt_size)
-            .build();
+        let hasher = Self { context, salt_size };
 
         Ok(hasher)
     }

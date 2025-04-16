@@ -19,7 +19,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Config<'c> {
     #[builder(default)]
     pub context: Context<'c>,
@@ -65,21 +65,21 @@ impl IntoStatic for Config<'_> {
     type Static = Config<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .context(self.context.into_static())
-            .keyring(self.keyring.into_static())
-            .email(self.email.into_static())
-            .hash(self.hash)
-            .kit(self.kit.into_static())
-            .image(self.image.into_static())
-            .redis(self.redis.into_static())
-            .totp(self.totp)
-            .web(self.web.into_static())
-            .verification(self.verification)
-            .authorization(self.authorization)
-            .access(self.access)
-            .refresh(self.refresh)
-            .build()
+        Self::Static {
+            context: self.context.into_static(),
+            keyring: self.keyring.into_static(),
+            email: self.email.into_static(),
+            hash: self.hash,
+            kit: self.kit.into_static(),
+            image: self.image.into_static(),
+            redis: self.redis.into_static(),
+            totp: self.totp,
+            web: self.web.into_static(),
+            verification: self.verification,
+            authorization: self.authorization,
+            access: self.access,
+            refresh: self.refresh,
+        }
     }
 }
 

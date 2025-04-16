@@ -24,11 +24,11 @@ impl IntoStatic for Image<'_> {
     type Static = Image<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .directory(self.directory.into_static())
-            .data_limit(self.data_limit)
-            .size_limit(self.size_limit)
-            .build()
+        Self::Static {
+            directory: self.directory.into_static(),
+            data_limit: self.data_limit,
+            size_limit: self.size_limit,
+        }
     }
 }
 

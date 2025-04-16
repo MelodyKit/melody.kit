@@ -7,6 +7,7 @@ use axum::{
 };
 use into_static::IntoStatic;
 use melody_enum::melody_enum;
+use melody_link::id::Id;
 use miette::Diagnostic;
 use non_empty_str::{CowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
@@ -83,10 +84,12 @@ melody_enum! {
     }
 }
 
+pub type Message<'m> = CowStr<'m>;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Data<'d> {
     pub code: Code,
-    pub message: CowStr<'d>,
+    pub message: Message<'d>,
 }
 
 impl fmt::Display for Data<'_> {
@@ -122,12 +125,29 @@ impl IntoStatic for Data<'_> {
 
 pub type StaticData = Data<'static>;
 
+pub type Status = StatusCode;
+
 #[derive(Debug, Error, Diagnostic)]
 #[error("{data}")]
 #[diagnostic(code(melody::kit::errors))]
 pub struct Error {
     pub data: StaticData,
-    pub status: StatusCode,
+    pub status: Status,
+}
+
+pub const MESSAGE: &str = "message must be non-empty";
+
+#[macro_export]
+macro_rules! error {
+    ($code: ident, $status: ident, $($token: tt)*) => {
+        $crate::errors::Error::new(
+            $crate::errors::StaticData::new(
+                $crate::errors::Code::$code,
+                $crate::errors::Message::owned(format!($($token)*)).expect($crate::errors::MESSAGE),
+            ),
+            $crate::errors::Status::$status,
+        )
+    };
 }
 
 impl Error {
@@ -137,6 +157,19 @@ impl Error {
 
     pub fn internal<E>(_error: E) -> Self {
         Self::INTERNAL
+    }
+
+    pub fn user_not_found(id: Id) -> Self {
+        error!(UserNotFound, NOT_FOUND, "user with id `{id}` not found")
+    }
+
+    pub fn user_not_found_by_tag<T: AsRef<str>>(tag: T) -> Self {
+        error!(
+            UserNotFound,
+            NOT_FOUND,
+            "user `{tag}` not found",
+            tag = tag.as_ref()
+        )
     }
 
     pub const INTERNAL: Self = Self::new(

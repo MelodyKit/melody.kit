@@ -22,13 +22,13 @@ impl IntoStatic for State<'_> {
     type Static = State<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .database(self.database)
-            .redis(self.redis)
-            .hasher(self.hasher)
-            .config(self.config.into_static())
-            .keyring(self.keyring.into_static())
-            .build()
+        Self::Static {
+            database: self.database,
+            redis: self.redis,
+            hasher: self.hasher,
+            config: self.config.into_static(),
+            keyring: self.keyring.into_static(),
+        }
     }
 }
 

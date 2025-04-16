@@ -17,6 +17,8 @@ pub fn melody_color() -> u32 {
     }
 }
 
+pub const INLINE: bool = true;
+
 pub const ERROR: u32 = 0xFF0000;
 
 pub const INTERNAL_ERROR: &str = "Internal Error";
@@ -39,14 +41,14 @@ pub const ARTISTS: &str = "Artists";
 pub const ALBUMS: &str = "Albums";
 pub const PLAYLISTS: &str = "Playlists";
 
-pub fn statistics_embed(statistics: &Statistics, inline: bool) -> CreateEmbed {
+pub fn statistics_embed(statistics: &Statistics) -> CreateEmbed {
     CreateEmbed::new()
         .color(melody_color())
         .title(STATISTICS)
-        .field(USERS, tick(statistics.user_count), inline)
-        .field(STREAMS, tick(statistics.stream_count), inline)
-        .field(TRACKS, tick(statistics.track_count), inline)
-        .field(ARTISTS, tick(statistics.artist_count), inline)
-        .field(ALBUMS, tick(statistics.album_count), inline)
-        .field(PLAYLISTS, tick(statistics.playlist_count), inline)
+        .field(USERS, tick(statistics.user_count), INLINE)
+        .field(STREAMS, tick(statistics.stream_count), INLINE)
+        .field(TRACKS, tick(statistics.track_count), INLINE)
+        .field(ARTISTS, tick(statistics.artist_count), INLINE)
+        .field(ALBUMS, tick(statistics.album_count), INLINE)
+        .field(PLAYLISTS, tick(statistics.playlist_count), INLINE)
 }

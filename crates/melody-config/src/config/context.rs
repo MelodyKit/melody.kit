@@ -30,12 +30,12 @@ impl IntoStatic for Context<'_> {
     type Static = Context<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .name(self.name.into_static())
-            .domain(self.domain.into_static())
-            .open(self.open.into_static())
-            .token_type(self.token_type.into_static())
-            .build()
+        Self::Static {
+            name: self.name.into_static(),
+            domain: self.domain.into_static(),
+            open: self.open.into_static(),
+            token_type: self.token_type.into_static(),
+        }
     }
 }
 

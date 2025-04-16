@@ -12,8 +12,8 @@ repository.workspace = true
 [dependencies]
 axum.workspace = true
 into-static.workspace = true
-melody-bridge.workspace = true
 melody-enum.workspace = true
+melody-link.workspace = true
 melody-model.workspace = true
 melody-state.workspace = true
 miette.workspace = true

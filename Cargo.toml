@@ -40,9 +40,6 @@ path = "crates/melody-chrono"
 [workspace.dependencies.melody-model]
 path = "crates/melody-model"
 
-[workspace.dependencies.melody-bridge]
-path = "crates/melody-bridge"
-
 [workspace.dependencies.melody-schema]
 path = "crates/melody-schema"
 

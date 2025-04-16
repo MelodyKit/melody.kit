@@ -2,13 +2,14 @@ use bon::Builder;
 use gel_derive::Queryable;
 use melody_chrono::chrono::UtcDateTime;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
+use crate::types::Id;
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Default, Serialize, Deserialize, Queryable, Builder,
 )]
 pub struct Client {
-    pub id: Uuid,
+    pub id: Id,
     pub name: String,
     pub owner: Owner,
     pub created_at: UtcDateTime,
@@ -19,7 +20,7 @@ pub struct Client {
     Debug, Clone, PartialEq, Eq, Hash, Default, Serialize, Deserialize, Queryable, Builder,
 )]
 pub struct Owner {
-    pub id: Uuid,
+    pub id: Id,
     pub name: String,
     pub created_at: UtcDateTime,
 }
@@ -28,6 +29,6 @@ pub struct Owner {
     Debug, Clone, PartialEq, Eq, Hash, Default, Serialize, Deserialize, Queryable, Builder,
 )]
 pub struct Internals {
-    pub id: Uuid,
+    pub id: Id,
     pub secret_hash: String,
 }

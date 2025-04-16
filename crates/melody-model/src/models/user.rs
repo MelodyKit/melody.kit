@@ -64,11 +64,11 @@ impl IntoStatic for User<'_> {
     type Static = User<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .entity(self.entity.into_static())
-            .maybe_tag(self.tag.into_static())
-            .follower_count(self.follower_count)
-            .maybe_discord_id(self.discord_id.into_static())
-            .build()
+        Self::Static {
+            entity: self.entity.into_static(),
+            tag: self.tag.into_static(),
+            follower_count: self.follower_count,
+            discord_id: self.discord_id.into_static(),
+        }
     }
 }

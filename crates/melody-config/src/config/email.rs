@@ -10,7 +10,7 @@ pub const DEFAULT_PORT: Port = 587;
 pub const DEFAULT_SUPPORT: CowStr<'static> = const_borrowed_str!("support");
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Email<'e> {
     #[builder(default = DEFAULT_HOST)]
     pub host: CowStr<'e>,
@@ -25,12 +25,12 @@ pub struct Email<'e> {
 impl IntoStatic for Email<'_> {
     type Static = Email<'static>;
 
-    fn into_static(self) -> Email<'static> {
-        Self::Static::builder()
-            .host(self.host.into_static())
-            .port(self.port)
-            .support(self.support.into_static())
-            .build()
+    fn into_static(self) -> Self::Static {
+        Self::Static {
+            host: self.host.into_static(),
+            port: self.port,
+            support: self.support.into_static(),
+        }
     }
 }
 

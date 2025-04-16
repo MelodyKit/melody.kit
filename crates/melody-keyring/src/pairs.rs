@@ -83,16 +83,16 @@ impl IntoStatic for UserPair<'_> {
     type Static = UserPair<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .name(self.name.into_static())
-            .password(self.password.into_static())
-            .build()
+        Self::Static {
+            name: self.name.into_static(),
+            password: self.password.into_static(),
+        }
     }
 }
 
 impl<'p> From<Pair<'p>> for UserPair<'p> {
     fn from((name, password): Pair<'p>) -> Self {
-        Self::builder().name(name).password(password).build()
+        Self { name, password }
     }
 }
 
@@ -128,16 +128,16 @@ impl IntoStatic for ClientPair<'_> {
     type Static = ClientPair<'static>;
 
     fn into_static(self) -> Self::Static {
-        Self::Static::builder()
-            .id(self.id.into_static())
-            .secret(self.secret.into_static())
-            .build()
+        Self::Static {
+            id: self.id.into_static(),
+            secret: self.secret.into_static(),
+        }
     }
 }
 
 impl<'p> From<Pair<'p>> for ClientPair<'p> {
     fn from((id, secret): Pair<'p>) -> Self {
-        Self::builder().id(id).secret(secret).build()
+        Self { id, secret }
     }
 }
 
