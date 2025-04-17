@@ -9,7 +9,7 @@ use into_static::IntoStatic;
 use melody_enum::melody_enum;
 use melody_link::id::Id;
 use miette::Diagnostic;
-use non_empty_str::{CowStr, const_borrowed_str};
+use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -86,6 +86,8 @@ melody_enum! {
 
 pub type Message<'m> = CowStr<'m>;
 
+pub type StaticMessage = StaticCowStr;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Data<'d> {
     pub code: Code,
@@ -104,26 +106,26 @@ impl fmt::Display for Data<'_> {
 }
 
 impl<'d> Data<'d> {
-    pub const fn new(code: Code, message: CowStr<'d>) -> Self {
+    pub const fn new(code: Code, message: Message<'d>) -> Self {
         Self { code, message }
     }
 }
 
-pub const INTERNAL_ERROR: CowStr<'static> = const_borrowed_str!("internal error");
+pub const INTERNAL_ERROR: StaticMessage = const_borrowed_str!("internal error");
 
 impl Data<'_> {
     pub const INTERNAL_ERROR: Self = Self::new(Code::Unknown, INTERNAL_ERROR);
 }
 
+pub type StaticData = Data<'static>;
+
 impl IntoStatic for Data<'_> {
-    type Static = Data<'static>;
+    type Static = StaticData;
 
     fn into_static(self) -> Self::Static {
         Self::Static::new(self.code, self.message.into_static())
     }
 }
-
-pub type StaticData = Data<'static>;
 
 pub type Status = StatusCode;
 

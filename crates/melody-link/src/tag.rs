@@ -366,8 +366,10 @@ impl<'de> Deserialize<'de> for Tag<'_> {
     }
 }
 
+pub type StaticTag = Tag<'static>;
+
 impl IntoStatic for Tag<'_> {
-    type Static = Tag<'static>;
+    type Static = StaticTag;
 
     fn into_static(self) -> Self::Static {
         unsafe { Self::Static::new_unchecked(self.value.into_static()) }

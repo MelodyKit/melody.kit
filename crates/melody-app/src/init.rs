@@ -53,7 +53,9 @@ impl Error {
 
 pub type Parts<'p> = (Config<'p>, Keyring<'p>, Hasher);
 
-pub fn init<P: AsRef<Path>>(option: Option<P>) -> Result<Parts<'static>, Error> {
+pub type StaticParts = Parts<'static>;
+
+pub fn init<P: AsRef<Path>>(option: Option<P>) -> Result<StaticParts, Error> {
     let path = path::or_default(option).map_err(Error::expand_tilde)?;
 
     let config = Config::from_path(path).map_err(Error::config)?;

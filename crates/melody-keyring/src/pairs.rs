@@ -79,8 +79,10 @@ impl<'u> UserPair<'u> {
     }
 }
 
+pub type StaticUserPair = UserPair<'static>;
+
 impl IntoStatic for UserPair<'_> {
-    type Static = UserPair<'static>;
+    type Static = StaticUserPair;
 
     fn into_static(self) -> Self::Static {
         Self::Static {
@@ -124,8 +126,10 @@ impl<'c> ClientPair<'c> {
     }
 }
 
+pub type StaticClientPair = ClientPair<'static>;
+
 impl IntoStatic for ClientPair<'_> {
-    type Static = ClientPair<'static>;
+    type Static = StaticClientPair;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

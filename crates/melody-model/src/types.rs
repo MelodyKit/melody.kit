@@ -1,9 +1,9 @@
 use melody_link::{
     id::Id,
-    tag::{self, Tag},
+    tag::{self, StaticTag, Tag},
 };
 use melody_schema::types::{Count as CountSchema, Id as IdSchema};
-use non_empty_str::{CowStr, Empty};
+use non_empty_str::{CowStr, Empty, StaticCowStr};
 
 pub type Count = u64;
 
@@ -15,8 +15,6 @@ pub const fn id_from_schema(schema: IdSchema) -> Id {
     Id::new(schema)
 }
 
-pub type StaticCowStr = CowStr<'static>;
-
 pub const fn borrowed_from_schema(schema: &str) -> Result<CowStr<'_>, Empty> {
     CowStr::borrowed(schema)
 }
@@ -24,8 +22,6 @@ pub const fn borrowed_from_schema(schema: &str) -> Result<CowStr<'_>, Empty> {
 pub fn owned_from_schema(schema: String) -> Result<StaticCowStr, Empty> {
     CowStr::owned(schema)
 }
-
-pub type StaticTag = Tag<'static>;
 
 pub fn tag_from_schema(schema: String) -> Result<StaticTag, tag::Error> {
     Tag::owned(schema)

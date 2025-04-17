@@ -1,13 +1,13 @@
 use bon::Builder;
 use into_static::IntoStatic;
-use non_empty_str::{CowStr, const_borrowed_str};
+use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
 
 use crate::{impl_default_with_builder, types::Port};
 
-pub const DEFAULT_HOST: CowStr<'static> = const_borrowed_str!("127.0.0.1");
+pub const DEFAULT_HOST: StaticCowStr = const_borrowed_str!("127.0.0.1");
 pub const DEFAULT_PORT: Port = 4269;
-pub const DEFAULT_PATH: CowStr<'static> = const_borrowed_str!("static");
+pub const DEFAULT_PATH: StaticCowStr = const_borrowed_str!("static");
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
@@ -20,8 +20,10 @@ pub struct Web<'w> {
     pub path: CowStr<'w>,
 }
 
+pub type StaticWeb = Web<'static>;
+
 impl IntoStatic for Web<'_> {
-    type Static = Web<'static>;
+    type Static = StaticWeb;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

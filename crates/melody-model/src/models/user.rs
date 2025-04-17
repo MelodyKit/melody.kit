@@ -7,20 +7,18 @@ use melody_link::{
     entities::Type,
     links::{apple_music, linked::Linked, melody, spotify, yandex_music},
     locatable::Locatable,
-    tag::{self, Tag},
+    tag::{self, StaticTag, Tag},
     uri::Uri,
 };
 use melody_schema::{schema::user::User as UserSchema, split::Split};
 use miette::Diagnostic;
-use non_empty_str::{CowStr, Empty};
+use non_empty_str::{CowStr, Empty, StaticCowStr};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
     models::entity::{self, Entity},
-    types::{
-        Count, StaticCowStr, StaticTag, count_from_schema, owned_from_schema, tag_from_schema,
-    },
+    types::{Count, count_from_schema, owned_from_schema, tag_from_schema},
 };
 
 #[derive(Debug, Error, Diagnostic)]
@@ -117,8 +115,10 @@ impl fmt::Display for User<'_> {
     }
 }
 
+pub type StaticUser = User<'static>;
+
 impl IntoStatic for User<'_> {
-    type Static = User<'static>;
+    type Static = StaticUser;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

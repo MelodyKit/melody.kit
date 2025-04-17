@@ -1,16 +1,16 @@
 use bon::Builder;
 use into_static::IntoStatic;
-use non_empty_str::{CowStr, const_borrowed_str};
+use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
 
 use crate::impl_default_with_builder;
 
-pub const DEFAULT_SERVICE: CowStr<'static> = const_borrowed_str!("melody.kit");
-pub const DEFAULT_SECRET: CowStr<'static> = const_borrowed_str!("secret");
-pub const DEFAULT_EMAIL: CowStr<'static> = const_borrowed_str!("email");
-pub const DEFAULT_BOT: CowStr<'static> = const_borrowed_str!("bot");
-pub const DEFAULT_DISCORD: CowStr<'static> = const_borrowed_str!("discord");
-pub const DEFAULT_SPOTIFY: CowStr<'static> = const_borrowed_str!("spotify");
+pub const DEFAULT_SERVICE: StaticCowStr = const_borrowed_str!("melody.kit");
+pub const DEFAULT_SECRET: StaticCowStr = const_borrowed_str!("secret");
+pub const DEFAULT_EMAIL: StaticCowStr = const_borrowed_str!("email");
+pub const DEFAULT_BOT: StaticCowStr = const_borrowed_str!("bot");
+pub const DEFAULT_DISCORD: StaticCowStr = const_borrowed_str!("discord");
+pub const DEFAULT_SPOTIFY: StaticCowStr = const_borrowed_str!("spotify");
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
@@ -34,8 +34,10 @@ pub struct Keyring<'k> {
     pub spotify: CowStr<'k>,
 }
 
+pub type StaticKeyring = Keyring<'static>;
+
 impl IntoStatic for Keyring<'_> {
-    type Static = Keyring<'static>;
+    type Static = StaticKeyring;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

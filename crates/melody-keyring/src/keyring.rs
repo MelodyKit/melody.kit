@@ -58,8 +58,10 @@ pub struct Keyring<'k> {
     pub spotify: ClientPair<'k>,
 }
 
+pub type StaticKeyring = Keyring<'static>;
+
 impl IntoStatic for Keyring<'_> {
-    type Static = Keyring<'static>;
+    type Static = StaticKeyring;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

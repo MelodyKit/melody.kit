@@ -1,11 +1,11 @@
 use bon::Builder;
 use into_static::IntoStatic;
-use non_empty_str::{CowStr, const_borrowed_str};
+use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
 
 use crate::{impl_default_with_builder, types::Port};
 
-pub const DEFAULT_HOST: CowStr<'static> = const_borrowed_str!("127.0.0.1");
+pub const DEFAULT_HOST: StaticCowStr = const_borrowed_str!("127.0.0.1");
 pub const DEFAULT_PORT: Port = 1342;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
@@ -18,8 +18,10 @@ pub struct Kit<'k> {
     pub port: Port,
 }
 
+pub type StaticKit = Kit<'static>;
+
 impl IntoStatic for Kit<'_> {
-    type Static = Kit<'static>;
+    type Static = StaticKit;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

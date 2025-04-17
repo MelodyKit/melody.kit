@@ -19,8 +19,10 @@ pub struct Client<'c> {
     pub description: Option<CowStr<'c>>,
 }
 
+pub type StaticClient = Client<'static>;
+
 impl IntoStatic for Client<'_> {
-    type Static = Client<'static>;
+    type Static = StaticClient;
 
     fn into_static(self) -> Self::Static {
         Self::Static {
@@ -43,8 +45,10 @@ pub struct Owner<'o> {
     pub created_at: UtcDateTime,
 }
 
+pub type StaticOwner = Owner<'static>;
+
 impl IntoStatic for Owner<'_> {
-    type Static = Owner<'static>;
+    type Static = StaticOwner;
 
     fn into_static(self) -> Self::Static {
         Self::Static {
@@ -63,8 +67,10 @@ pub struct Internals<'i> {
     pub secret_hash: CowStr<'i>,
 }
 
+pub type StaticInternals = Internals<'static>;
+
 impl IntoStatic for Internals<'_> {
-    type Static = Internals<'static>;
+    type Static = StaticInternals;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

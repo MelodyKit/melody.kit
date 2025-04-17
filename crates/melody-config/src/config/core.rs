@@ -61,8 +61,10 @@ pub struct Config<'c> {
     pub refresh: Refresh,
 }
 
+pub type StaticConfig = Config<'static>;
+
 impl IntoStatic for Config<'_> {
-    type Static = Config<'static>;
+    type Static = StaticConfig;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

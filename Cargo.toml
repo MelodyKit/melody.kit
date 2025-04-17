@@ -66,7 +66,7 @@ features = ["std"]
 version = "0.8.3"
 
 [workspace.dependencies.bon]
-version = "3.5.2"
+version = "3.6.1"
 
 [workspace.dependencies.chrono]
 version = "0.4.40"
@@ -97,11 +97,11 @@ version = "0.1.0"
 version = "0.7.2"
 
 [workspace.dependencies.gel-protocol]
-version = "0.8.2"
+version = "0.8.3"
 features = ["with-chrono", "with-serde"]
 
 [workspace.dependencies.gel-tokio]
-version = "0.10.10"
+version = "0.10.12"
 features = ["miette-errors"]
 
 [workspace.dependencies.handlebars]
@@ -131,8 +131,8 @@ version = "7.5.0"
 features = ["fancy"]
 
 [workspace.dependencies.non-empty-str]
-version = "0.5.0"
-features = ["serde", "into-static", "diagnostics"]
+version = "0.6.0"
+features = ["serde", "static", "diagnostics"]
 
 [workspace.dependencies.otp-std]
 version = "0.2.3"
@@ -151,7 +151,7 @@ version = "0.1.2"
 version = "0.6.1"
 
 [workspace.dependencies.rand]
-version = "0.9.0"
+version = "0.9.1"
 
 [workspace.dependencies.redis]
 version = "0.29.5"

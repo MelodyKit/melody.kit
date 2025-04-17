@@ -6,11 +6,11 @@ use melody_chrono::chrono::UtcDateTime;
 use melody_link::id::Id;
 use melody_schema::schema::entity::Entity as EntitySchema;
 use miette::Diagnostic;
-use non_empty_str::{CowStr, Empty};
+use non_empty_str::{CowStr, Empty, StaticCowStr};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::types::{StaticCowStr, id_from_schema, owned_from_schema};
+use crate::types::{id_from_schema, owned_from_schema};
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("empty name encountered")]
@@ -125,8 +125,10 @@ impl fmt::Display for Entity<'_> {
     }
 }
 
+pub type StaticEntity = Entity<'static>;
+
 impl IntoStatic for Entity<'_> {
-    type Static = Entity<'static>;
+    type Static = StaticEntity;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

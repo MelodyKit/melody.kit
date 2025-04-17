@@ -1,11 +1,11 @@
 use bon::Builder;
 use into_static::IntoStatic;
-use non_empty_str::{CowStr, const_borrowed_str};
+use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
 
 use crate::impl_default_with_builder;
 
-pub const DEFAULT_DIRECTORY: CowStr<'static> = const_borrowed_str!("~/.melody/kit/images");
+pub const DEFAULT_DIRECTORY: StaticCowStr = const_borrowed_str!("~/.melody/kit/images");
 pub const DEFAULT_DATA_LIMIT: usize = 16777216;
 pub const DEFAULT_SIZE_LIMIT: usize = 4096;
 
@@ -20,8 +20,10 @@ pub struct Image<'i> {
     pub size_limit: usize,
 }
 
+pub type StaticImage = Image<'static>;
+
 impl IntoStatic for Image<'_> {
-    type Static = Image<'static>;
+    type Static = StaticImage;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

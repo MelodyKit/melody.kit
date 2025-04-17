@@ -1,13 +1,13 @@
 use bon::Builder;
 use into_static::IntoStatic;
-use non_empty_str::{CowStr, const_borrowed_str};
+use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
 
 use crate::{impl_default_with_builder, types::Port};
 
-pub const DEFAULT_HOST: CowStr<'static> = const_borrowed_str!("smtp.gmail.com");
+pub const DEFAULT_HOST: StaticCowStr = const_borrowed_str!("smtp.gmail.com");
 pub const DEFAULT_PORT: Port = 587;
-pub const DEFAULT_SUPPORT: CowStr<'static> = const_borrowed_str!("support");
+pub const DEFAULT_SUPPORT: StaticCowStr = const_borrowed_str!("support");
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
@@ -22,8 +22,10 @@ pub struct Email<'e> {
     pub support: CowStr<'e>,
 }
 
+pub type StaticEmail = Email<'static>;
+
 impl IntoStatic for Email<'_> {
-    type Static = Email<'static>;
+    type Static = StaticEmail;
 
     fn into_static(self) -> Self::Static {
         Self::Static {

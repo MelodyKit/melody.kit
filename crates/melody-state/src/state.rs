@@ -18,8 +18,10 @@ pub struct State<'s> {
     pub hasher: Hasher,
 }
 
+pub type StaticState = State<'static>;
+
 impl IntoStatic for State<'_> {
-    type Static = State<'static>;
+    type Static = StaticState;
 
     fn into_static(self) -> Self::Static {
         Self::Static {
@@ -31,8 +33,6 @@ impl IntoStatic for State<'_> {
         }
     }
 }
-
-pub type StaticState = State<'static>;
 
 pub type NoState = ();
 
