@@ -107,6 +107,6 @@ pLlMT39C0Pm5
 This Security Policy is adapted from [Rust's Security Policy][Rust Security Policy].
 
 [Security Email]: mailto:security@melodykit.app
-[Security Key]: https://melodykit.app/keys/security
+[Security Key]: https://melodykit.app/static/keys/security.key
 [MIT Key Server]: https://pgp.mit.edu/pks/lookup?op=index&search=0x3A01BF65BC0D38CF4CF76EB3F04B373881F4291E
 [Rust Security Policy]: https://rust-lang.org/policies/security

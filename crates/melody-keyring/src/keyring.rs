@@ -71,23 +71,23 @@ impl IntoStatic for Keyring<'_> {
 
 impl Keyring<'_> {
     pub fn load_with(config: &KeyringConfig<'_>) -> Result<Self, Error> {
-        let service = config.service.as_ref();
+        let service = config.service.get();
 
-        let bot = find(service, config.bot.as_ref())
+        let bot = find(service, config.bot.get())
             .map(CowStr::from_owned_str)
             .map_err(Error::find)?;
 
-        let email: UserPair<'_> = find(service, config.email.as_ref())
+        let email: UserPair<'_> = find(service, config.email.get())
             .map_err(Error::find)?
             .parse()
             .map_err(Error::pairs)?;
 
-        let discord: ClientPair<'_> = find(service, config.discord.as_ref())
+        let discord: ClientPair<'_> = find(service, config.discord.get())
             .map_err(Error::find)?
             .parse()
             .map_err(Error::pairs)?;
 
-        let spotify: ClientPair<'_> = find(service, config.spotify.as_ref())
+        let spotify: ClientPair<'_> = find(service, config.spotify.get())
             .map_err(Error::find)?
             .parse()
             .map_err(Error::pairs)?;

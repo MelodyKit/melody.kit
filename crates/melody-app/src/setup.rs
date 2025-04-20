@@ -43,7 +43,7 @@ impl Error {
 pub async fn setup(parts: Parts<'_>) -> Result<State<'_>, Error> {
     let (config, keyring, hasher) = parts;
 
-    let redis_host = config.redis.host.as_ref();
+    let redis_host = config.redis.host.get();
     let redis_port = config.redis.port;
 
     let redis = Redis::create(redis_host, redis_port)

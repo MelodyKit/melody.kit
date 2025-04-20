@@ -1,7 +1,3 @@
-pub mod email;
-pub mod keys;
-pub mod projects;
-
 use std::fmt::Display;
 
 use axum::{
@@ -40,29 +36,29 @@ pub fn redirect_domain<S: Display, D: Display>(name: S, domain: D) -> Redirect {
 
 async fn redirect_open(State(state): State<AppState>) -> Redirect {
     redirect_domain(
-        state.config.context.open.as_ref(),
-        state.config.context.domain.as_ref(),
+        state.config.context.open.get(),
+        state.config.context.domain.get(),
     )
 }
 
 async fn redirect_docs(State(state): State<AppState>) -> Redirect {
     redirect_domain(
-        state.config.context.docs.as_ref(),
-        state.config.context.domain.as_ref(),
+        state.config.context.docs.get(),
+        state.config.context.domain.get(),
     )
 }
 
 async fn redirect_dev(State(state): State<AppState>) -> Redirect {
     redirect_domain(
-        state.config.context.dev.as_ref(),
-        state.config.context.domain.as_ref(),
+        state.config.context.dev.get(),
+        state.config.context.domain.get(),
     )
 }
 
 async fn redirect_api(State(state): State<AppState>) -> Redirect {
     redirect_domain(
-        state.config.context.api.as_ref(),
-        state.config.context.domain.as_ref(),
+        state.config.context.api.get(),
+        state.config.context.domain.get(),
     )
 }
 
@@ -75,8 +71,4 @@ pub fn router() -> AppRouter {
         .route("/docs", get(redirect_docs))
         .route("/dev", get(redirect_dev))
         .route("/api", get(redirect_api))
-        // nested routes
-        .nest("/keys", keys::router())
-        .nest("/email", email::router())
-        .nest("/projects", projects::router())
 }
