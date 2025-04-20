@@ -7,6 +7,7 @@ with
             id,
             name,
             private,
+            admin,
             follower_count,
             created_at,
             spotify_id,

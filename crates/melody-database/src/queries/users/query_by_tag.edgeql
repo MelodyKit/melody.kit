@@ -3,6 +3,7 @@ select User {
     tag,
     name,
     private,
+    admin,
     follower_count,
     created_at,
     spotify_id,
