@@ -1,4 +1,4 @@
-use melody_model::models::statistics::Statistics;
+use melody_bridge::bridge::Bridge;
 use poise::{CreateReply, macros::command};
 
 use crate::{
@@ -17,7 +17,7 @@ pub async fn statistics(context: Context<'_>) -> Result<(), Error> {
         .database
         .query_statistics()
         .await
-        .map(Statistics::from_schema)
+        .map(Bridge::bridge)
         .map_or_else(error_embed, |statistics| statistics_embed(&statistics));
 
     let reply = CreateReply::default().embed(embed);

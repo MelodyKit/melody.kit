@@ -1,8 +1,8 @@
 use gel_tokio::{Client, create_client};
+use melody_link::{id::Id, tag::Tag};
 use melody_schema::schema::{statistics::Statistics, user::User};
 use miette::Diagnostic;
 use thiserror::Error;
-use uuid::Uuid;
 
 use crate::macros::{arguments, include_query};
 
@@ -43,16 +43,16 @@ impl Database {
         Ok(statistics)
     }
 
-    pub async fn query_user<I: Into<Uuid>>(&self, user_id: I) -> Result<Option<User>, Error> {
-        let arguments = arguments!(user_id => user_id.into());
+    pub async fn query_user(&self, user_id: Id) -> Result<Option<User>, Error> {
+        let arguments = arguments!(user_id => user_id.get());
 
         let optional_user = self.client.query_single(QUERY_USER, &arguments).await?;
 
         Ok(optional_user)
     }
 
-    pub async fn query_user_by_tag<T: AsRef<str>>(&self, tag: T) -> Result<Option<User>, Error> {
-        let arguments = arguments!(tag => tag.as_ref());
+    pub async fn query_user_by_tag(&self, tag: &Tag<'_>) -> Result<Option<User>, Error> {
+        let arguments = arguments!(tag => tag.get());
 
         let optional_user = self
             .client

@@ -1,18 +1,17 @@
-use std::borrow::Cow;
-
+use chrono::Datelike;
 use maud::{Markup, html};
+use melody_chrono::chrono::{created, today};
 use melody_model::models::statistics::Statistics;
+use non_empty_str::{StaticCowStr, const_borrowed_str};
 
-use crate::{
-    date::{Datelike, created, today},
-    templates::base::{HeadContext, base, head},
-};
+use crate::templates::base::{HeadContext, base, head};
 
-pub const TITLE: &str = "Home";
-pub const DESCRIPTION: &str = "All your music, in one place.";
-pub const NO_STATISTICS: &str = "Statistics are currently unavailable.";
+pub const TITLE: StaticCowStr = const_borrowed_str!("Home");
+pub const DESCRIPTION: StaticCowStr = const_borrowed_str!("All your music, in one place.");
+pub const NO_STATISTICS: StaticCowStr =
+    const_borrowed_str!("Statistics are currently unavailable.");
 
-pub fn content(optional_statistics: Option<Statistics>) -> Markup {
+pub fn content(optional_statistics: Option<&Statistics>) -> Markup {
     let statistics_display = match optional_statistics {
         Some(statistics) => html! {
             ul class="my-4 grid grid-cols-2 gap-x-4 gap-y-6" {
@@ -224,12 +223,11 @@ pub fn content(optional_statistics: Option<Statistics>) -> Markup {
     }
 }
 
-pub fn index(optional_statistics: Option<Statistics>) -> Markup {
-    base(
-        &head(&HeadContext::new(
-            Cow::Borrowed(TITLE),
-            Cow::Borrowed(DESCRIPTION),
-        )),
-        &content(optional_statistics),
-    )
+pub fn index(optional_statistics: Option<&Statistics>) -> Markup {
+    let head_context = HeadContext::builder()
+        .title(TITLE)
+        .description(DESCRIPTION)
+        .build();
+
+    base(&head(&head_context), &content(optional_statistics))
 }

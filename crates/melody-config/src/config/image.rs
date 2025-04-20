@@ -9,7 +9,7 @@ pub const DEFAULT_DIRECTORY: StaticCowStr = const_borrowed_str!("~/.melody/kit/i
 pub const DEFAULT_DATA_LIMIT: usize = 16777216;
 pub const DEFAULT_SIZE_LIMIT: usize = 4096;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Image<'i> {
     #[builder(default = DEFAULT_DIRECTORY)]

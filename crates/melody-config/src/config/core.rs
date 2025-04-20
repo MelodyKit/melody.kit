@@ -18,7 +18,7 @@ use crate::{
     impl_default_with_builder, impl_from_path_with_toml,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Config<'c> {
     #[builder(default)]

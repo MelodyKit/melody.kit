@@ -12,7 +12,7 @@ pub const DEFAULT_BOT: StaticCowStr = const_borrowed_str!("bot");
 pub const DEFAULT_DISCORD: StaticCowStr = const_borrowed_str!("discord");
 pub const DEFAULT_SPOTIFY: StaticCowStr = const_borrowed_str!("spotify");
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Keyring<'k> {
     #[builder(default = DEFAULT_SERVICE)]

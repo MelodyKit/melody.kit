@@ -1,24 +1,11 @@
-use axum::{Json, Router, extract::State, routing::get};
-use melody_model::models::statistics::Statistics;
-use melody_state::state::{AppRouter, AppState};
+use axum::Router;
+use melody_state::state::AppRouter;
 
-use crate::errors::Error;
-
-async fn get_statistics(State(state): State<AppState>) -> Result<Json<Statistics>, Error> {
-    let statistics = state
-        .database
-        .query_statistics()
-        .await
-        .map(Statistics::from_schema)
-        .map_err(Error::internal)?;
-
-    Ok(Json(statistics))
-}
-
+pub mod statistics;
 pub mod users;
 
 pub fn router() -> AppRouter {
     Router::new()
-        .route("/statistics", get(get_statistics))
+        .nest("/statistics", statistics::router())
         .nest("/users", users::router())
 }

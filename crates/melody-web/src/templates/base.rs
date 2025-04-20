@@ -1,6 +1,6 @@
-use std::borrow::Cow;
-
+use bon::Builder;
 use maud::{DOCTYPE, Markup, html};
+use non_empty_str::CowStr;
 use serde::{Deserialize, Serialize};
 
 pub const ICONS: &str = "https://kit.fontawesome.com/a4c3b493b0.js";
@@ -12,16 +12,10 @@ pub const IMAGE_SVG: &str = "/static/images/icon.svg";
 
 pub const STYLE: &str = "/static/css/output.css";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 pub struct HeadContext<'c> {
-    pub title: Cow<'c, str>,
-    pub description: Cow<'c, str>,
-}
-
-impl<'c> HeadContext<'c> {
-    pub fn new(title: Cow<'c, str>, description: Cow<'c, str>) -> Self {
-        Self { title, description }
-    }
+    pub title: CowStr<'c>,
+    pub description: CowStr<'c>,
 }
 
 pub fn head(context: &HeadContext<'_>) -> Markup {

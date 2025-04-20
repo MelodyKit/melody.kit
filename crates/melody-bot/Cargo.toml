@@ -10,7 +10,7 @@ documentation.workspace = true
 repository.workspace = true
 
 [dependencies]
-clap.workspace = true
+melody-bridge.workspace = true
 melody-model.workspace = true
 melody-state.workspace = true
 miette.workspace = true

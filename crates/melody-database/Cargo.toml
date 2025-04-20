@@ -10,13 +10,9 @@ documentation.workspace = true
 repository.workspace = true
 
 [dependencies]
-bon.workspace = true
 gel-protocol.workspace = true
 gel-tokio.workspace = true
-melody-chrono.workspace = true
 melody-link.workspace = true
 melody-schema.workspace = true
 miette.workspace = true
-serde.workspace = true
 thiserror.workspace = true
-uuid.workspace = true

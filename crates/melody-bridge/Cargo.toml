@@ -1,0 +1,20 @@
+[package]
+name = "melody-bridge"
+version = "0.1.0"
+description = "MelodyKit bridges between schema and models."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+melody-link.workspace = true
+melody-model.workspace = true
+melody-schema.workspace = true
+melody-vec.workspace = true
+miette.workspace = true
+non-empty-str.workspace = true
+paste.workspace = true
+thiserror.workspace = true

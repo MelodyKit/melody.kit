@@ -1,0 +1,16 @@
+[package]
+name = "melody-vec"
+version = "0.1.0"
+description = "Non-empty vectors."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+into-static.workspace = true
+miette.workspace = true
+serde.workspace = true
+thiserror.workspace = true

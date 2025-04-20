@@ -8,7 +8,7 @@ use crate::{impl_default_with_builder, types::Port};
 pub const DEFAULT_HOST: StaticCowStr = const_borrowed_str!("127.0.0.1");
 pub const DEFAULT_PORT: Port = 6379;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Redis<'r> {
     #[builder(default = DEFAULT_HOST)]

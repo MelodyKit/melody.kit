@@ -7,7 +7,7 @@ use axum::{
 };
 use into_static::IntoStatic;
 use melody_enum::melody_enum;
-use melody_link::id::Id;
+use melody_link::{id::Id, tag::Tag};
 use miette::Diagnostic;
 use non_empty_str::{CowStr, StaticCowStr, const_borrowed_str};
 use serde::{Deserialize, Serialize};
@@ -157,7 +157,7 @@ impl Error {
         Self { data, status }
     }
 
-    pub fn internal<E>(_error: E) -> Self {
+    pub fn internal<E: std::error::Error>(_error: E) -> Self {
         Self::INTERNAL
     }
 
@@ -165,13 +165,12 @@ impl Error {
         error!(UserNotFound, NOT_FOUND, "user with id `{id}` not found")
     }
 
-    pub fn user_not_found_by_tag<T: AsRef<str>>(tag: T) -> Self {
-        error!(
-            UserNotFound,
-            NOT_FOUND,
-            "user `{tag}` not found",
-            tag = tag.as_ref()
-        )
+    pub fn user_not_found_by_tag(tag: &Tag<'_>) -> Self {
+        error!(UserNotFound, NOT_FOUND, "user `{tag}` not found",)
+    }
+
+    pub fn artist_not_found(id: Id) -> Self {
+        error!(ArtistNotFound, NOT_FOUND, "artist with id `{id}` not found")
     }
 
     pub const INTERNAL: Self = Self::new(

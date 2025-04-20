@@ -9,7 +9,7 @@ pub const DEFAULT_HOST: StaticCowStr = const_borrowed_str!("smtp.gmail.com");
 pub const DEFAULT_PORT: Port = 587;
 pub const DEFAULT_SUPPORT: StaticCowStr = const_borrowed_str!("support");
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Email<'e> {
     #[builder(default = DEFAULT_HOST)]

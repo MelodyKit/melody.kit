@@ -9,7 +9,7 @@ pub const DEFAULT_PARALLELISM: Cost = 4;
 pub const DEFAULT_SIZE: usize = 32;
 pub const DEFAULT_SALT_SIZE: usize = 16;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Hash {
     #[builder(default = DEFAULT_MEMORY_COST)]

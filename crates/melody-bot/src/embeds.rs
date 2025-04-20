@@ -25,7 +25,7 @@ pub const INTERNAL_ERROR: &str = "Internal Error";
 pub const INTERNAL_ERROR_DESCRIPTION: &str =
     "An internal error occurred while processing the command.";
 
-pub fn error_embed<E>(_error: E) -> CreateEmbed {
+pub fn error_embed<E: std::error::Error>(_error: E) -> CreateEmbed {
     CreateEmbed::default()
         .title(INTERNAL_ERROR)
         .description(INTERNAL_ERROR_DESCRIPTION)

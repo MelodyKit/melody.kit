@@ -17,6 +17,7 @@ pub struct User {
     pub tag: Option<String>,
     pub name: String,
     pub private: bool,
+    pub admin: bool,
     pub follower_count: Count,
     pub created_at: UtcDateTime,
     pub spotify_id: Option<String>,
@@ -31,6 +32,7 @@ pub struct User {
 pub struct Specific {
     pub tag: Option<String>,
     pub private: bool,
+    pub admin: bool,
     pub follower_count: Count,
     pub discord_id: Option<String>,
 }
@@ -52,6 +54,7 @@ impl Split for User {
         let specific = Self::Specific {
             tag: self.tag,
             private: self.private,
+            admin: self.admin,
             follower_count: self.follower_count,
             discord_id: self.discord_id,
         };

@@ -7,15 +7,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 pub struct Client<'c> {
-    #[builder(into)]
     pub id: Id,
-    #[builder(into)]
     pub name: CowStr<'c>,
-    #[builder(into)]
     pub owner: Owner<'c>,
-    #[builder(into)]
     pub created_at: UtcDateTime,
-    #[builder(into)]
     pub description: Option<CowStr<'c>>,
 }
 
@@ -37,11 +32,8 @@ impl IntoStatic for Client<'_> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 pub struct Owner<'o> {
-    #[builder(into)]
     pub id: Id,
-    #[builder(into)]
     pub name: CowStr<'o>,
-    #[builder(into)]
     pub created_at: UtcDateTime,
 }
 
@@ -55,27 +47,6 @@ impl IntoStatic for Owner<'_> {
             id: self.id,
             name: self.name.into_static(),
             created_at: self.created_at,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
-pub struct Internals<'i> {
-    #[builder(into)]
-    pub id: Id,
-    #[builder(into)]
-    pub secret_hash: CowStr<'i>,
-}
-
-pub type StaticInternals = Internals<'static>;
-
-impl IntoStatic for Internals<'_> {
-    type Static = StaticInternals;
-
-    fn into_static(self) -> Self::Static {
-        Self::Static {
-            id: self.id,
-            secret_hash: self.secret_hash.into_static(),
         }
     }
 }

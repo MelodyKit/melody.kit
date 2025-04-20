@@ -1,4 +1,4 @@
-use std::{borrow::Cow, str::FromStr};
+use std::{borrow::Cow, fmt, str::FromStr};
 
 use const_macros::{const_assert, const_map_err, const_none, const_ok, const_try};
 use into_static::IntoStatic;
@@ -352,6 +352,12 @@ pub struct Tag<'t> {
     value: Cow<'t, str>,
 }
 
+impl fmt::Display for Tag<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.value.fmt(formatter)
+    }
+}
+
 impl Serialize for Tag<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.value.serialize(serializer)
@@ -431,6 +437,16 @@ impl<'t> Tag<'t> {
 
     pub const unsafe fn owned_unchecked(value: String) -> Self {
         unsafe { Self::new_unchecked(Cow::Owned(value)) }
+    }
+
+    pub fn take(self) -> Cow<'t, str> {
+        self.value
+    }
+}
+
+impl Tag<'_> {
+    pub fn get(&self) -> &str {
+        self.value.as_ref()
     }
 }
 

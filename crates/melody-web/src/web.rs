@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use axum::{response::Redirect, routing::get};
 use expand_tilde::ExpandTilde;
 use melody_state::state::{StatelessRouter, StaticState};
 use miette::Diagnostic;
@@ -86,11 +87,23 @@ pub async fn bind<H: AsRef<str> + Send>(host: H, port: Port) -> Result<TcpListen
 pub fn create(state: StaticState) -> Result<StatelessRouter, expand_tilde::Error> {
     let path = state.config.web.path.get().expand_tilde_owned()?;
 
-    let service = ServeDir::new(path);
+    let mut stateless = router();
+
+    for (name, redirect) in state.config.web.redirect.iter() {
+        let route = format!("/{name}");
+
+        let string = redirect.get().to_owned();
+
+        let handler = async move || Redirect::to(string.as_str());
+
+        stateless = stateless.route(route.as_str(), get(handler));
+    }
 
     let shared_state = Arc::new(state);
 
-    let app = router()
+    let service = ServeDir::new(path);
+
+    let app = stateless
         .with_state(shared_state)
         .nest_service(STATIC, service);
 

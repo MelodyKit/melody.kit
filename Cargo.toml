@@ -13,6 +13,12 @@ authors = ["MelodyKit <hello@melodykit.app>"]
 license = "MIT"
 publish = false
 
+[workspace.dependencies.melody-vec]
+path = "crates/melody-vec"
+
+[workspace.dependencies.melody-bridge]
+path = "crates/melody-bridge"
+
 [workspace.dependencies.melody-config]
 path = "crates/melody-config"
 
@@ -73,7 +79,7 @@ version = "0.4.40"
 features = ["serde"]
 
 [workspace.dependencies.clap]
-version = "4.5.36"
+version = "4.5.37"
 features = ["derive"]
 
 [workspace.dependencies.clap-verbosity-flag]
@@ -108,7 +114,7 @@ features = ["miette-errors"]
 version = "6.3.2"
 
 [workspace.dependencies.into-static]
-version = "0.2.0"
+version = "0.2.1"
 
 [workspace.dependencies.keyring]
 version = "3.6.2"

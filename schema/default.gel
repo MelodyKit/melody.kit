@@ -171,6 +171,10 @@ module default {
             default := false;
         };
 
+        required admin: bool {
+            default := false;
+        };
+
         multi blocked extending with_linked_at: User;
 
         trigger forbid_block_self after insert, update for each do (
@@ -222,6 +226,10 @@ module default {
         discord_id: non_empty_str {
             constraint exclusive;
         };
+
+        # telegram_id: non_empty_str {
+        #     constraint exclusive;
+        # };
 
         multi clients extending with_linked_at: Client;
 

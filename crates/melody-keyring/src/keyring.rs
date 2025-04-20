@@ -48,13 +48,9 @@ impl Error {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 pub struct Keyring<'k> {
-    #[builder(into)]
     pub bot: CowStr<'k>,
-    #[builder(into)]
     pub email: UserPair<'k>,
-    #[builder(into)]
     pub discord: ClientPair<'k>,
-    #[builder(into)]
     pub spotify: ClientPair<'k>,
 }
 

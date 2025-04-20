@@ -11,7 +11,7 @@ pub const DEFAULT_HOURS: Unit = 0;
 pub const DEFAULT_MINUTES: Unit = 0;
 pub const DEFAULT_SECONDS: Unit = 0;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Expires {
     #[builder(default = DEFAULT_YEARS)]
@@ -34,7 +34,7 @@ impl_default_with_builder!(Expires);
 
 pub const DEFAULT_VERIFICATION_SIZE: usize = 32;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Verification {
     #[builder(default)]
@@ -47,7 +47,7 @@ impl_default_with_builder!(Verification);
 
 pub const DEFAULT_AUTHORIZATION_SIZE: usize = 32;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Authorization {
     #[builder(default)]
@@ -60,7 +60,7 @@ impl_default_with_builder!(Authorization);
 
 pub const DEFAULT_ACCESS_SIZE: usize = 32;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Access {
     #[builder(default)]
@@ -73,7 +73,7 @@ impl_default_with_builder!(Access);
 
 pub const DEFAULT_REFRESH_SIZE: usize = 32;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct Refresh {
     #[builder(default)]
