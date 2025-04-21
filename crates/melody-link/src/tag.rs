@@ -9,13 +9,16 @@ use thiserror::Error;
 pub const INVALID: &str = "invalid tag";
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::empty), help("..."))] // TODO: help
+#[error("empty tag encountered")]
+#[diagnostic(code(melody::link::tag::empty), help("make sure the tag is non-empty"))]
 pub struct EmptyError;
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::only), help("..."))] // TODO: help
+#[error("only one byte (`{value:02x}`) encountered")]
+#[diagnostic(
+    code(melody::link::tag::only),
+    help("make sure the tag is at least two bytes long")
+)]
 pub struct OnlyError {
     pub value: u8,
 }
@@ -35,8 +38,11 @@ pub enum SplitErrorSource {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::split), help("..."))] // TODO: help
+#[error("failed to split the tag")]
+#[diagnostic(
+    code(melody::link::tag::split),
+    help("see the report for more information")
+)]
 pub struct SplitError {
     #[source]
     #[diagnostic_source]
@@ -74,7 +80,10 @@ pub const UNDER: u8 = b'_';
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("length `{length}` exceeds the limit of `{LIMIT}`")]
-#[diagnostic(code(melody::shared::tag::limit), help("..."))] // TODO: help
+#[diagnostic(
+    code(melody::link::tag::limit),
+    help("make sure the tag length is within the limit")
+)]
 pub struct LimitError {
     pub length: usize,
 }
@@ -102,8 +111,11 @@ pub const fn is_special(byte: u8) -> bool {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::start), help("..."))] // TODO: help
+#[error("tags can not start with `{byte:02x}`")]
+#[diagnostic(
+    code(melody::link::tag::start),
+    help("make sure the tag does not start with special bytes")
+)]
 pub struct StartError {
     pub byte: u8,
 }
@@ -123,8 +135,11 @@ pub const fn check_start(byte: u8) -> Result<(), StartError> {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::middle), help("..."))] // TODO: help
+#[error("tags can not contain `{byte:02x}`")]
+#[diagnostic(
+    code(melody::link::tag::middle),
+    help("make sure the tag contains only valid bytes")
+)]
 pub struct MiddleError {
     pub byte: u8,
 }
@@ -136,8 +151,11 @@ impl MiddleError {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::consecutive), help("..."))] // TODO: Help
+#[error("bytes `{repeated:02x}` can not be consecutive")]
+#[diagnostic(
+    code(melody::link::tag::consecutive),
+    help("see the report for more information")
+)]
 pub struct ConcesutiveError {
     pub repeated: u8,
 }
@@ -157,8 +175,11 @@ pub enum BetweenErrorSource {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::between), help("..."))] // TODO: help
+#[error("invalid bytes between start and end")]
+#[diagnostic(
+    code(melody::link::tag::between),
+    help("see the report for more information")
+)]
 pub struct BetweenError {
     #[source]
     #[diagnostic_source]
@@ -180,8 +201,11 @@ impl BetweenError {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag::end), help("..."))] // TODO: help
+#[error("tags can not end with `{byte:02x}`")]
+#[diagnostic(
+    code(melody::link::tag::end),
+    help("make sure the tag does not end with special bytes")
+)]
 pub struct EndError {
     pub byte: u8,
 }
@@ -212,8 +236,8 @@ pub enum ErrorSource {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("...")] // TODO: message
-#[diagnostic(code(melody::shared::tag), help("..."))] // TODO: help
+#[error("invalid tag encountered")]
+#[diagnostic(code(melody::link::tag), help("make sure the tag is valid"))]
 pub struct Error {
     #[source]
     #[diagnostic_source]

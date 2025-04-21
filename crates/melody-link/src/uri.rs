@@ -15,15 +15,12 @@ pub const SEPARATOR: &str = ":";
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("unexpected EOF while parsing URI")]
-#[diagnostic(code(melody::shared::uri::eof), help("make sure the string is valid"))]
+#[diagnostic(code(melody::link::uri::eof), help("make sure the string is valid"))]
 pub struct EofError;
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("invalid header `{string}`; expected `{HEADER}`")]
-#[diagnostic(
-    code(melody::shared::uri::header),
-    help("make sure the header is valid")
-)]
+#[diagnostic(code(melody::link::uri::header), help("make sure the header is valid"))]
 pub struct HeaderError {
     pub string: String,
 }

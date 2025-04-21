@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("invalid ID `{string}`")]
-#[diagnostic(code(melody::shared::id), help("make sure the ID is valid"))]
+#[diagnostic(code(melody::link::id), help("make sure the ID is valid"))]
 pub struct Error {
     #[source]
     #[diagnostic_source]
