@@ -111,10 +111,12 @@ impl<'d> Data<'d> {
     }
 }
 
+pub const FALLBACK_ERROR: StaticMessage = const_borrowed_str!("fallback error");
 pub const INTERNAL_ERROR: StaticMessage = const_borrowed_str!("internal error");
 
 impl Data<'_> {
     pub const INTERNAL_ERROR: Self = Self::new(Code::Unknown, INTERNAL_ERROR);
+    pub const FALLBACK_ERROR: Self = Self::new(Code::Unknown, FALLBACK_ERROR);
 }
 
 pub type StaticData = Data<'static>;
@@ -161,6 +163,10 @@ impl Error {
         Self::INTERNAL
     }
 
+    pub const fn fallback() -> Self {
+        Self::FALLBACK
+    }
+
     pub fn user_not_found(id: Id) -> Self {
         error!(UserNotFound, NOT_FOUND, "user with id `{id}` not found")
     }
@@ -177,6 +183,8 @@ impl Error {
         StaticData::INTERNAL_ERROR,
         StatusCode::INTERNAL_SERVER_ERROR,
     );
+
+    pub const FALLBACK: Self = Self::new(StaticData::FALLBACK_ERROR, StatusCode::NOT_FOUND);
 }
 
 impl IntoResponse for Error {

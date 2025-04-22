@@ -1,7 +1,7 @@
 use melody_model::models::entity::StaticEntity;
 use melody_schema::schema::entity::Entity as EntitySchema;
 use miette::Diagnostic;
-use non_empty_str::{CowStr, Empty};
+use non_empty_str::Empty;
 use thiserror::Error;
 
 use crate::{
@@ -82,28 +82,24 @@ impl TryBridge for EntitySchema {
         let name = self
             .name
             .try_bridge()
-            .map(CowStr::from_owned_str)
-            .map_err(Error::new_empty_name)?;
+            .map_err(Self::Error::new_empty_name)?;
 
         let created_at = self.created_at;
 
         let spotify_id = self
             .spotify_id
             .try_bridge()
-            .map_err(Error::new_empty_spotify_id)?
-            .map(CowStr::from_owned_str);
+            .map_err(Self::Error::new_empty_spotify_id)?;
 
         let apple_music_id = self
             .apple_music_id
             .try_bridge()
-            .map_err(Error::new_empty_apple_music_id)?
-            .map(CowStr::from_owned_str);
+            .map_err(Self::Error::new_empty_apple_music_id)?;
 
         let yandex_music_id = self
             .yandex_music_id
             .try_bridge()
-            .map_err(Error::new_empty_yandex_music_id)?
-            .map(CowStr::from_owned_str);
+            .map_err(Self::Error::new_empty_yandex_music_id)?;
 
         let model = Self::Model {
             id,

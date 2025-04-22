@@ -1,6 +1,6 @@
 use gel_tokio::{Client, create_client};
 use melody_link::{id::Id, tag::Tag};
-use melody_schema::schema::{statistics::Statistics, user::User};
+use melody_schema::schema::{artist::Artist, statistics::Statistics, user::User};
 use miette::Diagnostic;
 use thiserror::Error;
 
@@ -10,6 +10,8 @@ pub const QUERY_STATISTICS: &str = include_query!("statistics/query");
 
 pub const QUERY_USER: &str = include_query!("users/query");
 pub const QUERY_USER_BY_TAG: &str = include_query!("users/query_by_tag");
+
+pub const QUERY_ARTIST: &str = include_query!("artists/query");
 
 #[derive(Debug, Error, Diagnostic)]
 #[error("database failed")]
@@ -60,5 +62,13 @@ impl Database {
             .await?;
 
         Ok(optional_user)
+    }
+
+    pub async fn query_artist(&self, artist_id: Id) -> Result<Option<Artist>, Error> {
+        let arguments = arguments!(artist_id => artist_id.get());
+
+        let optional_artist = self.client.query_single(QUERY_ARTIST, &arguments).await?;
+
+        Ok(optional_artist)
     }
 }

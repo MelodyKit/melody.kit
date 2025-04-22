@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     schema::{artist::Artist, entity::Entity},
     split::Split,
-    types::{Count, Id},
+    types::{Count, Genres, Id},
 };
 
 #[derive(
@@ -20,7 +20,7 @@ pub struct Album {
     pub release_date: Date,
     pub track_count: Count,
     pub label: Option<String>,
-    pub genres: Vec<String>,
+    pub genres: Genres,
     pub created_at: UtcDateTime,
     pub spotify_id: Option<String>,
     pub apple_music_id: Option<String>,
@@ -36,7 +36,7 @@ pub struct Specific {
     pub release_date: Date,
     pub track_count: Count,
     pub label: Option<String>,
-    pub genres: Vec<String>,
+    pub genres: Genres,
 }
 
 impl Split for Album {

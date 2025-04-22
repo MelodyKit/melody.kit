@@ -9,10 +9,12 @@ use melody_link::{
     locatable::Locatable,
     uri::Uri,
 };
-use non_empty_str::CowStr;
 use serde::{Deserialize, Serialize};
 
-use crate::{models::entity::Entity, types::Count};
+use crate::{
+    models::entity::Entity,
+    types::{Count, Genres},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 pub struct Artist<'a> {
@@ -20,7 +22,7 @@ pub struct Artist<'a> {
     pub entity: Entity<'a>,
     pub follower_count: Count,
     pub stream_count: Count,
-    pub genres: Vec<CowStr<'a>>,
+    pub genres: Genres<'a>,
 }
 
 impl Linked for Artist<'_> {

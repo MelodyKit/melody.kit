@@ -2,7 +2,7 @@ use melody_link::tag::{self, Tag};
 use melody_model::models::user::StaticUser;
 use melody_schema::{schema::user::User as UserSchema, split::Split};
 use miette::Diagnostic;
-use non_empty_str::{CowStr, Empty};
+use non_empty_str::Empty;
 use thiserror::Error;
 
 use crate::{
@@ -60,13 +60,13 @@ impl TryBridge for UserSchema {
     fn try_bridge(self) -> Result<Self::Model, Self::Error> {
         let (common, specific) = self.split();
 
-        let entity = common.try_bridge().map_err(Error::entity)?;
+        let entity = common.try_bridge().map_err(Self::Error::entity)?;
 
         let tag = specific
             .tag
             .map(Tag::owned)
             .transpose()
-            .map_err(Error::tag)?;
+            .map_err(Self::Error::tag)?;
 
         let private = specific.private;
         let admin = specific.admin;
@@ -76,8 +76,7 @@ impl TryBridge for UserSchema {
         let discord_id = specific
             .discord_id
             .try_bridge()
-            .map_err(Error::new_empty_discord_id)?
-            .map(CowStr::from_owned_str);
+            .map_err(Self::Error::new_empty_discord_id)?;
 
         let model = Self::Model {
             entity,

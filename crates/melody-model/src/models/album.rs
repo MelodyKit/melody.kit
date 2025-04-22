@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{artist::Artist, entity::Entity},
-    types::Count,
+    types::{Count, Genres},
 };
 
 melody_enum! {
@@ -38,7 +38,7 @@ pub struct Album<'a> {
     pub release_date: Date,
     pub track_count: Count,
     pub label: Option<CowStr<'a>>,
-    pub genres: Vec<CowStr<'a>>,
+    pub genres: Genres<'a>,
 }
 
 impl Linked for Album<'_> {

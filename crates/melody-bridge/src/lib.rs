@@ -1,6 +1,8 @@
+pub mod artist;
 pub mod bridge;
 pub mod count;
 pub mod entity;
+pub mod genres;
 pub mod id;
 pub mod option;
 pub mod statistics;

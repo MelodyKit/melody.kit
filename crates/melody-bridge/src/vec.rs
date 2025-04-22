@@ -32,12 +32,12 @@ impl<T: TryBridge> TryBridge for Vec<T> {
 pub struct Error<E: Diagnostic + 'static> {
     #[source]
     #[diagnostic_source]
-    error: E,
-    index: usize,
+    pub source: E,
+    pub index: usize,
 }
 
 impl<E: Diagnostic + 'static> Error<E> {
-    pub const fn new(error: E, index: usize) -> Self {
-        Self { error, index }
+    pub const fn new(source: E, index: usize) -> Self {
+        Self { source, index }
     }
 }
