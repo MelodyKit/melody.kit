@@ -5,6 +5,7 @@ migrations/
 # meilisearch
 
 data.ms/
+dumps/
 
 # build artifacts
 
