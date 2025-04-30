@@ -1,5 +1,6 @@
 use melody_database::database::{self, Database};
 use melody_redis::redis::{self, Redis};
+use melody_search::search::{self, Search};
 use melody_state::state::State;
 use miette::Diagnostic;
 use thiserror::Error;
@@ -12,6 +13,7 @@ use crate::init::Parts;
 pub enum ErrorSource {
     Redis(#[from] redis::Error),
     Database(#[from] database::Error),
+    Search(#[from] search::Error),
 }
 
 #[derive(Debug, Error, Diagnostic)]
@@ -38,6 +40,10 @@ impl Error {
     pub fn database(error: database::Error) -> Self {
         Self::new(error.into())
     }
+
+    pub fn search(error: search::Error) -> Self {
+        Self::new(error.into())
+    }
 }
 
 pub async fn setup(parts: Parts<'_>) -> Result<State<'_>, Error> {
@@ -52,9 +58,17 @@ pub async fn setup(parts: Parts<'_>) -> Result<State<'_>, Error> {
 
     let database = Database::create().await.map_err(Error::database)?;
 
+    let search = Search::create(
+        config.search.host.get(),
+        config.search.port,
+        keyring.search.get(),
+    )
+    .map_err(Error::search)?;
+
     let state = State {
         database,
         redis,
+        search,
         config,
         keyring,
         hasher,

@@ -25,6 +25,9 @@ path = "crates/melody-config"
 [workspace.dependencies.melody-keyring]
 path = "crates/melody-keyring"
 
+[workspace.dependencies.melody-search]
+path = "crates/melody-search"
+
 [workspace.dependencies.melody-database]
 path = "crates/melody-database"
 
@@ -131,6 +134,9 @@ version = "0.4.27"
 [workspace.dependencies.maud]
 version = "0.27.0"
 features = ["axum"]
+
+[workspace.dependencies.meilisearch-sdk]
+version = "0.28.0"
 
 [workspace.dependencies.miette]
 version = "7.5.0"

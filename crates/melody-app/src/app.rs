@@ -4,6 +4,7 @@ use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use melody_bot::client as bot;
 use melody_kit::kit;
+use melody_search::invoke as search;
 use melody_state::state::StaticState;
 use melody_web::web;
 use miette::Diagnostic;
@@ -69,6 +70,7 @@ pub enum ErrorSource {
     Bot(#[from] bot::Error),
     Kit(#[from] kit::Error),
     Web(#[from] web::Error),
+    Search(#[from] search::Error),
 }
 
 #[derive(Debug, Error, Diagnostic)]
@@ -112,6 +114,10 @@ impl Error {
     pub fn kit(error: kit::Error) -> Self {
         Self::new(error.into())
     }
+
+    pub fn search(error: search::Error) -> Self {
+        Self::new(error.into())
+    }
 }
 
 impl App {
@@ -131,6 +137,7 @@ impl App {
                 Command::Bot(command) => command.run(state).await.map_err(Error::bot),
                 Command::Kit(command) => command.run(state).await.map_err(Error::kit),
                 Command::Web(command) => command.run(state).await.map_err(Error::web),
+                Command::Search(command) => command.run(state).await.map_err(Error::search),
             }
         })
     }
@@ -147,6 +154,7 @@ pub enum Command {
     Bot(BotCommand),
     Kit(KitCommand),
     Web(WebCommand),
+    Search(SearchCommand),
 }
 
 #[derive(Debug, Args)]
@@ -214,5 +222,40 @@ impl Runnable for WebCommand {
         let port = self.override_port.unwrap_or(state.config.web.port);
 
         web::run(host, port, state).await
+    }
+}
+
+#[derive(Debug, Args)]
+pub struct SearchCommand {
+    /// The host to run on.
+    #[arg(short = 'H', long, name = "HOST", help = "Run on this host")]
+    pub override_host: Option<String>,
+
+    /// The port to run on.
+    #[arg(short = 'P', long, name = "PORT", help = "Run on this port")]
+    pub override_port: Option<Port>,
+
+    /// The key to use.
+    #[arg(short = 'K', long, name = "KEY", help = "Use this key")]
+    pub override_key: Option<String>,
+}
+
+impl Runnable for SearchCommand {
+    type Error = search::Error;
+
+    async fn run(self, state: StaticState) -> Result<(), Self::Error> {
+        let host = self
+            .override_host
+            .unwrap_or_else(|| state.config.search.host.get().to_owned());
+
+        let port = self.override_port.unwrap_or(state.config.search.port);
+
+        let key = self
+            .override_key
+            .unwrap_or_else(|| state.keyring.search.get().to_owned());
+
+        search::invoke(host, port, key).await?;
+
+        Ok(())
     }
 }

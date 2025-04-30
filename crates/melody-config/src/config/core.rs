@@ -11,6 +11,7 @@ use crate::{
         keyring::Keyring,
         kit::Kit,
         redis::Redis,
+        search::Search,
         secrets::{Access, Authorization, Refresh, Verification},
         totp::Totp,
         web::Web,
@@ -49,6 +50,9 @@ pub struct Config<'c> {
     pub web: Web<'c>,
 
     #[builder(default)]
+    pub search: Search<'c>,
+
+    #[builder(default)]
     pub verification: Verification,
 
     #[builder(default)]
@@ -77,6 +81,7 @@ impl IntoStatic for Config<'_> {
             redis: self.redis.into_static(),
             totp: self.totp,
             web: self.web.into_static(),
+            search: self.search.into_static(),
             verification: self.verification,
             authorization: self.authorization,
             access: self.access,

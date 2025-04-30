@@ -22,6 +22,7 @@ melody-hash.workspace = true
 melody-keyring.workspace = true
 melody-kit.workspace = true
 melody-redis.workspace = true
+melody-search.workspace = true
 melody-state.workspace = true
 melody-web.workspace = true
 miette.workspace = true

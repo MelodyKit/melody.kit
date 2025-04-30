@@ -18,3 +18,4 @@ melody-database.workspace = true
 melody-hash.workspace = true
 melody-keyring.workspace = true
 melody-redis.workspace = true
+melody-search.workspace = true

@@ -8,11 +8,13 @@ use melody_database::database::Database;
 use melody_hash::hash::Hasher;
 use melody_keyring::keyring::Keyring;
 use melody_redis::redis::Redis;
+use melody_search::search::Search;
 
 #[derive(Debug, Clone, Builder)]
 pub struct State<'s> {
     pub database: Database,
     pub redis: Redis,
+    pub search: Search,
     pub config: Config<'s>,
     pub keyring: Keyring<'s>,
     pub hasher: Hasher,
@@ -27,6 +29,7 @@ impl IntoStatic for State<'_> {
         Self::Static {
             database: self.database,
             redis: self.redis,
+            search: self.search,
             hasher: self.hasher,
             config: self.config.into_static(),
             keyring: self.keyring.into_static(),

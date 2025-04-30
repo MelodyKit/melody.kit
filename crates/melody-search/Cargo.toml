@@ -1,0 +1,17 @@
+[package]
+name = "melody-search"
+version = "0.1.0"
+description = "MelodyKit search."
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+[dependencies]
+miette.workspace = true
+meilisearch-sdk.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true

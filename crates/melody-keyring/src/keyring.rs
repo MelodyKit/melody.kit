@@ -48,6 +48,7 @@ impl Error {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Builder)]
 pub struct Keyring<'k> {
+    pub search: CowStr<'k>,
     pub bot: CowStr<'k>,
     pub email: UserPair<'k>,
     pub discord: ClientPair<'k>,
@@ -61,6 +62,7 @@ impl IntoStatic for Keyring<'_> {
 
     fn into_static(self) -> Self::Static {
         Self::Static {
+            search: self.search.into_static(),
             bot: self.bot.into_static(),
             email: self.email.into_static(),
             discord: self.discord.into_static(),
@@ -72,6 +74,10 @@ impl IntoStatic for Keyring<'_> {
 impl Keyring<'_> {
     pub fn load_with(config: &KeyringConfig<'_>) -> Result<Self, Error> {
         let service = config.service.get();
+
+        let search = find(service, config.search.get())
+            .map(CowStr::from_owned_str)
+            .map_err(Error::find)?;
 
         let bot = find(service, config.bot.get())
             .map(CowStr::from_owned_str)
@@ -93,6 +99,7 @@ impl Keyring<'_> {
             .map_err(Error::pairs)?;
 
         let keyring = Self {
+            search,
             bot,
             email,
             discord,

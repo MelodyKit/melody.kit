@@ -2,6 +2,10 @@
 
 migrations/
 
+# meilisearch
+
+data.ms/
+
 # build artifacts
 
 target/

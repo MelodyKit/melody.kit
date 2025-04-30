@@ -99,7 +99,7 @@ pub fn prepare<D: AsRef<Path>, L: LogLevel>(
 ) -> Result<(), Error> {
     if let Some(path) = directory {
         change_current_dir(path).map_err(Error::change_current_dir)?;
-    }
+    };
 
     prepare_tracing(verbosity).map_err(Error::prepare_tracing)?;
 
